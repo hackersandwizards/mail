@@ -29,5 +29,8 @@ goes in. Every word a mail prints is a prop; the specimen data is invented, and
   Chrome for Testing views (light, dark, inverted, images blocked), used by the tests and the
   specimen. `scripts/specimen.ts`: renders `specimen/*.json` and writes `specimen/index.html`;
   never edit the generated files, run `bun run specimen`.
-- `stories/`: the Astrobook design system at `/design-system` (port 4455). Each story shows the
-  rendered HTML in a frame, since a component in the page is not what a mail client receives.
+- `stories/`: the Astrobook design system at `/design-system` (port 4455), the mail under
+  `Mails/`, the building blocks under `Parts/`. Each story shows the rendered HTML in a frame, since
+  a component in the page is not what a mail client receives. `Home.astro` is the home in brand's
+  catalogue shape; the brand elements it shows are listed in `brand-elements.json`, which
+  `brand-elements` measures on the built home.

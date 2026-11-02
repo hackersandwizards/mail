@@ -28,7 +28,7 @@
   ],
   "scripts": {
     "prepare": "[ \"$(git rev-parse --show-toplevel 2>/dev/null)\" = \"$(pwd -P)\" ] && git config core.hooksPath .githooks || true",
-    "check": "bun run format:check && bun run lint && bun run typecheck && bun .claude/skills/engineering/check-unique-names.ts && bun test && bun scripts/specimen.ts --check && bun run design-system:build && brand-colours && admin-check",
+    "check": "bun run format:check && bun run lint && bun run typecheck && bun .claude/skills/engineering/check-unique-names.ts && bun test && bun scripts/specimen.ts --check && bun run design-system:build && brand-colours && brand-elements && admin-check",
     "lint": "bun --bun eslint --cache --concurrency=auto .",
     "typecheck": "bun --bun tsc --noEmit",
     "format": "bun --bun prettier --write .",
@@ -50,7 +50,7 @@
   "devDependencies": {
     "@eslint/js": "10.0.1",
     "@hackersandwizards/admin": "git+https://github.com/hackersandwizards/admin.git#v0.3.0",
-    "@hackersandwizards/brand": "git+https://github.com/hackersandwizards/brand.git#v0.27.14",
+    "@hackersandwizards/brand": "git+https://github.com/hackersandwizards/brand.git#v0.29.2",
     "@types/bun": "1.4.4",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",

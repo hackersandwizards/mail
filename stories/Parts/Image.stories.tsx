@@ -1,6 +1,6 @@
 import card from "@hackersandwizards/brand/logos/lockup-compact.png";
-import { Image } from "../components/Image";
-import { meta, part, views } from "./frame";
+import { Image } from "../../components/Image";
+import { meta, part, views } from "../frame";
 
 const image = { alt: "Vorschaubild zum Artikel", width: 300, height: 152 };
 const loaded = views(await part(<Image src={card.src} {...image} />));

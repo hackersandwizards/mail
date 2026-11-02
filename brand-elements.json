@@ -1,0 +1,6 @@
+{
+  "pages": ["dist/design-system/index.html"],
+  "uses": ["card", "pill", "table", "link"],
+  "exceptions": {},
+  "lightOnly": true
+}

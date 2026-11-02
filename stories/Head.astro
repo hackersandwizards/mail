@@ -1,0 +1,9 @@
+---
+// Astrobook's <head> on every page of the design system: brand's dense scale, the apps' scale, and
+// its focus ring. The mails in the frames keep their own sizes.
+---
+
+<script is:inline>
+  document.documentElement.dataset.hwScale = "dense";
+  document.documentElement.classList.add("hw-focus-ring");
+</script>

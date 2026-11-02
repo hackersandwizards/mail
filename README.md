@@ -41,7 +41,7 @@ Classic Outlook on Windows shows its own notice instead of styled alt text.
 
 `bun run check` is the gate: format, lint, types, unique names, tests (render, the blocked-image
 fix, the specimen headless in light, dark, inverted and with images blocked, the specimen's
-privacy), the specimen up to date, the design-system build and the brand colour scan. The
+privacy), the specimen up to date, the design-system build, the brand colour scan and `brand-elements` on the built design-system home. The
 pre-commit hook runs `bun run check:staged`: gitleaks over the staged changes, then prettier and
 eslint on the staged files. The headless test needs Chrome for Testing:
 `bunx @puppeteer/browsers@3.2.6 install chrome@stable --path ~/.cache/puppeteer`.
