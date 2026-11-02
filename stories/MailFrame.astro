@@ -1,0 +1,15 @@
+---
+// One rendered mail in a frame at a reading-pane width, grown to the mail's height.
+interface Props {
+  html: string;
+  width: number;
+}
+const { html, width } = Astro.props;
+---
+
+<iframe
+  title="Mail"
+  srcdoc={html}
+  width={width}
+  style={`width:${width}px;height:900px;border:1px solid var(--color-border)`}
+  onload="this.style.height = this.contentDocument.documentElement.scrollHeight + 2 + 'px'"></iframe>

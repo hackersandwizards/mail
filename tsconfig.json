@@ -1,0 +1,13 @@
+{
+  "extends": "astro/tsconfigs/strict",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "react",
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "erasableSyntaxOnly": true,
+    "types": ["bun", "astro/client"]
+  },
+  "include": ["components", "mails", "scripts", "stories", "test", "*.ts", ".astro/types.d.ts"],
+  "exclude": ["dist", "node_modules"]
+}

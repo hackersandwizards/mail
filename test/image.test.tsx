@@ -1,0 +1,71 @@
+import { describe, expect, test } from "bun:test";
+import { renderToStaticMarkup } from "react-dom/server";
+import { colors } from "@hackersandwizards/brand/tokens";
+import { Image } from "../components/Image";
+import type { BriefProps } from "../mails/Brief";
+import { renderBrief } from "../scripts/render";
+import data from "../specimen/brief-bild.json";
+
+const tint = colors["--color-tint"];
+const muted = colors["--color-muted"];
+const props = { src: "https://example.com/card.png", alt: "Vorschaubild", width: 300, height: 152 };
+
+/** The style attribute of the first element of that tag, as a property map. */
+function style(html: string, tag: string): Record<string, string> {
+  const raw = html.match(new RegExp(`<${tag}\\b[^>]*\\bstyle="([^"]*)"`))?.[1] ?? "";
+  return Object.fromEntries(
+    raw
+      .split(";")
+      .filter(Boolean)
+      .map((d) => d.split(":").map((s) => s.trim()) as [string, string]),
+  );
+}
+const attr = (html: string, tag: string, name: string) =>
+  html.match(new RegExp(`<${tag}\\b[^>]*\\b${name}="([^"]*)"`))?.[1];
+
+describe("Image keeps its box while images are blocked", async () => {
+  const alone = renderToStaticMarkup(<Image {...props} href="https://example.com/" />);
+  const inMail = (await renderBrief(data as BriefProps)).html;
+
+  for (const [where, html] of [
+    ["alone", alone],
+    ["in the Brief", inMail],
+  ] as const) {
+    test(`${where}: whole-pixel width and height in attribute and style, never auto`, () => {
+      const box = data.items[0].image ?? props;
+      expect(attr(html, "img", "width")).toBe(String(where === "alone" ? 300 : box.width));
+      expect(attr(html, "img", "height")).toBe(String(where === "alone" ? 152 : box.height));
+      const img = style(html, "img");
+      expect(img.width).toBe(`${attr(html, "img", "width")}px`);
+      expect(img.height).toBe(`${attr(html, "img", "height")}px`);
+      expect(html).not.toMatch(/height:\s*auto|height="auto"/);
+    });
+
+    test(`${where}: the tint behind the image and its cell`, () => {
+      expect(style(html, "img")["background-color"]).toBe(tint);
+      const cell = html.match(/<td\b[^>]*\bbgcolor="[^"]*"[^>]*>/)?.[0] ?? "";
+      expect(cell).toContain(`bgcolor="${tint}"`);
+      expect(cell).toContain(`background-color:${tint}`);
+      expect(cell).toMatch(/width:\d+px;height:\d+px/);
+    });
+
+    test(`${where}: alt text in Arial 12/16, muted, without the link's underline`, () => {
+      const img = style(html, "img");
+      expect(img["font-family"]).toStartWith("Arial");
+      expect(img["font-size"]).toBe("12px");
+      expect(img["line-height"]).toBe("16px");
+      expect(img.color).toBe(muted);
+      expect(img["text-decoration"]).toBe("none");
+      const link = html.match(/<a\b[^>]*>(?=<img)/)?.[0] ?? "";
+      expect(link).toContain("text-decoration:none");
+      expect(link).toContain(`color:${muted}`);
+    });
+  }
+
+  test("refuses a size that is no whole pixel, too wide for a phone, or an image without alt", () => {
+    expect(() => renderToStaticMarkup(<Image {...props} width={300.5} />)).toThrow("whole number");
+    expect(() => renderToStaticMarkup(<Image {...props} height={0} />)).toThrow("whole number");
+    expect(() => renderToStaticMarkup(<Image {...props} width={321} />)).toThrow("phone column");
+    expect(() => renderToStaticMarkup(<Image {...props} alt=" " />)).toThrow("no alt text");
+  });
+});

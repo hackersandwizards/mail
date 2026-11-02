@@ -1,0 +1,52 @@
+{
+  "lang": "de",
+  "subject": "Kurzes Update aus dem Oktober, mit Bild",
+  "preview": "Drei Sachen, die ich dir gern mitgebe: ein Artikel, eine Podcastfolge, ein Talk.",
+  "greeting": "Moin Robin,",
+  "intro": ["hier mein kurzes Update, was bei uns neu ist. Drei Sachen, die ich dir gern mitgebe:"],
+  "items": [
+    {
+      "label": "Artikel",
+      "title": "Kleine Pull Requests zählen wieder, seit Agenten mitschreiben",
+      "href": "https://example.com/artikel/kleine-pull-requests",
+      "text": "Wer Agenten große Änderungen schreiben lässt, verschiebt die Arbeit ins Review. Drei Regeln, die den Diff klein halten.",
+      "image": {
+        "src": "../node_modules/@hackersandwizards/brand/logos/lockup-compact.png",
+        "alt": "Vorschaubild zum Artikel",
+        "width": 300,
+        "height": 152
+      }
+    },
+    {
+      "label": "Podcast",
+      "title": "Folge 12: Tests als Vertrag zwischen Team und Agent",
+      "href": "https://example.com/podcast/folge-12",
+      "text": "Warum ein roter Test die beste Anweisung ist, die ein Agent bekommen kann, und wo das aufhört."
+    },
+    {
+      "label": "Talk",
+      "title": "Agenten im Terminal: sechs Monate im Rückblick",
+      "href": "https://example.com/talks/agenten-im-terminal",
+      "text": "Was sich bewährt hat, was wir wieder abgeschaltet haben, und welche Rechte ein Agent nie bekommt."
+    }
+  ],
+  "outro": [
+    "Wenn dich eins davon gerade für dein Team beschäftigt, antworte einfach auf diese Mail."
+  ],
+  "closing": ["Liebe Grüße", "/kim"],
+  "signature": {
+    "name": "Kim Beispiel",
+    "role": "Gründerin",
+    "linkedin": "https://www.linkedin.com/in/kim-beispiel"
+  },
+  "objection": {
+    "before": "Du bekommst dieses Update, weil wir zusammenarbeiten. Du kannst diesen Mails jederzeit widersprechen, mit einer kurzen Antwort oder ",
+    "linkText": "mit dieser vorbereiteten Mail",
+    "after": ", ohne dass dir andere als die Übermittlungskosten nach den Basistarifen entstehen.",
+    "mailto": {
+      "to": "kim.beispiel@example.com",
+      "subject": "Bitte keine Updates mehr",
+      "body": "Bitte schick mir keine Updates mehr."
+    }
+  }
+}
