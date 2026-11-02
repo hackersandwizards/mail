@@ -32,12 +32,11 @@ goes in. Every word a mail prints is a prop; the catalog data is invented, and
   `catalog({...})`), built to `dist/` by `bun run build`, served on port 4455 by `bun run dev`, under the base
   `/mail` of its Pages site `https://hackersandwizards.github.io/mail/`, which scaffolding's reusable
   workflow publishes on every push to `main`.
-  Its stories in `catalog/stories/` sit at `/catalog`, the mail under `Mails/`, the building blocks
-  under `Parts/`; each shows the rendered HTML in a frame, since a component in the page is not
-  what a mail client receives. `catalog/mails/*.json` holds every mail type's invented data, and
-  the routes in `catalog/pages/mails/` render each with `renderBrief` to `/mails/<type>.html` and
-  `.txt`, the bytes `mail-render` writes, with `/mails/` showing them light, dark, inverted and on
-  a phone. `Home.astro` fills the shell's home with the foundations; the brand elements it shows
+  Its stories in `catalog/stories/` sit at `/catalog`, each mail type under `Mails/` light, dark,
+  inverted and on a phone, the building blocks under `Parts/`; each shows the rendered HTML in a
+  frame, since a component in the page is not what a mail client receives. `catalog/mails/*.json`
+  holds every mail type's invented data, and the route in `catalog/pages/mails/` renders each with
+  `renderBrief` to `/mails/<type>.html`, `.txt` and `.json`, the bytes `mail-render` writes. `Home.astro` fills the shell's home with the foundations; the brand elements it shows
   are listed in `brand-elements.json`, which `bun run check:elements` measures on the built home.
 - `bun run check` is scaffolding's runner; the repository's own steps are the `check:<what>`
   scripts named in `package.json` under `scaffolding.check`.
