@@ -32,6 +32,9 @@ describe("renderBrief", async () => {
       expect(html).toContain(`href="${item.href}"`);
     }
     expect(html).toContain(brief.greeting);
+    // No header: the signature's wordmark is the only one, after the greeting.
+    expect(html.match(/>hackers<\/span>/g)).toHaveLength(1);
+    expect(html.indexOf(brief.greeting)).toBeLessThan(html.indexOf(">hackers</span>"));
     expect(html).toContain(brief.signature.name);
     expect(html).toContain(`color:${colors["--color-teal"]}`);
     expect(html).toContain(

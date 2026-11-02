@@ -3,7 +3,6 @@ import { MailShell } from "../components/MailShell";
 import { ObjectionNotice, objectionText, type ObjectionProps } from "../components/ObjectionNotice";
 import { Lines, Paragraph } from "../components/Paragraph";
 import { Signature, signatureText, type SignatureFields } from "../components/Signature";
-import { Wordmark } from "../components/Wordmark";
 
 /** Every word of a Brief mail; the engine adds none of its own. */
 export type BriefProps = {
@@ -21,13 +20,12 @@ export type BriefProps = {
 };
 
 /**
- * The Brief: a personal mail with structure. Wordmark, greeting, intro, labelled items, outro,
- * sign-off, the brand signature and the objection notice. No image unless an item brings one.
+ * The Brief: a personal mail with structure. Greeting, intro, labelled items, outro, sign-off, the
+ * brand signature (the one wordmark) and the objection notice. No image unless an item brings one.
  */
 export function Brief(p: BriefProps) {
   return (
     <MailShell lang={p.lang} title={p.subject} preview={p.preview}>
-      <Wordmark />
       <Paragraph>{p.greeting}</Paragraph>
       {p.intro.map((line, i) => (
         <Paragraph key={`intro-${i}`}>{line}</Paragraph>
