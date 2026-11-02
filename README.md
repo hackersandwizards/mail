@@ -5,12 +5,11 @@ renders a mail from a data file to its HTML part and its plain-text part. Compan
 and keeps what fills a mail: the recipients, the words, the drafts.
 
 Maintainer: Benedikt Stemmildt. The repo is public, its history included, so nothing goes in that
-may not be public. Every person and address in the catalog is invented.
+may not be public. Every recipient and every word in the catalog data is invented; the signature
+template is the brand's own.
 
-`bun run dev` serves the catalog at `http://127.0.0.1:4455/mail/catalog/` and every mail type
-light, dark, inverted and at phone width at `http://127.0.0.1:4455/mail/mails/`. `bun run build`
-writes both to `dist/`, which GitHub Pages publishes at `https://hackersandwizards.github.io/mail/`
-on every push to `main`.
+The catalog shows every building block and every mail type, published at
+https://hackersandwizards.github.io/mail/catalog/ on every push to `main`.
 
 ## Use it in another repo
 
@@ -30,7 +29,8 @@ Add the dependency pinned to the newest tag
 | `@hackersandwizards/mail/components/<Name>`    | `MailShell`, `Wordmark`, `Paragraph`, `Item`, `Image`, `Signature`, `ObjectionNotice` |
 | `@hackersandwizards/mail/theme`                | the colour roles and the mail font stacks, from the brand                             |
 
-The data file holds every word of the mail; `catalog/mails/brief.json` shows its shape.
+The data file holds every word of the mail except the brand's signature template;
+[`catalog/mails/brief.json`](catalog/mails/brief.json) shows its shape.
 
 ## Images
 
@@ -39,13 +39,32 @@ attribute and the style, the brand tint behind the image and its cell, and alt t
 muted, without the link underline. It refuses an image wider than the phone column (320 px).
 Classic Outlook on Windows shows its own notice instead of styled alt text.
 
-## Checks
+## Work on the package
 
-`bun run check` is scaffolding's gate runner: format, lint, styles, types, structure, coupling,
-unique names, the confidential terms, the tests (render, the blocked-image fix, every mail headless
-in light, dark, inverted and with images blocked, the catalog data's privacy), the catalog build
-and the item check (`admin`), then the brand colour scan (`check:colours`) and `brand-elements` on
-the built catalog home (`check:elements`). The pre-commit hook runs
-`bun run check:staged`: gitleaks over the staged changes, coupling and confidential terms, then
-prettier and eslint on the staged files. The headless test needs Chrome for Testing:
-`bunx @puppeteer/browsers@3.2.6 install chrome@stable --path ~/.cache/puppeteer`.
+Requirements: Bun 1.3 or newer and `gitleaks` (`brew install gitleaks`) for the commit hook. The
+headless test starts Chrome for Testing, and its first run installs it into `~/.cache/puppeteer`.
+
+```sh
+git clone https://github.com/hackersandwizards/mail.git && cd mail
+bun install                                  # also points the git hooks at .githooks/
+bun run dev                                  # the catalog at http://127.0.0.1:4455/mail/catalog/
+bun scripts/render.ts catalog/mails/brief.json --out /tmp/brief   # /tmp/brief.html and .txt
+bun run check                                # the whole gate
+```
+
+`bun run dev` also shows every mail type light, dark, inverted and at phone width at
+`http://127.0.0.1:4455/mail/mails/`. `bun run build` writes the catalog to `dist/`.
+
+`bun run check` runs scaffolding's shared steps (format, lint, styles, types, tests, the catalog
+build and more), then the brand colour scan and `brand-elements` on the built catalog home. The git
+hooks check the staged files, the commit message and each push;
+[.githooks/README.md](.githooks/README.md) lists them.
+
+## Release
+
+A release raises `version` in `package.json`, commits, and tags `v<version>` to match
+(`git tag v<version> && git push origin main v<version>`); consumers then raise the tag in their
+dependency line. The layout and the rules for changing it: [CLAUDE.md](CLAUDE.md).
+
+Security issues: [SECURITY.md](SECURITY.md). Licence: PolyForm Strict 1.0.0, see
+[LICENSE](LICENSE).
