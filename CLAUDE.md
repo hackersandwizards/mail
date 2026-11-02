@@ -11,7 +11,7 @@ Consumers install it as a Git dependency pinned to a tag. `"private": true` stay
 published to a registry. A release is a tag `v<version>` matching `package.json`.
 
 **Anyone can read this whole repo.** No client, recipient, real mail text, price or personal data
-goes in. Every word a mail prints is a prop; the specimen data is invented, and
+goes in. Every word a mail prints is a prop; the catalog data is invented, and
 `test/privacy.test.ts` holds its addresses to `example.com`.
 
 ## Layout
@@ -27,10 +27,15 @@ goes in. Every word a mail prints is a prop; the specimen data is invented, and
   engine writes itself rather than stripping the HTML.
 - `scripts/render.ts`: `renderBrief` and the `mail-render` command. `scripts/modes.ts`: headless
   Chrome for Testing views (light, dark, inverted, images blocked), used by the tests and the
-  specimen. `scripts/specimen.ts`: renders `specimen/*.json` and writes `specimen/index.html`;
-  never edit the generated files, run `bun run specimen`.
-- `stories/`: the Astrobook design system at `/design-system` (port 4455), the mail under
-  `Mails/`, the building blocks under `Parts/`. Each story shows the rendered HTML in a frame, since
-  a component in the page is not what a mail client receives. `Home.astro` is the home in brand's
-  catalogue shape; the brand elements it shows are listed in `brand-elements.json`, which
-  `brand-elements` measures on the built home.
+  catalog.
+- `catalog/`: one Astro app in scaffolding's catalog shell (`catalog/astro.config.ts`, preset
+  `catalog({...})`), built to `dist/` by `bun run build`, served on port 4455 by `bun run dev`.
+  Its stories in `catalog/stories/` sit at `/catalog`, the mail under `Mails/`, the building blocks
+  under `Parts/`; each shows the rendered HTML in a frame, since a component in the page is not
+  what a mail client receives. `catalog/mails/*.json` holds every mail type's invented data, and
+  the routes in `catalog/pages/mails/` render each with `renderBrief` to `/mails/<type>.html` and
+  `.txt`, the bytes `mail-render` writes, with `/mails/` showing them light, dark, inverted and on
+  a phone. `Home.astro` fills the shell's home with the foundations; the brand elements it shows
+  are listed in `brand-elements.json`, which `bun run check:elements` measures on the built home.
+- `bun run check` is scaffolding's runner; the repository's own steps are the `check:<what>`
+  scripts named in `package.json` under `scaffolding.check`.

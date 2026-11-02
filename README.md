@@ -5,10 +5,11 @@ renders a mail from a data file to its HTML part and its plain-text part. Compan
 and keeps what fills a mail: the recipients, the words, the drafts.
 
 Maintainer: Benedikt Stemmildt. The repo is public, its history included, so nothing goes in that
-may not be public. Every person and address in the specimen is invented.
+may not be public. Every person and address in the catalog is invented.
 
-Open `specimen/index.html` after `bun install` to see each mail light, dark, inverted and at phone
-width. `bun run dev` serves the design system at `http://127.0.0.1:4455/design-system/`.
+`bun run dev` serves the catalog at `http://127.0.0.1:4455/catalog/` and every mail type light,
+dark, inverted and at phone width at `http://127.0.0.1:4455/mails/`. `bun run build` writes both to
+`dist/`.
 
 ## Use it in another repo
 
@@ -28,7 +29,7 @@ Add the dependency pinned to the newest tag
 | `@hackersandwizards/mail/components/<Name>`    | `MailShell`, `Wordmark`, `Paragraph`, `Item`, `Image`, `Signature`, `ObjectionNotice` |
 | `@hackersandwizards/mail/theme`                | the colour roles and the mail font stacks, from the brand                             |
 
-The data file holds every word of the mail; `specimen/brief.json` shows its shape.
+The data file holds every word of the mail; `catalog/mails/brief.json` shows its shape.
 
 ## Images
 
@@ -39,9 +40,11 @@ Classic Outlook on Windows shows its own notice instead of styled alt text.
 
 ## Checks
 
-`bun run check` is the gate: format, lint, types, unique names, tests (render, the blocked-image
-fix, the specimen headless in light, dark, inverted and with images blocked, the specimen's
-privacy), the specimen up to date, the design-system build, the brand colour scan and `brand-elements` on the built design-system home. The
-pre-commit hook runs `bun run check:staged`: gitleaks over the staged changes, then prettier and
-eslint on the staged files. The headless test needs Chrome for Testing:
+`bun run check` is scaffolding's gate runner: format, lint, styles, types, structure, coupling,
+unique names, the confidential terms, the tests (render, the blocked-image fix, every mail headless
+in light, dark, inverted and with images blocked, the catalog data's privacy) and the catalog
+build, then the brand colour scan (`check:colours`), `brand-elements` on the built catalog home
+(`check:elements`) and the item check (`check:admin`). The pre-commit hook runs
+`bun run check:staged`: gitleaks over the staged changes, coupling and confidential terms, then
+prettier and eslint on the staged files. The headless test needs Chrome for Testing:
 `bunx @puppeteer/browsers@3.2.6 install chrome@stable --path ~/.cache/puppeteer`.

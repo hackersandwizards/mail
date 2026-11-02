@@ -6,7 +6,7 @@ import { join } from "node:path";
 import { colors } from "@hackersandwizards/brand/tokens";
 import type { BriefProps } from "../mails/Brief";
 import { renderBrief } from "../scripts/render";
-import data from "../specimen/brief.json";
+import data from "../catalog/mails/brief.json";
 
 const brief = data as BriefProps;
 const root = join(import.meta.dir, "..");
@@ -61,10 +61,14 @@ describe("mail-render", () => {
     const dir = mkdtempSync(join(tmpdir(), "mail-render-"));
     try {
       const out = join(dir, "brief");
-      const run = spawnSync("bun", ["scripts/render.ts", "specimen/brief.json", "--out", out], {
-        cwd: root,
-        encoding: "utf-8",
-      });
+      const run = spawnSync(
+        "bun",
+        ["scripts/render.ts", "catalog/mails/brief.json", "--out", out],
+        {
+          cwd: root,
+          encoding: "utf-8",
+        },
+      );
       expect(run.status).toBe(0);
       const mail = await renderBrief(brief);
       expect(readFileSync(`${out}.html`, "utf-8")).toBe(mail.html);

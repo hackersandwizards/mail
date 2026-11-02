@@ -1,6 +1,4 @@
-# The generated specimen and the synced agent config: never reformat.
-specimen/*.html
-specimen/*.txt
+# The synced agent config: never reformat.
 .claude/
 .agents/
 .githooks/

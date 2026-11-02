@@ -1,6 +1,6 @@
 {
   "name": "@hackersandwizards/mail",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "description": "The hackers&wizards mail engine: React Email components on the brand tokens, a render command writing the HTML and plain-text parts of a mail from a data file.",
   "license": "SEE LICENSE IN LICENSE",
@@ -23,21 +23,24 @@
     "components",
     "mails",
     "scripts/render.ts",
-    "specimen",
     "LICENSE"
   ],
   "scripts": {
+    "preinstall": "node scripts/repo/only-bun.cjs",
     "prepare": "[ \"$(git rev-parse --show-toplevel 2>/dev/null)\" = \"$(pwd -P)\" ] && git config core.hooksPath .githooks || true",
-    "check": "bun install --frozen-lockfile && bun run format:check && bun run lint && bun run typecheck && bun .claude/skills/engineering/check-unique-names.ts && bun test && bun scripts/specimen.ts --check && bun run design-system:build && brand-colours && brand-elements && admin-check",
+    "dev": "cd catalog && bun --bun astro dev",
+    "catalog": "bun run dev",
+    "build": "cd catalog && bun --bun astro build",
+    "check": "scaffolding check",
+    "check:elements": "CATALOG_FILE=1 bun run build && brand-elements",
+    "check:colours": "brand-colours",
+    "check:admin": "admin-check",
+    "check:staged": "check-staged",
     "lint": "bun --bun eslint --cache --concurrency=auto .",
     "typecheck": "bun --bun tsc --noEmit",
-    "format": "bun --bun prettier --write .",
     "format:check": "bun --bun prettier --check .",
     "fix": "bun --bun eslint --cache --concurrency=auto . --fix && bun --bun prettier --write .",
-    "specimen": "bun scripts/specimen.ts",
-    "dev": "bun --bun astro dev",
-    "design-system:build": "bun --bun astro build",
-    "check:staged": "bun .claude/skills/engineering/check-staged.ts"
+    "test": "bun test"
   },
   "dependencies": {
     "react": "19.3.1",
@@ -51,6 +54,7 @@
     "@eslint/js": "10.0.1",
     "@hackersandwizards/admin": "git+https://github.com/hackersandwizards/admin.git#v0.4.1",
     "@hackersandwizards/brand": "git+https://github.com/hackersandwizards/brand.git#v0.30.0",
+    "@hackersandwizards/scaffolding": "git+https://github.com/hackersandwizards/scaffolding.git#v0.3.2",
     "@types/bun": "1.4.4",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
@@ -60,15 +64,31 @@
     "eslint-config-prettier": "10.1.8",
     "prettier": "3.9.10",
     "puppeteer-core": "25.16.0",
+    "stylelint": "17.16.0",
     "typescript": "6.0.3",
     "typescript-eslint": "8.72.1"
   },
-  "admin": {
-    "products": [
+  "prettier": "@hackersandwizards/scaffolding/prettier",
+  "scaffolding": {
+    "allow": [
       {
-        "label": "Mail types",
-        "href": "specimen/index.html"
+        "check": "confidential",
+        "path": ".claude/skills/voice/personal-voice.md",
+        "text": "ach",
+        "reason": "German imperative of machen in a quoted phrase of the hub-synced voice skill, not the company term; the lower-case match goes once os's term builder writes the capitals-only (cs:) hashes scaffolding v0.3.0 reads"
+      },
+      {
+        "check": "confidential",
+        "path": ".claude/skills/voice/signature-phrases.md",
+        "text": "ach",
+        "reason": "German imperative of machen in a quoted phrase of the hub-synced voice skill, not the company term; the lower-case match goes once os's term builder writes the capitals-only (cs:) hashes scaffolding v0.3.0 reads"
       }
+    ],
+    "test": "test",
+    "check": [
+      "check:colours",
+      "check:elements",
+      "check:admin"
     ]
   }
 }

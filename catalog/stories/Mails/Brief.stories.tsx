@@ -1,7 +1,7 @@
-import { renderBrief } from "../../scripts/render";
-import type { BriefProps } from "../../mails/Brief";
-import brief from "../../specimen/brief.json";
-import { forceInvert } from "../../scripts/modes";
+import { renderBrief } from "../../../scripts/render";
+import type { BriefProps } from "../../../mails/Brief";
+import brief from "../../mails/brief.json";
+import { forceInvert } from "../../../scripts/modes";
 import { meta, views } from "../frame";
 
 const { html } = await renderBrief(brief as BriefProps);

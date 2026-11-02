@@ -1,20 +1,6 @@
-import js from "@eslint/js";
-import prettier from "eslint-config-prettier/flat";
-import tseslint from "typescript-eslint";
+import base from "@hackersandwizards/scaffolding/eslint";
 
-export default tseslint.config(
-  {
-    ignores: [
-      "node_modules/**",
-      ".claude/**",
-      ".githooks/**",
-      "dist/**",
-      ".astro/**",
-      "specimen/**",
-    ],
-  },
-  js.configs.recommended,
-  ...tseslint.configs.recommended,
-  { rules: { "no-empty": ["error", { allowEmptyCatch: true }] } },
-  prettier,
-);
+export default [
+  ...base,
+  { languageOptions: { parserOptions: { tsconfigRootDir: import.meta.dirname } } },
+];

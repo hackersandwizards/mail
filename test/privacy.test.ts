@@ -1,9 +1,9 @@
-// The repo is public: the specimen carries invented people and example addresses only.
+// The repo is public: the catalog mails carry invented people and example addresses only.
 import { expect, test } from "bun:test";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
-const dir = join(import.meta.dir, "..", "specimen");
+const dir = join(import.meta.dir, "..", "catalog", "mails");
 const ALLOWED_HOSTS = ["example.com", "www.hackersandwizards.dev", "www.linkedin.com"];
 const INVENTED = ["Kim Beispiel"];
 

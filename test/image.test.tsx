@@ -4,7 +4,7 @@ import { colors } from "@hackersandwizards/brand/tokens";
 import { Image } from "../components/Image";
 import type { BriefProps } from "../mails/Brief";
 import { renderBrief } from "../scripts/render";
-import data from "../specimen/brief-bild.json";
+import data from "../catalog/mails/brief-bild.json";
 
 const tint = colors["--color-tint"];
 const muted = colors["--color-muted"];

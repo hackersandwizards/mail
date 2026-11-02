@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { render } from "react-email";
-import { MailShell } from "../components/MailShell";
-import { forceDark } from "../scripts/modes";
+import { MailShell } from "../../components/MailShell";
+import { forceDark } from "../../scripts/modes";
 import MailFrame from "./MailFrame.astro";
 
 export const meta = { component: MailFrame };

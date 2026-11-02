@@ -1,0 +1,13 @@
+# Publishes the catalog (dist/) through scaffolding's reusable Pages workflow. Manual until GitHub
+# Pages is switched on for this repository (Settings, Pages, Source: GitHub Actions).
+name: Pages
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  pages:
+    uses: hackersandwizards/scaffolding/.github/workflows/pages.yml@v0.3.2
+    permissions:
+      pages: write
+      id-token: write

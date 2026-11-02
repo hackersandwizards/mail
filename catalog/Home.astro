@@ -1,12 +1,9 @@
 ---
-// The design system's home in brand's catalogue shape (AstrobookHome, decision catalogue-shape):
-// the header, the rail with the groups, a tile per mail and part drawing its first state. The
-// default slot holds the foundations: the colour roles and font stacks a mail paints with, from
+// The catalog's home: the shell's rail, title and a tile per mail and part drawing its first state.
+// The default slot holds the foundations: the colour roles and font stacks a mail paints with, from
 // theme.ts, and a tile per brand element this page uses, which brand-elements measures in
 // `bun run check`. The mails themselves inline every value and wear no brand element.
-import modules from "virtual:astrobook/story-modules.mjs";
-import config from "virtual:astrobook/global-config.mjs";
-import AstrobookHome from "@hackersandwizards/brand/expert/components/AstrobookHome.astro";
+import Home from "@hackersandwizards/scaffolding/catalog/Home.astro";
 import "@hackersandwizards/brand/disclosure.css";
 import pkg from "../package.json";
 import elements from "../brand-elements.json";
@@ -21,25 +18,9 @@ const notes: Record<string, string> = {
   table: "The colour roles and font stacks below.",
 };
 const roles = Object.keys(palette.light) as Role[];
-// Astrobook lists a module's states by name, so Dark and Blocked come first; a tile draws the mail
-// as sent, light with its images loaded.
-const sent = (id: string) => (/\/(light|loaded)$/.test(id) ? 0 : 1);
-const shown = modules.map((m) => ({
-  ...m,
-  stories: [...m.stories].sort((a, b) => sent(a.id) - sent(b.id)),
-}));
 ---
 
-<AstrobookHome
-  modules={shown}
-  config={config}
-  product="Mail"
-  title="Design system"
-  lead="Every mail and building block of the mail engine, rendered to the HTML a mail client receives and shown in a 600 px frame. Each tile opens its light and dark states; the data is made up."
-  source="mail stories"
-  groupOrder={["Mails", "Parts"]}
-  previewSize={[602, 400]}
->
+<Home>
   <details class="hw-disclosure foundations">
     <summary>
       Foundations: {roles.length} colour roles, 2 font stacks, {elements.uses.length} elements from brand
@@ -92,7 +73,7 @@ const shown = modules.map((m) => ({
       }
     </div>
   </details>
-</AstrobookHome>
+</Home>
 
 <style>
   .foundations {

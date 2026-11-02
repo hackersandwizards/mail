@@ -1,5 +1,5 @@
 import card from "@hackersandwizards/brand/logos/lockup-compact.png";
-import { Image } from "../../components/Image";
+import { Image } from "../../../components/Image";
 import { meta, part, views } from "../frame";
 
 const image = { alt: "Vorschaubild zum Artikel", width: 300, height: 152 };
