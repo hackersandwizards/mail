@@ -21,13 +21,13 @@ Add the dependency pinned to the newest tag
 "@hackersandwizards/mail": "git+https://github.com/hackersandwizards/mail.git#v<version>"
 ```
 
-| Import or command                              | What                                                                                  |
-| ---------------------------------------------- | ------------------------------------------------------------------------------------- |
-| `bun run mail-render <data.json> --out <path>` | writes `<path>.html` and `<path>.txt`; without `--out`, prints the HTML               |
-| `@hackersandwizards/mail/render`               | `renderBrief(props)`, returning `{ html, text }`                                      |
-| `@hackersandwizards/mail/mails/Brief`          | the Brief mail and its `BriefProps`                                                   |
-| `@hackersandwizards/mail/components/<Name>`    | `MailShell`, `Wordmark`, `Paragraph`, `Item`, `Image`, `Signature`, `ObjectionNotice` |
-| `@hackersandwizards/mail/theme`                | the colour roles and the mail font stacks, from the brand                             |
+| Import or command                              | What                                                                      |
+| ---------------------------------------------- | ------------------------------------------------------------------------- |
+| `bun run mail-render <data.json> --out <path>` | writes `<path>.html` and `<path>.txt`; without `--out`, prints the HTML   |
+| `@hackersandwizards/mail/render`               | `renderBrief(props)`, returning `{ html, text }`                          |
+| `@hackersandwizards/mail/mails/Brief`          | the Brief mail and its `BriefProps`                                       |
+| `@hackersandwizards/mail/components/<Name>`    | `MailShell`, `Paragraph`, `Item`, `Image`, `Signature`, `ObjectionNotice` |
+| `@hackersandwizards/mail/theme`                | the colour roles and the mail font stacks, from the brand                 |
 
 The data file holds every word of the mail except the brand's signature template;
 [`catalog/mails/brief.json`](catalog/mails/brief.json) shows its shape.
