@@ -43,9 +43,9 @@ Classic Outlook on Windows shows its own notice instead of styled alt text.
 
 `bun run check` is scaffolding's gate runner: format, lint, styles, types, structure, coupling,
 unique names, the confidential terms, the tests (render, the blocked-image fix, every mail headless
-in light, dark, inverted and with images blocked, the catalog data's privacy) and the catalog
-build, then the brand colour scan (`check:colours`), `brand-elements` on the built catalog home
-(`check:elements`) and the item check (`check:admin`). The pre-commit hook runs
+in light, dark, inverted and with images blocked, the catalog data's privacy), the catalog build
+and the item check (`admin`), then the brand colour scan (`check:colours`) and `brand-elements` on
+the built catalog home (`check:elements`). The pre-commit hook runs
 `bun run check:staged`: gitleaks over the staged changes, coupling and confidential terms, then
 prettier and eslint on the staged files. The headless test needs Chrome for Testing:
 `bunx @puppeteer/browsers@3.2.6 install chrome@stable --path ~/.cache/puppeteer`.
