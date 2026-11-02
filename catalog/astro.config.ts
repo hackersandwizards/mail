@@ -6,7 +6,12 @@ import { catalog } from "@hackersandwizards/scaffolding/catalog";
 // The catalog: every component and the whole mail as stories at /catalog, and every mail type
 // composed by the engine at /mails/ (pages/mails/), each as the HTML and text part mail-render
 // writes. A story shows the rendered mail in a frame, as the HTML a client receives.
+// Published as a project Pages site at https://hackersandwizards.github.io/mail/, hence the base;
+// Astro leaves a redirect's destination as written, so each names it.
+const BASE = "/mail";
+
 export default defineConfig({
+  base: BASE,
   srcDir: ".",
   devToolbar: { enabled: false },
   server: { host: "127.0.0.1", port: 4455 },
@@ -15,7 +20,11 @@ export default defineConfig({
   ...(process.env.CATALOG_FILE && {
     build: { assetsPrefix: pathToFileURL(new URL("../dist/", import.meta.url).pathname).href },
   }),
-  redirects: { "/design-system": "/catalog", "/specimen": "/mails" },
+  redirects: {
+    "/": `${BASE}/catalog`,
+    "/design-system": `${BASE}/catalog`,
+    "/specimen": `${BASE}/mails`,
+  },
   integrations: [
     catalog({
       product: "Mail",

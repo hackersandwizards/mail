@@ -1,13 +1,16 @@
-# Publishes the catalog (dist/) through scaffolding's reusable Pages workflow. Manual until GitHub
-# Pages is switched on for this repository (Settings, Pages, Source: GitHub Actions).
+# Publishes the catalog (dist/) at https://hackersandwizards.github.io/mail/ through scaffolding's
+# reusable Pages workflow, on every push to main (Pages switched on 02.11.).
 name: Pages
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
   pages:
-    uses: hackersandwizards/scaffolding/.github/workflows/pages.yml@v0.3.2
+    uses: hackersandwizards/scaffolding/.github/workflows/pages.yml@8579cd83fa4888f1799d2568f1f78bac94c40e69 # v0.3.3
     permissions:
+      contents: read
       pages: write
       id-token: write

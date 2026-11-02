@@ -3,9 +3,7 @@
  * as Apple Mail shows it (the mail's own dark styles), forced inversion as the Gmail app on iOS and
  * classic Outlook apply it (a CSS filter, close but not the same), and with images blocked.
  */
-import { existsSync, readdirSync } from "node:fs";
-import { homedir } from "node:os";
-import { join } from "node:path";
+import { chromeBinary, INSTALL_HINT, NO_KEYCHAIN } from "@hackersandwizards/scaffolding/chrome";
 import puppeteer, { type Browser, type Page } from "puppeteer-core";
 
 export const MODES = ["light", "dark", "invert", "noimg"] as const;
@@ -22,40 +20,16 @@ const INVERT = "html,img{filter:invert(1) hue-rotate(180deg)}";
 export const forceInvert = (html: string) =>
   html.replace("</head>", `<style>${INVERT}</style></head>`);
 
-/**
- * Chrome for Testing, the newest build in puppeteer's cache, never the user's own Chrome: a headless
- * instance from the user's app is activated by macOS. CHROME_BINARY overrides.
- */
-export function chromeBinary(): string {
-  if (process.env.CHROME_BINARY) return process.env.CHROME_BINARY;
-  const builds = join(
-    process.env.PUPPETEER_CACHE_DIR ?? join(homedir(), ".cache", "puppeteer"),
-    "chrome",
-  );
-  const exe =
-    process.platform === "darwin"
-      ? "Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing"
-      : "chrome";
-  const found = (existsSync(builds) ? readdirSync(builds) : [])
-    .sort((a, b) => b.localeCompare(a, "en", { numeric: true }))
-    .flatMap((build) =>
-      existsSync(join(builds, build))
-        ? readdirSync(join(builds, build))
-            .filter((dir) => dir.startsWith("chrome-"))
-            .map((dir) => join(builds, build, dir, exe))
-        : [],
-    )
-    .find((path) => existsSync(path));
-  if (!found) {
-    throw new Error(
-      "Chrome for Testing not found: bunx @puppeteer/browsers@3.2.6 install chrome@stable --path ~/.cache/puppeteer, or set CHROME_BINARY",
-    );
-  }
-  return found;
-}
-
-export const launch = (): Promise<Browser> =>
-  puppeteer.launch({ executablePath: chromeBinary(), headless: true, args: ["--no-first-run"] });
+/** Chrome for Testing from scaffolding's `./chrome`, headless; CHROME_BINARY overrides. */
+export const launch = (): Promise<Browser> => {
+  const executablePath = chromeBinary();
+  if (!executablePath) throw new Error(INSTALL_HINT);
+  return puppeteer.launch({
+    executablePath,
+    headless: true,
+    args: ["--no-first-run", ...NO_KEYCHAIN],
+  });
+};
 
 /** Opens the mail file in one mode at one width; the caller closes the page. */
 export async function openMail(

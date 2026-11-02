@@ -7,9 +7,10 @@ and keeps what fills a mail: the recipients, the words, the drafts.
 Maintainer: Benedikt Stemmildt. The repo is public, its history included, so nothing goes in that
 may not be public. Every person and address in the catalog is invented.
 
-`bun run dev` serves the catalog at `http://127.0.0.1:4455/catalog/` and every mail type light,
-dark, inverted and at phone width at `http://127.0.0.1:4455/mails/`. `bun run build` writes both to
-`dist/`.
+`bun run dev` serves the catalog at `http://127.0.0.1:4455/mail/catalog/` and every mail type
+light, dark, inverted and at phone width at `http://127.0.0.1:4455/mail/mails/`. `bun run build`
+writes both to `dist/`, which GitHub Pages publishes at `https://hackersandwizards.github.io/mail/`
+on every push to `main`.
 
 ## Use it in another repo
 

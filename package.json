@@ -1,6 +1,6 @@
 {
   "name": "@hackersandwizards/mail",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "private": true,
   "description": "The hackers&wizards mail engine: React Email components on the brand tokens, a render command writing the HTML and plain-text parts of a mail from a data file.",
   "license": "SEE LICENSE IN LICENSE",
@@ -53,8 +53,8 @@
   "devDependencies": {
     "@eslint/js": "10.0.1",
     "@hackersandwizards/admin": "git+https://github.com/hackersandwizards/admin.git#v0.4.1",
-    "@hackersandwizards/brand": "git+https://github.com/hackersandwizards/brand.git#v0.30.0",
-    "@hackersandwizards/scaffolding": "git+https://github.com/hackersandwizards/scaffolding.git#v0.3.2",
+    "@hackersandwizards/brand": "git+https://github.com/hackersandwizards/brand.git#v0.32.1",
+    "@hackersandwizards/scaffolding": "git+https://github.com/hackersandwizards/scaffolding.git#v0.3.3",
     "@types/bun": "1.4.4",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
@@ -69,6 +69,9 @@
     "typescript-eslint": "8.72.1"
   },
   "prettier": "@hackersandwizards/scaffolding/prettier",
+  "admin": {
+    "designSystem": "https://hackersandwizards.github.io/mail/catalog/"
+  },
   "scaffolding": {
     "test": "test",
     "check": [

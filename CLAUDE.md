@@ -26,10 +26,12 @@ goes in. Every word a mail prints is a prop; the catalog data is invented, and
 - `mails/Brief.tsx`: the Brief (os row `mail-engine-variant`) and `briefText`, the text part the
   engine writes itself rather than stripping the HTML.
 - `scripts/render.ts`: `renderBrief` and the `mail-render` command. `scripts/modes.ts`: headless
-  Chrome for Testing views (light, dark, inverted, images blocked), used by the tests and the
+  Chrome for Testing (scaffolding's `./chrome`) views (light, dark, inverted, images blocked), used by the tests and the
   catalog.
 - `catalog/`: one Astro app in scaffolding's catalog shell (`catalog/astro.config.ts`, preset
-  `catalog({...})`), built to `dist/` by `bun run build`, served on port 4455 by `bun run dev`.
+  `catalog({...})`), built to `dist/` by `bun run build`, served on port 4455 by `bun run dev`, under the base
+  `/mail` of its Pages site `https://hackersandwizards.github.io/mail/`, which scaffolding's reusable
+  workflow publishes on every push to `main`.
   Its stories in `catalog/stories/` sit at `/catalog`, the mail under `Mails/`, the building blocks
   under `Parts/`; each shows the rendered HTML in a frame, since a component in the page is not
   what a mail client receives. `catalog/mails/*.json` holds every mail type's invented data, and
