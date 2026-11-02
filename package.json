@@ -49,7 +49,7 @@
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
-    "@hackersandwizards/admin": "git+https://github.com/hackersandwizards/admin.git#v0.2.0",
+    "@hackersandwizards/admin": "git+https://github.com/hackersandwizards/admin.git#v0.3.0",
     "@hackersandwizards/brand": "git+https://github.com/hackersandwizards/brand.git#v0.27.14",
     "@types/bun": "1.4.4",
     "@types/react": "19.3.0",
@@ -62,5 +62,13 @@
     "puppeteer-core": "25.16.0",
     "typescript": "6.0.3",
     "typescript-eslint": "8.72.1"
+  },
+  "admin": {
+    "products": [
+      {
+        "label": "Mail types",
+        "href": "specimen/index.html"
+      }
+    ]
   }
 }
