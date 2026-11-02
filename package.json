@@ -70,20 +70,6 @@
   },
   "prettier": "@hackersandwizards/scaffolding/prettier",
   "scaffolding": {
-    "allow": [
-      {
-        "check": "confidential",
-        "path": ".claude/skills/voice/personal-voice.md",
-        "text": "ach",
-        "reason": "German imperative of machen in a quoted phrase of the hub-synced voice skill, not the company term; the lower-case match goes once os's term builder writes the capitals-only (cs:) hashes scaffolding v0.3.0 reads"
-      },
-      {
-        "check": "confidential",
-        "path": ".claude/skills/voice/signature-phrases.md",
-        "text": "ach",
-        "reason": "German imperative of machen in a quoted phrase of the hub-synced voice skill, not the company term; the lower-case match goes once os's term builder writes the capitals-only (cs:) hashes scaffolding v0.3.0 reads"
-      }
-    ],
     "test": "test",
     "check": [
       "check:colours",
