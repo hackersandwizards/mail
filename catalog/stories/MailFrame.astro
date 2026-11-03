@@ -17,4 +17,5 @@ if (framed === html) throw new Error("MailFrame: the mail has no <head> to carry
   srcdoc={framed}
   width={width}
   style={`width:${width}px;height:900px;border:1px solid var(--color-border)`}
-  onload="this.style.height = this.contentDocument.documentElement.scrollHeight + 2 + 'px'"></iframe>
+  onload="this.style.height = this.contentDocument.documentElement.scrollHeight + 2 + 'px'"
+></iframe>

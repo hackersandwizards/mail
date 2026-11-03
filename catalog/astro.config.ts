@@ -1,4 +1,3 @@
-import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { defineConfig } from "astro/config";
 import { catalog } from "@hackersandwizards/scaffolding/catalog";
 
@@ -33,25 +32,8 @@ export default defineConfig({
       previewStates: ["light", "loaded"],
       // The image a mail's data names by a relative path, as a sent mail names its URL.
       copy: ["node_modules/@hackersandwizards/brand/logos/lockup-compact.png"],
+      // Every story is the Astro frame, so no story module ships to the browser.
+      serverOnly: true,
     }),
-    // Astrobook's route (written into the preset's folder) keeps a `client:load` branch for framework
-    // components, which would bundle each story module, node:fs included, for the browser. Every
-    // story here is the Astro frame.
-    {
-      name: "astrobook-server-only",
-      hooks: {
-        "astro:config:setup": ({ config }) => {
-          const dir = new URL(
-            ".astro/integrations/_hackersandwizards_scaffolding_catalog/",
-            config.root,
-          );
-          for (const file of readdirSync(dir, { recursive: true }) as string[]) {
-            if (!file.endsWith(".astro")) continue;
-            const path = new URL(file, dir);
-            writeFileSync(path, readFileSync(path, "utf8").replace(" client:load />", " />"));
-          }
-        },
-      },
-    },
   ],
 });

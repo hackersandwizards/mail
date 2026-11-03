@@ -21,54 +21,82 @@ const roles = Object.keys(palette.light) as Role[];
 <Home>
   <details class="hw-disclosure foundations">
     <summary>
-      Foundations: {roles.length} colour roles, 2 font stacks, {elements.uses.length} elements from brand
+      Foundations: {roles.length} colour roles, 2 font stacks, {elements.uses.length} elements from
+      brand
     </summary>
     <table class="hw-table">
       <thead>
-        <tr><th>Role</th><th>Light</th><th>Dark</th></tr>
+        <tr>
+          <th>Role</th>
+          <th>Light</th>
+          <th>Dark</th>
+        </tr>
       </thead>
       <tbody>
-        {
-          roles.map((role) => (
-            <tr>
-              <td>{role}</td>
-              {(["light", "dark"] as const).map((mode) => (
-                <td>
-                  <span class="swatch" style={`background:${palette[mode][role]}`} />
-                  <code>{palette[mode][role]}</code>
-                </td>
-              ))}
-            </tr>
-          ))
-        }
-        <tr><td>mono</td><td colspan="2"><code>{fonts.mono}</code></td></tr>
-        <tr><td>sans</td><td colspan="2"><code>{fonts.sans}</code></td></tr>
+        {roles.map((role) => (
+          <tr>
+            <td>{role}</td>
+            {(["light", "dark"] as const).map((mode) => (
+              <td>
+                <span class="swatch" style={`background:${palette[mode][role]}`} />
+                <code>{palette[mode][role]}</code>
+              </td>
+            ))}
+          </tr>
+        ))}
+        <tr>
+          <td>mono</td>
+          <td colspan="2">
+            <code>{fonts.mono}</code>
+          </td>
+        </tr>
+        <tr>
+          <td>sans</td>
+          <td colspan="2">
+            <code>{fonts.sans}</code>
+          </td>
+        </tr>
       </tbody>
     </table>
     <div class="tiles">
-      {
-        elements.uses.map((name) => (
-          <div data-hw-tile={name} data-hw-version={version}>
+      {elements.uses.map((name) => (
+        <div data-hw-tile={name} data-hw-version={version}>
+          <p>
+            aus brand v{version} · <code>hw-{name}</code> ·{" "}
+            <a class="hw-link" href={`${CATALOGUE}#hw-${name}`}>
+              catalogue
+            </a>
+          </p>
+          <p class="note">{notes[name]}</p>
+          {name === "card" && <div class="hw-card">Brief</div>}
+          {name === "pill" && (
+            <span class="hw-pill" data-tone="neutral">
+              4 states
+            </span>
+          )}
+          {name === "table" && (
+            <table class="hw-table">
+              <tbody>
+                <tr>
+                  <td>accent</td>
+                  <td>
+                    <code>teal</code>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          )}
+          {name === "link" && (
             <p>
-              aus brand v{version} · <code>hw-{name}</code> ·{" "}
-              <a class="hw-link" href={`${CATALOGUE}#hw-${name}`}>catalogue</a>
+              See{" "}
+              <a class="hw-link" href={CATALOGUE}>
+                the brand catalogue
+              </a>{" "}
+              first.
             </p>
-            <p class="note">{notes[name]}</p>
-            {name === "card" && <div class="hw-card">Brief</div>}
-            {name === "pill" && <span class="hw-pill" data-tone="neutral">4 states</span>}
-            {name === "table" && (
-              <table class="hw-table">
-                <tbody>
-                  <tr><td>accent</td><td><code>teal</code></td></tr>
-                </tbody>
-              </table>
-            )}
-            {name === "link" && (
-              <p>See <a class="hw-link" href={CATALOGUE}>the brand catalogue</a> first.</p>
-            )}
-          </div>
-        ))
-      }
+          )}
+        </div>
+      ))}
     </div>
   </details>
 </Home>
