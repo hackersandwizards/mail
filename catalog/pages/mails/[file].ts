@@ -1,4 +1,3 @@
-// /mails/<type>.html, .txt and .json: each mail type's HTML part, text part and data file.
 import type { APIRoute, GetStaticPaths } from "astro";
 import { mails } from "../../mails";
 

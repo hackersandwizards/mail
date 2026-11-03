@@ -3,11 +3,7 @@ import { pathToFileURL } from "node:url";
 import { defineConfig } from "astro/config";
 import { catalog } from "@hackersandwizards/scaffolding/catalog";
 
-// The catalog: every component and the whole mail as stories at /catalog, and every mail type
-// composed by the engine at /mails/ (pages/mails/), each as the HTML and text part mail-render
-// writes. A story shows the rendered mail in a frame, as the HTML a client receives.
-// Published as a project Pages site at https://hackersandwizards.github.io/mail/, hence the base;
-// Astro leaves a redirect's destination as written, so each names it.
+// Astro leaves a redirect's destination as written, so each names the base.
 const BASE = "/mail";
 
 export default defineConfig({
@@ -39,8 +35,9 @@ export default defineConfig({
       // The image a mail's data names by a relative path, as a sent mail names its URL.
       copy: ["node_modules/@hackersandwizards/brand/logos/lockup-compact.png"],
     }),
-    // Astrobook's route (written into the preset's folder) keeps a `client:load` branch for framework components, which would bundle
-    // each story module, node:fs included, for the browser. Every story here is the Astro frame.
+    // Astrobook's route (written into the preset's folder) keeps a `client:load` branch for framework
+    // components, which would bundle each story module, node:fs included, for the browser. Every
+    // story here is the Astro frame.
     {
       name: "astrobook-server-only",
       hooks: {

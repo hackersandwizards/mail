@@ -1,4 +1,4 @@
-# The synced agent config: never reformat.
+# Synced from other repositories: never reformat.
 .claude/
 .agents/
 .githooks/

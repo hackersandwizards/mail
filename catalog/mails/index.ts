@@ -1,5 +1,3 @@
-// Every mail type of the catalog: its data file beside this file and the parts the engine renders
-// from it, the same call mail-render makes. All data is invented.
 import type { BriefProps } from "../../mails/Brief";
 import { renderBrief } from "../../scripts/render";
 

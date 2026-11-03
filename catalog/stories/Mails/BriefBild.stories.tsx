@@ -4,7 +4,6 @@ import brief from "../../mails/brief-bild.json";
 import { forceInvert } from "../../../scripts/modes";
 import { meta, views } from "../frame";
 
-// The Brief with a picture (brief-bild.json): the second mail type of the catalog.
 const { html } = await renderBrief(brief as BriefProps);
 const desk = views(html);
 

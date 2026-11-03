@@ -15,7 +15,7 @@ export const signatureTemplate = {
   text: readFileSync(signatureFile("txt"), "utf-8"),
 };
 
-// The template's first stack is the wordmark's monospace one, the next the Arial body stack.
+// The monospace stack quotes family names as &quot;, so the pattern reads past them.
 const stacks = [
   ...signatureTemplate.html.matchAll(/font-family:\s*([^;"]+?(?:&quot;[^&]+&quot;[^;"]*?)*);/g),
 ].map((m) => m[1].replaceAll("&quot;", '"').trim());

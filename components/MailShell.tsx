@@ -12,7 +12,7 @@ export const paint = {
 };
 
 // The dark rules, once per role, for Apple Mail and other clients honouring prefers-color-scheme,
-// and again under Outlook.com's data-ogsc/data-ogsb markers. React Email's Body repeats its
+// and again under Outlook.com's data-ogsc marker. React Email's Body repeats its
 // background on an inner cell without a class, so the page rule names that cell too. The brand
 // signature carries its colours inline, so it is reached by those values.
 function darkRules(prefix: string): string {

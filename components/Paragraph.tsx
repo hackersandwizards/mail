@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { Text } from "react-email";
 
-/** Body copy: 16/24 px, the column's ink. Lines of one paragraph are joined by line breaks. */
+/** Body copy in the column's ink. */
 export function Paragraph({ children }: { children: ReactNode }) {
   return <Text style={{ fontSize: 16, lineHeight: "24px", margin: "0 0 16px" }}>{children}</Text>;
 }
