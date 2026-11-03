@@ -1,23 +1,16 @@
 import type { APIRoute, GetStaticPaths } from "astro";
 import { mails } from "../../mails";
 
-const TYPES = { html: "text/html", txt: "text/plain", json: "application/json" };
-
 export const getStaticPaths = (() =>
   mails.flatMap((m) =>
     (
       [
-        ["html", m.html],
-        ["txt", m.text],
-        ["json", m.json],
+        ["html", m.html, "text/html"],
+        ["txt", m.text, "text/plain"],
+        ["json", m.json, "application/json"],
       ] as const
-    ).map(([ext, body]) => ({
-      params: { file: `${m.base}.${ext}` },
-      props: { body, type: TYPES[ext] },
-    })),
+    ).map(([ext, body, type]) => ({ params: { file: `${m.base}.${ext}` }, props: { body, type } })),
   )) satisfies GetStaticPaths;
 
 export const GET: APIRoute = ({ props }) =>
-  new Response(props.body as string, {
-    headers: { "Content-Type": `${props.type as string}; charset=utf-8` },
-  });
+  new Response(props.body, { headers: { "Content-Type": `${props.type}; charset=utf-8` } });
