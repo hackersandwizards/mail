@@ -2,7 +2,3 @@
 .claude/
 .agents/
 .githooks/
-node_modules/
-bun.lock
-dist/
-.astro/

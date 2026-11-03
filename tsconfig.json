@@ -7,14 +7,6 @@
     "noEmit": true,
     "types": ["bun", "astro/client"]
   },
-  "include": [
-    "components",
-    "mails",
-    "scripts",
-    "catalog",
-    "test",
-    "*.ts",
-    "catalog/.astro/types.d.ts"
-  ],
+  "include": ["components", "mails", "scripts", "catalog", "test", "catalog/.astro/types.d.ts"],
   "exclude": ["dist", "node_modules"]
 }
