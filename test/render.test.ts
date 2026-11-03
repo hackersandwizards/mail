@@ -19,6 +19,7 @@ describe("renderBrief", async () => {
     expect(html).toContain('<meta name="viewport" content="width=device-width, initial-scale=1"/>');
     expect(html).toContain('<meta name="color-scheme" content="light dark"/>');
     expect(html).toContain(`<title>${brief.subject}</title>`);
+    expect(html.match(/<title>/g)).toHaveLength(1);
     expect(html).toContain("@media (prefers-color-scheme: dark)");
     expect(html).toContain("[data-ogsc] .hw-ink");
     expect(html).not.toMatch(/<link[^>]+stylesheet/);

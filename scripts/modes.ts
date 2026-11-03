@@ -51,13 +51,3 @@ export async function openMail(
   if (mode === "invert") await page.addStyleTag({ content: INVERT });
   return page;
 }
-
-/** Screenshots the mail file in one mode at one width, the full page, as PNG bytes. */
-export async function shoot(browser: Browser, file: string, mode: Mode, width: number) {
-  const page = await openMail(browser, file, mode, width);
-  try {
-    return await page.screenshot({ fullPage: true, type: "png" });
-  } finally {
-    await page.close();
-  }
-}

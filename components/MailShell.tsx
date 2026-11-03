@@ -55,7 +55,8 @@ export function MailShell({ lang, title, preview, children }: MailShellProps) {
         <title>{title}</title>
         <style>{darkStyle}</style>
       </Head>
-      <Preview>{preview}</Preview>
+      {/* The subject is the one title; the preview stays the hidden line only. */}
+      <Preview useTitleTag={false}>{preview}</Preview>
       <Body
         className={`hw-body ${paint.bg("page")}`}
         lang={lang}

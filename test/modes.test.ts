@@ -56,6 +56,13 @@ describe.each(Object.keys(mails))("mail %s", (mail) => {
           const img = document.querySelector("img");
           return {
             page: getComputedStyle(document.body).backgroundColor,
+            // React Email's inner Body cell and the brand signature, which the dark rules reach by
+            // structure and by inline colour.
+            cell: getComputedStyle(document.querySelector(".hw-body>table>tbody>tr>td")!)
+              .backgroundColor,
+            sig: [...document.querySelectorAll(".hw-sig [style*='color']")].map(
+              (e) => getComputedStyle(e).color,
+            ),
             title: title ? getComputedStyle(title).color : "",
             filter: getComputedStyle(document.documentElement).filter,
             overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
@@ -67,6 +74,9 @@ describe.each(Object.keys(mails))("mail %s", (mail) => {
         });
         const scheme = mode === "dark" ? palette.dark : palette.light;
         expect(seen.page).toBe(rgb(scheme.page));
+        expect(seen.cell).toBe(rgb(scheme.page));
+        expect(seen.sig.length).toBeGreaterThan(0);
+        for (const color of seen.sig) expect(Object.values(scheme).map(rgb)).toContain(color);
         expect(seen.title).toBe(rgb(scheme.accent));
         expect(seen.filter).toBe(mode === "invert" ? "invert(1) hue-rotate(180deg)" : "none");
         expect(seen.overflow).toBe(0);

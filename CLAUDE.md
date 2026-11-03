@@ -35,8 +35,10 @@ goes in. Every word a mail prints is a prop; the catalog data is invented, and
   Its stories in `catalog/stories/` sit at `/catalog`, each mail type under `Mails/` light, dark,
   inverted and on a phone, the building blocks under `Parts/`; each shows the rendered HTML in a
   frame, since a component in the page is not what a mail client receives. `catalog/mails/*.json`
-  holds every mail type's invented data, and the route in `catalog/pages/mails/` renders each with
-  `renderBrief` to `/mails/<type>.html`, `.txt` and `.json`, the bytes `mail-render` writes. `Home.astro` fills the shell's home with the foundations; the brand elements it shows
-  are listed in `brand-elements.json`, which `bun run check:elements` measures on the built home.
+  holds every mail type's invented data; `catalog/mails/index.ts` renders each with `renderBrief`,
+  and the route in `catalog/pages/mails/` serves it as `/mails/<type>.html` and `.txt`, the bytes
+  `mail-render` writes, and `.json`, the data file. `Home.astro` fills the shell's home with the
+  foundations; the brand elements it shows are listed in `brand-elements.json`, which
+  `bun run check:elements` measures on the built home.
 - `bun run check` is scaffolding's runner; the repository's own steps are the `check:<what>`
   scripts named in `package.json` under `scaffolding.check`.

@@ -1,6 +1,5 @@
 {
   "pages": ["dist/catalog/index.html"],
   "uses": ["card", "pill", "table", "link"],
-  "exceptions": {},
-  "lightOnly": true
+  "exceptions": {}
 }
