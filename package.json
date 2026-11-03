@@ -34,9 +34,6 @@
     "check:elements": "CATALOG_FILE=1 bun run build && brand-elements",
     "check:colours": "brand-colours",
     "check:staged": "check-staged",
-    "lint": "bun --bun eslint --cache --concurrency=auto .",
-    "typecheck": "bun --bun tsc --noEmit",
-    "format:check": "bun --bun prettier --check .",
     "fix": "bun --bun eslint --cache --concurrency=auto . --fix && bun --bun prettier --write .",
     "test": "bun test"
   },
