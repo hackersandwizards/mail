@@ -1,6 +1,6 @@
 {
   "name": "@hackersandwizards/mail",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "private": true,
   "description": "The hackers&wizards mail engine: React Email components on the brand tokens, a render command writing the HTML and plain-text parts of a mail from a data file.",
   "license": "SEE LICENSE IN LICENSE",
@@ -26,7 +26,6 @@
     "LICENSE"
   ],
   "scripts": {
-    "preinstall": "node scripts/repo/only-bun.cjs",
     "prepare": "[ \"$(git rev-parse --show-toplevel 2>/dev/null)\" = \"$(pwd -P)\" ] && git config core.hooksPath .githooks || true",
     "dev": "cd catalog && bun --bun astro dev",
     "catalog": "bun run dev",
@@ -52,8 +51,8 @@
   "devDependencies": {
     "@eslint/js": "10.0.1",
     "@hackersandwizards/admin": "git+https://github.com/hackersandwizards/admin.git#v0.4.1",
-    "@hackersandwizards/brand": "git+https://github.com/hackersandwizards/brand.git#v0.33.0",
-    "@hackersandwizards/scaffolding": "git+https://github.com/hackersandwizards/scaffolding.git#v0.7.0",
+    "@hackersandwizards/brand": "git+https://github.com/hackersandwizards/brand.git#v0.33.1",
+    "@hackersandwizards/scaffolding": "git+https://github.com/hackersandwizards/scaffolding.git#v0.7.1",
     "@types/bun": "1.4.4",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
