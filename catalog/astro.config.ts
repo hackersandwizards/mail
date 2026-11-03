@@ -1,5 +1,4 @@
 import { readFileSync, readdirSync, writeFileSync } from "node:fs";
-import { pathToFileURL } from "node:url";
 import { defineConfig } from "astro/config";
 import { catalog } from "@hackersandwizards/scaffolding/catalog";
 
@@ -14,12 +13,12 @@ export default defineConfig({
   // CATALOG_FILE=1 builds pages brand-elements opens from disk, where they find their stylesheets by
   // file URL (check:elements); the published build keeps root-relative assets.
   ...(process.env.CATALOG_FILE && {
-    build: { assetsPrefix: pathToFileURL(new URL("../dist/", import.meta.url).pathname).href },
+    build: { assetsPrefix: new URL("../dist/", import.meta.url).href },
   }),
   redirects: {
     "/": `${BASE}/catalog`,
     "/design-system": `${BASE}/catalog`,
-    "/specimen": `${BASE}/mails`,
+    "/specimen": `${BASE}/catalog`,
   },
   integrations: [
     catalog({

@@ -10,7 +10,6 @@
         "react-email": "6.11.6",
       },
       "devDependencies": {
-        "@eslint/js": "10.0.1",
         "@hackersandwizards/admin": "git+https://github.com/hackersandwizards/admin.git#v0.6.0",
         "@hackersandwizards/brand": "git+https://github.com/hackersandwizards/brand.git#v0.34.2",
         "@hackersandwizards/scaffolding": "git+https://github.com/hackersandwizards/scaffolding.git#v0.9.1",
@@ -20,12 +19,10 @@
         "astro": "7.4.4",
         "astrobook": "0.13.3",
         "eslint": "10.14.0",
-        "eslint-config-prettier": "10.1.8",
         "prettier": "3.9.10",
         "puppeteer-core": "25.16.0",
         "stylelint": "17.16.0",
         "typescript": "6.0.3",
-        "typescript-eslint": "8.72.1",
       },
       "peerDependencies": {
         "@hackersandwizards/brand": "*",

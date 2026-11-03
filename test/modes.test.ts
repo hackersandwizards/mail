@@ -1,14 +1,20 @@
 // Renders each catalog mail headless in each mode and reads what the reader would see. With MAIL_SHOTS
 // set to a folder, also writes each view there as <mail>-<mode>-<width>.png for a review.
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { Browser } from "puppeteer-core";
 import { palette } from "../components/theme";
 import type { BriefProps } from "../mails/Brief";
-import brief from "../catalog/mails/brief.json";
-import briefBild from "../catalog/mails/brief-bild.json";
 import { MODES, launch, openMail } from "../scripts/modes";
 import { renderBrief } from "../scripts/render";
 
@@ -17,6 +23,12 @@ import { renderBrief } from "../scripts/render";
 const tmp = mkdtempSync(join(tmpdir(), "mail-modes-"));
 const dir = join(tmp, "mails");
 const shots = process.env.MAIL_SHOTS;
+const data = join(import.meta.dir, "..", "catalog", "mails");
+const mails = Object.fromEntries(
+  readdirSync(data)
+    .filter((f) => f.endsWith(".json"))
+    .map((f) => [f.slice(0, -5), JSON.parse(readFileSync(join(data, f), "utf8")) as BriefProps]),
+);
 const rgb = (hex: string) =>
   `rgb(${[1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(", ")})`;
 
@@ -24,8 +36,8 @@ let browser: Browser;
 beforeAll(async () => {
   mkdirSync(dir);
   symlinkSync(join(import.meta.dir, "..", "node_modules"), join(tmp, "node_modules"));
-  for (const [name, data] of Object.entries({ brief, "brief-bild": briefBild }))
-    writeFileSync(join(dir, `${name}.html`), (await renderBrief(data as BriefProps)).html);
+  for (const [name, props] of Object.entries(mails))
+    writeFileSync(join(dir, `${name}.html`), (await renderBrief(props)).html);
   browser = await launch();
 });
 afterAll(async () => {
@@ -33,7 +45,7 @@ afterAll(async () => {
   rmSync(tmp, { recursive: true });
 });
 
-describe.each(["brief", "brief-bild"])("mail %s", (mail) => {
+describe.each(Object.keys(mails))("mail %s", (mail) => {
   test.each(MODES.flatMap((mode) => [600, 390].map((width) => [mode, width] as const)))(
     "%s at %i px",
     async (mode, width) => {
@@ -59,9 +71,10 @@ describe.each(["brief", "brief-bild"])("mail %s", (mail) => {
         expect(seen.filter).toBe(mode === "invert" ? "invert(1) hue-rotate(180deg)" : "none");
         expect(seen.overflow).toBe(0);
         // The box stays at its size whether the picture loaded or not.
-        if (mail === "brief-bild") {
+        const image = mails[mail].items.find((item) => item.image)?.image;
+        if (image) {
           expect(seen.loaded).toBe(mode !== "noimg");
-          expect(seen.imgBox).toEqual([300, 152]);
+          expect(seen.imgBox).toEqual([image.width, image.height]);
         }
         if (shots) {
           mkdirSync(shots, { recursive: true });

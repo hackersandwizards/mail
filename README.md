@@ -52,8 +52,8 @@ bun scripts/render.ts catalog/mails/brief.json --out /tmp/brief   # /tmp/brief.h
 bun run check                                # the whole gate
 ```
 
-`bun run dev` also shows every mail type light, dark, inverted and at phone width at
-`http://127.0.0.1:4455/mail/mails/`. `bun run build` writes the catalog to `dist/`.
+The catalog shows every mail type light, dark, inverted and at phone width under `Mails/`; each
+renders to `/mail/mails/<type>.html`, `.txt` and `.json`. `bun run build` writes the catalog to `dist/`.
 
 `bun run check` runs scaffolding's shared steps (format, lint, styles, types, tests, the catalog
 build and more), then the brand colour and copy scans and `brand-elements` on the built catalog home. The git

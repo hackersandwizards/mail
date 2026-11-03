@@ -5,11 +5,14 @@ interface Props {
   width: number;
 }
 const { html, width } = Astro.props;
+// A srcdoc frame resolves relative URLs against the story's page; a mail's data names its images
+// relative to the mail's own page under /mails/.
+const base = `<head><base href="${import.meta.env.BASE_URL.replace(/\/?$/, "/")}mails/">`;
 ---
 
 <iframe
   title="Mail"
-  srcdoc={html}
+  srcdoc={html.replace("<head>", base)}
   width={width}
   style={`width:${width}px;height:900px;border:1px solid var(--color-border)`}
   onload="this.style.height = this.contentDocument.documentElement.scrollHeight + 2 + 'px'"></iframe>
