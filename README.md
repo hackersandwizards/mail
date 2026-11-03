@@ -56,7 +56,7 @@ bun run check                                # the whole gate
 `http://127.0.0.1:4455/mail/mails/`. `bun run build` writes the catalog to `dist/`.
 
 `bun run check` runs scaffolding's shared steps (format, lint, styles, types, tests, the catalog
-build and more), then the brand colour scan and `brand-elements` on the built catalog home. The git
+build and more), then the brand colour and copy scans and `brand-elements` on the built catalog home. The git
 hooks check the staged files, the commit message and each push;
 [.githooks/README.md](.githooks/README.md) lists them.
 

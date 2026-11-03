@@ -33,6 +33,7 @@
     "check": "scaffolding check",
     "check:elements": "CATALOG_FILE=1 bun run build && brand-elements",
     "check:colours": "brand-colours",
+    "check:copies": "brand-copies",
     "check:staged": "check-staged",
     "fix": "bun --bun eslint --cache --concurrency=auto . --fix && bun --bun prettier --write .",
     "test": "bun test"
@@ -48,7 +49,7 @@
   "devDependencies": {
     "@eslint/js": "10.0.1",
     "@hackersandwizards/admin": "git+https://github.com/hackersandwizards/admin.git#v0.6.0",
-    "@hackersandwizards/brand": "git+https://github.com/hackersandwizards/brand.git#v0.33.1",
+    "@hackersandwizards/brand": "git+https://github.com/hackersandwizards/brand.git#v0.34.1",
     "@hackersandwizards/scaffolding": "git+https://github.com/hackersandwizards/scaffolding.git#v0.8.0",
     "@types/bun": "1.4.4",
     "@types/react": "19.3.0",
@@ -70,7 +71,10 @@
   "scaffolding": {
     "test": "test",
     "check": [
-      "check:colours",
+      [
+        "check:colours",
+        "check:copies"
+      ],
       "check:elements"
     ]
   }
