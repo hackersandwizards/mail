@@ -13,7 +13,7 @@ import {
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { Browser } from "puppeteer-core";
-import { palette } from "../components/theme";
+import { palette, type Role } from "../components/theme";
 import type { BriefProps } from "../mails/Brief";
 import { MODES, launch, openMail } from "../scripts/modes";
 import { renderBrief } from "../scripts/render";
@@ -29,6 +29,7 @@ const mails = Object.fromEntries(
     .filter((f) => f.endsWith(".json"))
     .map((f) => [f.slice(0, -5), JSON.parse(readFileSync(join(data, f), "utf8")) as BriefProps]),
 );
+const roles = Object.keys(palette.light) as Role[];
 const rgb = (hex: string) =>
   `rgb(${[1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(", ")})`;
 
@@ -60,9 +61,10 @@ describe.each(Object.keys(mails))("mail %s", (mail) => {
             // structure and by inline colour.
             cell: getComputedStyle(document.querySelector(".hw-body>table>tbody>tr>td")!)
               .backgroundColor,
-            sig: [...document.querySelectorAll(".hw-sig [style*='color']")].map(
-              (e) => getComputedStyle(e).color,
-            ),
+            sig: [...document.querySelectorAll(".hw-sig [style*='color']")].map((e) => [
+              (e as HTMLElement).style.color,
+              getComputedStyle(e).color,
+            ]),
             title: title ? getComputedStyle(title).color : "",
             filter: getComputedStyle(document.documentElement).filter,
             overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
@@ -76,7 +78,12 @@ describe.each(Object.keys(mails))("mail %s", (mail) => {
         expect(seen.page).toBe(rgb(scheme.page));
         expect(seen.cell).toBe(rgb(scheme.page));
         expect(seen.sig.length).toBeGreaterThan(0);
-        for (const color of seen.sig) expect(Object.values(scheme).map(rgb)).toContain(color);
+        // Each signature colour shows as its own role's colour in the mode.
+        for (const [inline, shown] of seen.sig) {
+          const role = roles.find((r) => rgb(palette.light[r]) === inline);
+          expect(role).toBeDefined();
+          expect(shown).toBe(rgb(scheme[role!]));
+        }
         expect(seen.title).toBe(rgb(scheme.accent));
         expect(seen.filter).toBe(mode === "invert" ? "invert(1) hue-rotate(180deg)" : "none");
         expect(seen.overflow).toBe(0);

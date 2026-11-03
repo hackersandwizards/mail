@@ -22,7 +22,9 @@ export function views(html: string, width = 600) {
 
 /** A catalog mail's stories: light, dark and inverted at 600 px, light on a 390 px phone. */
 export function mail(base: string) {
-  const { html } = mails.find((m) => m.base === base)!;
+  const found = mails.find((m) => m.base === base);
+  if (!found) throw new Error(`mail(): no catalog/mails/${base}.json`);
+  const { html } = found;
   return {
     ...views(html),
     inverted: { args: { html: forceInvert(html), width: 600 } },
