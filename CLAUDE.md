@@ -4,7 +4,7 @@ The hackers&wizards mail engine as one package, `@hackersandwizards/mail`: React
 on `@hackersandwizards/brand`, the Brief mail composed from them, and `mail-render`, which renders
 a mail from a data file to its HTML and plain-text part. Company OS runs it and keeps the
 recipients, the words and the Gmail drafts. The reasoning is in os
-`docs/tracking/2026-11-02-mail-engine.md`.
+`docs/agent-work/2026-11-02-mail-engine.md`.
 
 This repo is public on GitHub (`github.com/hackersandwizards/mail`), its history included.
 Consumers install it as a Git dependency pinned to a tag. `"private": true` stays: nothing is ever
