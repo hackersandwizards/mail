@@ -44,6 +44,13 @@ export function Image({ src, alt, width, height, href }: ImageProps) {
   }
   if (!alt.trim()) throw new Error(`mail Image: ${src} has no alt text`);
   const { tint, muted } = palette.light;
+  // The box image and cell share, so it holds while the image is blocked.
+  const box = {
+    width: `${width}px`,
+    height: `${height}px`,
+    borderRadius: corner,
+    backgroundColor: tint,
+  };
   const img = (
     <Img
       src={src}
@@ -52,10 +59,7 @@ export function Image({ src, alt, width, height, href }: ImageProps) {
       height={height}
       className={`${paint.bg("tint")} ${paint.text("muted")}`}
       style={{
-        width: `${width}px`,
-        height: `${height}px`,
-        borderRadius: corner,
-        backgroundColor: tint,
+        ...box,
         fontFamily: fonts.sans,
         fontSize: "12px",
         lineHeight: "16px",
@@ -73,18 +77,7 @@ export function Image({ src, alt, width, height, href }: ImageProps) {
     >
       <tbody>
         <tr>
-          <td
-            width={width}
-            height={height}
-            bgcolor={tint}
-            className={paint.bg("tint")}
-            style={{
-              width: `${width}px`,
-              height: `${height}px`,
-              borderRadius: corner,
-              backgroundColor: tint,
-            }}
-          >
+          <td width={width} height={height} bgcolor={tint} className={paint.bg("tint")} style={box}>
             {href ? (
               <a
                 href={href}
