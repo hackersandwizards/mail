@@ -15,9 +15,8 @@ export default defineConfig({
     build: { assetsPrefix: new URL("../dist/", import.meta.url).href },
   }),
   redirects: {
-    "/": `${BASE}/catalog`,
-    "/design-system": `${BASE}/catalog`,
-    "/specimen": `${BASE}/catalog`,
+    "/design-system": `${BASE}/`,
+    "/specimen": `${BASE}/`,
   },
   integrations: [
     catalog({

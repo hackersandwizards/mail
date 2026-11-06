@@ -9,7 +9,7 @@ may not be public. Every recipient and every word in the catalog data is invente
 template is the brand's own.
 
 The catalog shows every building block and every mail type, published at
-https://hackersandwizards.github.io/mail/catalog/ on every push to `main`.
+https://hackersandwizards.github.io/mail/ on every push to `main`.
 
 ## Use it in another repo
 
@@ -47,7 +47,7 @@ headless test starts Chrome for Testing, and its first run installs it into `~/.
 ```sh
 git clone https://github.com/hackersandwizards/mail.git && cd mail
 bun install                                  # also points the git hooks at .githooks/
-bun run dev                                  # the catalog at http://127.0.0.1:4455/mail/catalog/
+bun run dev                                  # the catalog at http://127.0.0.1:4455/
 bun scripts/render.ts catalog/mails/brief.json --out /tmp/brief   # /tmp/brief.html and .txt
 bun run check                                # the whole gate
 ```

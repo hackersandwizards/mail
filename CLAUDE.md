@@ -32,7 +32,7 @@ goes in. Every word a mail prints is a prop; the catalog data is invented, and
   `catalog({...})`), built to `dist/` by `bun run build`, served on port 4455 by `bun run dev`, under the base
   `/mail` of its Pages site `https://hackersandwizards.github.io/mail/`, which scaffolding's reusable
   workflow publishes on every push to `main`.
-  Its stories in `catalog/stories/` sit at `/catalog`, each mail type under `Mails/` light, dark,
+  Its stories in `catalog/stories/` sit at the site's root, each mail type under `Mails/` light, dark,
   inverted and on a phone, the building blocks under `Parts/`; each shows the rendered HTML in a
   frame, since a component in the page is not what a mail client receives. `catalog/mails/*.json`
   holds every mail type's invented data; `catalog/mails/index.ts` renders each with `renderBrief`,
