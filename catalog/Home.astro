@@ -2,12 +2,10 @@
 // The brand elements here are the catalog's own: the mails inline every value and wear none.
 import Home from "@hackersandwizards/scaffolding/catalog/Home.astro";
 import "@hackersandwizards/brand/disclosure.css";
-import pkg from "../package.json";
+import { version } from "@hackersandwizards/brand/package.json";
 import elements from "../brand-elements.json";
 import { fonts, palette, type Role } from "../components/theme";
 
-// The brand version the tiles name, from the pin: brand-elements fails on any other.
-const version = pkg.devDependencies["@hackersandwizards/brand"].split("#v")[1];
 const CATALOGUE = "https://hackersandwizards.github.io/brand/catalogue.html";
 const notes: Record<string, string> = {
   card: "A tile per mail and part on this page.",
@@ -62,7 +60,7 @@ const roles = Object.keys(palette.light) as Role[];
       {elements.uses.map((name) => (
         <div data-hw-tile={name} data-hw-version={version}>
           <p>
-            aus brand v{version} · <code>hw-{name}</code> ·{" "}
+            from brand v{version} · <code>hw-{name}</code> ·{" "}
             <a class="hw-link" href={`${CATALOGUE}#hw-${name}`}>
               catalogue
             </a>
