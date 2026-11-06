@@ -50,8 +50,8 @@ export const palette = {
 
 export type Role = keyof typeof palette.light;
 
-/** The brand corner a picture takes. */
-export const corner = tokens["--radius-brand"];
+/** The corner a picture takes, as brand's shape rule (tokens.css) gives a picture in a mail. */
+export const corner = tokens["--radius-sm"];
 
 /** The letter spacing of a label set in capitals. */
 export const labelTracking = tokens["--tracking-label"];

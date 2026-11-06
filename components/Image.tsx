@@ -29,7 +29,7 @@ export const MAX_IMAGE_WIDTH = 320;
  * attributes and the style (a `height:auto` would collapse the box), the tint behind the image and
  * its cell, and the alt text set small, muted and without the link underline it would inherit.
  * Classic Outlook on Windows shows its own notice instead of styled alt text. Image and cell take
- * the brand corner, which classic Outlook leaves square; it cuts into content touching a corner.
+ * the small corner, which classic Outlook leaves square; it trims content touching a corner.
  */
 export function Image({ src, alt, width, height, href }: ImageProps) {
   for (const [name, value] of Object.entries({ width, height })) {

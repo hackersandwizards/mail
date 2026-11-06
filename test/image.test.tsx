@@ -8,7 +8,7 @@ import data from "../catalog/mails/brief-bild.json";
 
 const tint = colors["--color-tint"];
 const muted = colors["--color-muted"];
-const corner = tokens["--radius-brand"];
+const corner = tokens["--radius-sm"];
 const props = { src: "https://example.com/card.png", alt: "Vorschaubild", width: 300, height: 152 };
 
 /** The style attribute of the first element of that tag, as a property map. */
@@ -63,7 +63,7 @@ describe("Image keeps its box while images are blocked", async () => {
       expect(link).toContain(`color:${muted}`);
     });
 
-    test(`${where}: image and cell in the brand corner`, () => {
+    test(`${where}: image and cell in the small corner`, () => {
       expect(style(html, "img")["border-radius"]).toBe(corner);
       expect(cell(html)).toContain(`border-radius:${corner}`);
     });
