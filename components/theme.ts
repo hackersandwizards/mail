@@ -1,7 +1,8 @@
 // The brand values a mail uses, every one from @hackersandwizards/brand: colours from its resolved
-// token set (hex, since mail clients know no color-mix()), the two font stacks from its mail
-// signature template, which carries the stacks a mail client can show (no web font: Gmail and
-// classic Outlook load none). Server-side only: the template is read from disk.
+// token set (hex, since mail clients know no color-mix()), the label's colour from its label
+// element, the two font stacks from its mail signature template, which carries the stacks a mail
+// client can show (no web font: Gmail and classic Outlook load none). Server-side only: the
+// template and the element are read from disk.
 import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { colors, tokens } from "@hackersandwizards/brand/tokens";
@@ -24,7 +25,20 @@ const sans = stacks.find((s) => /sans-serif/.test(s));
 if (!mono || !sans) throw new Error("mail: brand mail-signature template carries no font stack");
 export const fonts = { mono, sans };
 
-/** Each colour role a mail paints, light as sent and dark as the mail's own dark styles set it. */
+// The label element's colour token, light then night: its plain `.hw-label` rules, in that order.
+const labelCss = readFileSync(
+  createRequire(import.meta.url).resolve("@hackersandwizards/brand/elements/label.css"),
+  "utf-8",
+);
+const labelColours = [
+  ...labelCss.matchAll(/\.hw-label\s*\{[^}]*?\bcolor:\s*var\((--color-[\w-]+)\)/g),
+].map((m) => colors[m[1] as keyof typeof colors]);
+if (labelColours.length !== 2 || labelColours.some((c) => !c))
+  throw new Error("mail: brand label element carries no light and night colour");
+const [labelLight, labelDark] = labelColours;
+
+/** Each colour role a mail paints, light as sent and dark as the mail's own dark styles set it.
+ * `ampersand` and `purple` only the signature paints (its wordmark), reached by its inline colour. */
 export const palette = {
   light: {
     page: colors["--color-white"],
@@ -32,7 +46,8 @@ export const palette = {
     muted: colors["--color-muted"],
     rule: colors["--color-border"],
     accent: colors["--color-teal"],
-    label: colors["--color-purple"],
+    label: labelLight,
+    purple: colors["--color-purple"],
     ampersand: colors["--color-ampersand"],
     tint: colors["--color-tint"],
   },
@@ -42,7 +57,8 @@ export const palette = {
     muted: colors["--color-night-muted"],
     rule: colors["--color-night-subtle"],
     accent: colors["--color-teal-night"],
-    label: colors["--color-purple-night"],
+    label: labelDark,
+    purple: colors["--color-purple-night"],
     ampersand: colors["--color-ampersand-light"],
     tint: colors["--color-night-2"],
   },

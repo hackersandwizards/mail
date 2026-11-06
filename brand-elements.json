@@ -1,5 +1,5 @@
 {
   "pages": ["dist/index.html"],
-  "uses": ["card", "pill", "table", "link"],
+  "uses": ["card", "pill", "table", "link", "label"],
   "exceptions": {}
 }

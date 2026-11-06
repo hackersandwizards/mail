@@ -1,5 +1,6 @@
 ---
-// The brand elements here are the catalog's own: the mails inline every value and wear none.
+// The brand elements here are the catalog's own: the mails inline every value and wear none, the
+// label's colour read out of brand's label element (components/theme.ts).
 import Home from "@hackersandwizards/scaffolding/catalog/Home.astro";
 import "@hackersandwizards/brand/disclosure.css";
 import { version } from "@hackersandwizards/brand/package.json";
@@ -12,6 +13,7 @@ const notes: Record<string, string> = {
   pill: "The count of states on a tile.",
   table: "The colour roles and font stacks below.",
   link: "The catalogue link on each tile.",
+  label: "The colour of an item's label in a mail.",
 };
 const roles = Object.keys(palette.light) as Role[];
 ---
@@ -84,6 +86,7 @@ const roles = Object.keys(palette.light) as Role[];
               </tbody>
             </table>
           )}
+          {name === "label" && <span class="hw-label">Artikel</span>}
           {name === "link" && (
             <p>
               See{" "}
