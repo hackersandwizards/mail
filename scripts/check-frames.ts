@@ -39,6 +39,8 @@ const failures: string[] = [];
 
 async function check(url: string) {
   const page = await browser.newPage();
+  // Tall, so the home's lazy tiles all load.
+  await page.setViewport({ width: 1280, height: 4000 });
   const bad = (why: string, src: string) => {
     if (!BLOCKED.test(src)) failures.push(`${url}: ${why} ${src}`);
   };
@@ -75,7 +77,7 @@ try {
   await server.stop(true);
 }
 if (failures.length) {
-  console.error(`check:frames: ${failures.length} broken image(s)\n${failures.join("\n")}`);
+  console.error(`check:frames: ${failures.length} image failure(s)\n${failures.join("\n")}`);
   process.exit(1);
 }
 console.log(`check:frames: ${pages.length + 1} pages, every image loads`);
