@@ -18,7 +18,8 @@ const server = Bun.serve({
   port: 0,
   hostname: "127.0.0.1",
   async fetch(req) {
-    const path = decodeURIComponent(new URL(req.url).pathname);
+    // Undecoded, so a path cannot step out of dist/.
+    const path = new URL(req.url).pathname;
     if (!path.startsWith(BASE)) return new Response(null, { status: 404 });
     const file = join(DIST, path.slice(BASE.length));
     for (const candidate of [file, join(file, "index.html")])
@@ -27,31 +28,48 @@ const server = Bun.serve({
   },
 });
 const root = `http://127.0.0.1:${server.port}${BASE}`;
-const stories = (await readdir(DIST, { recursive: true }))
-  .filter((f) => /^(dashboard|stories)\/.*index\.html$/.test(f))
+// Every story page, and every mail as mail-render writes it.
+const pages = (await readdir(DIST, { recursive: true }))
+  .filter((f) => /^(dashboard|stories)\/.*index\.html$|^mails\/.*\.html$/.test(f))
   .map((f) => root + f.replace(/index\.html$/, ""));
 
+if (!pages.length) throw new Error("check:frames: the build holds no story page");
+
 const failures: string[] = [];
+
+async function check(url: string) {
+  const page = await browser.newPage();
+  const bad = (why: string, src: string) => {
+    if (!BLOCKED.test(src)) failures.push(`${url}: ${why} ${src}`);
+  };
+  page.on("requestfinished", (r) => {
+    const status = r.response()?.status() ?? 0;
+    if (r.resourceType() === "image" && status >= 400) bad(String(status), r.url());
+  });
+  page.on("requestfailed", (r) => {
+    if (r.resourceType() === "image") bad("failed", r.url());
+  });
+  // A page that is not there would show no image and pass.
+  const answer = await page.goto(url, { waitUntil: "networkidle0" });
+  if (!answer?.ok()) failures.push(`${url}: the page answered ${answer?.status()}`);
+  for (const frame of page.frames().filter((f) => !f.detached)) {
+    const unpainted = await frame.evaluate(() =>
+      [...document.images].filter((i) => !i.naturalWidth).map((i) => i.currentSrc || i.src),
+    );
+    for (const src of unpainted) bad("painted nothing", src);
+  }
+  await page.close();
+}
+
 const browser = await launch();
 try {
-  for (const url of [root, ...stories]) {
-    const page = await browser.newPage();
-    const bad = (why: string) => (u: string) =>
-      BLOCKED.test(u) || failures.push(`${url}: ${why} ${u}`);
-    page.on("requestfinished", (r) => {
-      const status = r.response()?.status() ?? 0;
-      if (r.resourceType() === "image" && status >= 400) bad(String(status))(r.url());
-    });
-    page.on("requestfailed", (r) => r.resourceType() === "image" && bad("failed")(r.url()));
-    await page.goto(url, { waitUntil: "networkidle0" });
-    for (const frame of page.frames()) {
-      const unpainted = await frame.evaluate(() =>
-        [...document.images].filter((i) => !i.naturalWidth).map((i) => i.currentSrc || i.src),
-      );
-      unpainted.forEach(bad("painted nothing"));
-    }
-    await page.close();
-  }
+  const queue = [root, ...pages];
+  // Eight pages at a time; each waits half a second of network quiet.
+  await Promise.all(
+    Array.from({ length: 8 }, async () => {
+      for (let url; (url = queue.shift());) await check(url);
+    }),
+  );
 } finally {
   await browser.close();
   await server.stop(true);
@@ -60,4 +78,4 @@ if (failures.length) {
   console.error(`check:frames: ${failures.length} broken image(s)\n${failures.join("\n")}`);
   process.exit(1);
 }
-console.log(`check:frames: ${stories.length + 1} pages, every image loads`);
+console.log(`check:frames: ${pages.length + 1} pages, every image loads`);
