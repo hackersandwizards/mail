@@ -1,6 +1,3 @@
-import { createRequire } from "node:module";
-import { relative } from "node:path";
-import { fileURLToPath } from "node:url";
 import { defineConfig } from "astro/config";
 import { catalog } from "@hackersandwizards/scaffolding/catalog";
 
@@ -32,14 +29,9 @@ export default defineConfig({
       previewSize: [602, 400],
       // A tile draws the mail as sent: light, with its images loaded.
       previewStates: ["light", "loaded"],
-      // The image a mail's data names by a relative path, as a sent mail names its URL, at its path
-      // in the repository. Astro's config loader knows no import.meta.resolve.
-      copy: [
-        relative(
-          fileURLToPath(new URL("..", import.meta.url)),
-          createRequire(import.meta.url).resolve("@hackersandwizards/brand/logos/avatar-512.png"),
-        ),
-      ],
+      // The image a mail's data names by a relative path, as a sent mail names its URL, served at
+      // its package path; the preset resolves it through brand's exports.
+      copy: ["@hackersandwizards/brand/logos/avatar-512.png"],
       // Every story is the Astro frame, so no story module ships to the browser.
       serverOnly: true,
     }),

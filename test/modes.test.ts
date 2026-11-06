@@ -11,15 +11,16 @@ import {
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import type { Browser } from "puppeteer-core";
 import { palette, type Role } from "../components/theme";
 import type { BriefProps } from "../mails/Brief";
 import { MODES, launch, openMail } from "../scripts/modes";
 import { renderBrief } from "../scripts/render";
 
-// Each mail goes one folder down beside a node_modules link, as in the built catalog, so the
-// image its data names by a relative path loads.
+// Each mail goes one folder down beside a link to brand at its package path, as in the built
+// catalog, so the image its data names by a relative path loads.
 const tmp = mkdtempSync(join(tmpdir(), "mail-modes-"));
 const dir = join(tmp, "mails");
 const shots = process.env.MAIL_SHOTS;
@@ -36,7 +37,11 @@ const rgb = (hex: string) =>
 let browser: Browser;
 beforeAll(async () => {
   mkdirSync(dir);
-  symlinkSync(join(import.meta.dir, "..", "node_modules"), join(tmp, "node_modules"));
+  mkdirSync(join(tmp, "@hackersandwizards"));
+  symlinkSync(
+    dirname(fileURLToPath(import.meta.resolve("@hackersandwizards/brand/package.json"))),
+    join(tmp, "@hackersandwizards", "brand"),
+  );
   for (const [name, props] of Object.entries(mails))
     writeFileSync(join(dir, `${name}.html`), (await renderBrief(props)).html);
   browser = await launch();
