@@ -45,7 +45,7 @@
     "react-email": "6.11.6"
   },
   "peerDependencies": {
-    "@hackersandwizards/brand": "*"
+    "@hackersandwizards/brand": ">=1.16.0"
   },
   "devDependencies": {
     "@hackersandwizards/admin": "git+https://github.com/hackersandwizards/admin.git#v1.7.0",

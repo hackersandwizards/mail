@@ -50,6 +50,11 @@ export const palette = {
     tint: colors["--color-night-2"],
   },
 } as const;
+// A token brand renamed or dropped would paint `undefined` without an error.
+for (const [mode, roles] of Object.entries(palette))
+  for (const [role, hex] of Object.entries(roles))
+    if (!hex)
+      throw new Error(`mail: brand tokens carry no ${mode} ${role} colour (brand peer range)`);
 
 export type Role = keyof typeof palette.light;
 
