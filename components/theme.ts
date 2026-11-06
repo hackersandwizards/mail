@@ -4,7 +4,7 @@
 // classic Outlook load none). Server-side only: the template is read from disk.
 import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
-import { colors } from "@hackersandwizards/brand/tokens";
+import { colors, tokens } from "@hackersandwizards/brand/tokens";
 
 const signatureFile = (ext: "html" | "txt") =>
   createRequire(import.meta.url).resolve(`@hackersandwizards/brand/mail-signature/template.${ext}`);
@@ -49,3 +49,9 @@ export const palette = {
 } as const;
 
 export type Role = keyof typeof palette.light;
+
+/** The brand corner a picture takes; classic Outlook on Windows draws it square. */
+export const corner = tokens["--radius-brand"];
+
+/** The letter spacing of a label set in capitals. */
+export const labelTracking = tokens["--tracking-label"];

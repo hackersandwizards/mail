@@ -1,8 +1,11 @@
 import card from "@hackersandwizards/brand/logos/avatar-512.png";
 import { Image } from "../../../components/Image";
 import { meta, part, views } from "../frame";
+import data from "../../mails/brief-bild.json";
 
-const image = { alt: "Vorschaubild zum Artikel", width: 152, height: 152 };
+// The picture of the Brief's first item, at its size and with its alt text.
+const { alt, width, height } = data.items[0].image!;
+const image = { alt, width, height };
 const loaded = views(await part(<Image src={card.src} {...image} />));
 // A source that does not load stands in for an image the client blocks.
 const blocked = views(

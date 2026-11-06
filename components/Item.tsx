@@ -1,8 +1,7 @@
 import { Link, Text } from "react-email";
-import { tokens } from "@hackersandwizards/brand/tokens";
 import { Image, type ImageProps } from "./Image";
 import { paint } from "./MailShell";
-import { fonts, palette } from "./theme";
+import { fonts, labelTracking, palette } from "./theme";
 
 export type ItemProps = {
   /** The kind of item, set in capitals: "Artikel", "Podcast", "Talk". */
@@ -40,7 +39,7 @@ export function Item({ label, title, href, text, image }: ItemProps) {
                 fontSize: 12,
                 lineHeight: "16px",
                 fontWeight: "bold",
-                letterSpacing: tokens["--tracking-label"],
+                letterSpacing: labelTracking,
                 textTransform: "uppercase",
                 color: palette.light.label,
                 margin: "0 0 4px",

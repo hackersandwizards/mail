@@ -8,6 +8,7 @@ import data from "../catalog/mails/brief-bild.json";
 
 const tint = colors["--color-tint"];
 const muted = colors["--color-muted"];
+const corner = tokens["--radius-brand"];
 const props = { src: "https://example.com/card.png", alt: "Vorschaubild", width: 300, height: 152 };
 
 /** The style attribute of the first element of that tag, as a property map. */
@@ -20,6 +21,8 @@ function style(html: string, tag: string): Record<string, string> {
       .map((d) => d.split(":").map((s) => s.trim()) as [string, string]),
   );
 }
+/** The image's cell: the one cell carrying a bgcolor. */
+const cell = (html: string) => html.match(/<td\b[^>]*\bbgcolor="[^"]*"[^>]*>/)?.[0] ?? "";
 const attr = (html: string, tag: string, name: string) =>
   html.match(new RegExp(`<${tag}\\b[^>]*\\b${name}="([^"]*)"`))?.[1];
 
@@ -43,10 +46,9 @@ describe("Image keeps its box while images are blocked", async () => {
 
     test(`${where}: the tint behind the image and its cell`, () => {
       expect(style(html, "img")["background-color"]).toBe(tint);
-      const cell = html.match(/<td\b[^>]*\bbgcolor="[^"]*"[^>]*>/)?.[0] ?? "";
-      expect(cell).toContain(`bgcolor="${tint}"`);
-      expect(cell).toContain(`background-color:${tint}`);
-      expect(cell).toMatch(/width:\d+px;height:\d+px/);
+      expect(cell(html)).toContain(`bgcolor="${tint}"`);
+      expect(cell(html)).toContain(`background-color:${tint}`);
+      expect(cell(html)).toMatch(/width:\d+px;height:\d+px/);
     });
 
     test(`${where}: alt text in Arial 12/16, muted, without the link's underline`, () => {
@@ -62,10 +64,8 @@ describe("Image keeps its box while images are blocked", async () => {
     });
 
     test(`${where}: image and cell in the brand corner`, () => {
-      const corner = tokens["--radius-brand"];
       expect(style(html, "img")["border-radius"]).toBe(corner);
-      const cell = html.match(/<td\b[^>]*\bbgcolor="[^"]*"[^>]*>/)?.[0] ?? "";
-      expect(cell).toContain(`border-radius:${corner}`);
+      expect(cell(html)).toContain(`border-radius:${corner}`);
     });
   }
 

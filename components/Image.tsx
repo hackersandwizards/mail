@@ -1,7 +1,6 @@
 import { Img } from "react-email";
-import { tokens } from "@hackersandwizards/brand/tokens";
 import { paint } from "./MailShell";
-import { fonts, palette } from "./theme";
+import { corner, fonts, palette } from "./theme";
 
 // React types carry no bgcolor; the attribute is what classic Outlook paints a cell from.
 declare module "react" {
@@ -45,7 +44,6 @@ export function Image({ src, alt, width, height, href }: ImageProps) {
   }
   if (!alt.trim()) throw new Error(`mail Image: ${src} has no alt text`);
   const { tint, muted } = palette.light;
-  const corner = tokens["--radius-brand"];
   const img = (
     <Img
       src={src}
