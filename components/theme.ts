@@ -50,7 +50,7 @@ export const palette = {
 
 export type Role = keyof typeof palette.light;
 
-/** The brand corner a picture takes; classic Outlook on Windows draws it square. */
+/** The brand corner a picture takes. */
 export const corner = tokens["--radius-brand"];
 
 /** The letter spacing of a label set in capitals. */
