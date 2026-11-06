@@ -11,9 +11,9 @@
       "href": "https://example.com/artikel/kleine-pull-requests",
       "text": "Wer Agenten große Änderungen schreiben lässt, verschiebt die Arbeit ins Review. Drei Regeln, die den Diff klein halten.",
       "image": {
-        "src": "../node_modules/@hackersandwizards/brand/logos/lockup-compact.png",
+        "src": "../node_modules/@hackersandwizards/brand/logos/avatar-512.png",
         "alt": "Vorschaubild zum Artikel",
-        "width": 300,
+        "width": 152,
         "height": 152
       }
     },

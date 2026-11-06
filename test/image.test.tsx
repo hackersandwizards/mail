@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { renderToStaticMarkup } from "react-dom/server";
-import { colors } from "@hackersandwizards/brand/tokens";
+import { colors, tokens } from "@hackersandwizards/brand/tokens";
 import { Image } from "../components/Image";
 import type { BriefProps } from "../mails/Brief";
 import { renderBrief } from "../scripts/render";
@@ -59,6 +59,13 @@ describe("Image keeps its box while images are blocked", async () => {
       const link = html.match(/<a\b[^>]*>(?=<img)/)?.[0] ?? "";
       expect(link).toContain("text-decoration:none");
       expect(link).toContain(`color:${muted}`);
+    });
+
+    test(`${where}: image and cell in the brand corner`, () => {
+      const corner = tokens["--radius-brand"];
+      expect(style(html, "img")["border-radius"]).toBe(corner);
+      const cell = html.match(/<td\b[^>]*\bbgcolor="[^"]*"[^>]*>/)?.[0] ?? "";
+      expect(cell).toContain(`border-radius:${corner}`);
     });
   }
 

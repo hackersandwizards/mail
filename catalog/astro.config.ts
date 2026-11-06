@@ -30,7 +30,7 @@ export default defineConfig({
       // A tile draws the mail as sent: light, with its images loaded.
       previewStates: ["light", "loaded"],
       // The image a mail's data names by a relative path, as a sent mail names its URL.
-      copy: ["node_modules/@hackersandwizards/brand/logos/lockup-compact.png"],
+      copy: ["node_modules/@hackersandwizards/brand/logos/avatar-512.png"],
       // Every story is the Astro frame, so no story module ships to the browser.
       serverOnly: true,
     }),

@@ -1,4 +1,5 @@
 import { Img } from "react-email";
+import { tokens } from "@hackersandwizards/brand/tokens";
 import { paint } from "./MailShell";
 import { fonts, palette } from "./theme";
 
@@ -28,7 +29,8 @@ export const MAX_IMAGE_WIDTH = 320;
  * An image that keeps its box while the client blocks images: whole-pixel width and height in the
  * attributes and the style (a `height:auto` would collapse the box), the tint behind the image and
  * its cell, and the alt text set small, muted and without the link underline it would inherit.
- * Classic Outlook on Windows shows its own notice instead of styled alt text.
+ * Classic Outlook on Windows shows its own notice instead of styled alt text. Image and cell take
+ * the brand corner, which classic Outlook leaves square; it cuts into content touching a corner.
  */
 export function Image({ src, alt, width, height, href }: ImageProps) {
   for (const [name, value] of Object.entries({ width, height })) {
@@ -43,6 +45,7 @@ export function Image({ src, alt, width, height, href }: ImageProps) {
   }
   if (!alt.trim()) throw new Error(`mail Image: ${src} has no alt text`);
   const { tint, muted } = palette.light;
+  const corner = tokens["--radius-brand"];
   const img = (
     <Img
       src={src}
@@ -53,6 +56,7 @@ export function Image({ src, alt, width, height, href }: ImageProps) {
       style={{
         width: `${width}px`,
         height: `${height}px`,
+        borderRadius: corner,
         backgroundColor: tint,
         fontFamily: fonts.sans,
         fontSize: "12px",
@@ -76,7 +80,12 @@ export function Image({ src, alt, width, height, href }: ImageProps) {
             height={height}
             bgcolor={tint}
             className={paint.bg("tint")}
-            style={{ width: `${width}px`, height: `${height}px`, backgroundColor: tint }}
+            style={{
+              width: `${width}px`,
+              height: `${height}px`,
+              borderRadius: corner,
+              backgroundColor: tint,
+            }}
           >
             {href ? (
               <a
