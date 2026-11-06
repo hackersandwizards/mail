@@ -7,13 +7,13 @@ import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { colors, tokens } from "@hackersandwizards/brand/tokens";
 
-const signatureFile = (ext: "html" | "txt") =>
-  createRequire(import.meta.url).resolve(`@hackersandwizards/brand/mail-signature/template.${ext}`);
+const brandFile = (path: string) =>
+  readFileSync(createRequire(import.meta.url).resolve(`@hackersandwizards/brand/${path}`), "utf-8");
 
 /** The brand's mail signature templates, filled by `Signature`. */
 export const signatureTemplate = {
-  html: readFileSync(signatureFile("html"), "utf-8"),
-  text: readFileSync(signatureFile("txt"), "utf-8"),
+  html: brandFile("mail-signature/template.html"),
+  text: brandFile("mail-signature/template.txt"),
 };
 
 // The monospace stack quotes family names as &quot;, so the pattern reads past them.
@@ -25,17 +25,14 @@ const sans = stacks.find((s) => /sans-serif/.test(s));
 if (!mono || !sans) throw new Error("mail: brand mail-signature template carries no font stack");
 export const fonts = { mono, sans };
 
-// The label element's colour token, light then night: its plain `.hw-label` rules, in that order.
-const labelCss = readFileSync(
-  createRequire(import.meta.url).resolve("@hackersandwizards/brand/elements/label.css"),
-  "utf-8",
-);
-const labelColours = [
-  ...labelCss.matchAll(/\.hw-label\s*\{[^}]*?\bcolor:\s*var\((--color-[\w-]+)\)/g),
-].map((m) => colors[m[1] as keyof typeof colors]);
-if (labelColours.length !== 2 || labelColours.some((c) => !c))
+// The label element's colour token, light and night: the plain `.hw-label` rule before and inside
+// its night scope.
+const [labelLight, labelDark] = brandFile("elements/label.css")
+  .split('@scope ([data-theme="dark"])')
+  .map((css) => /\.hw-label\s*\{[^}]*?(?<![\w-])color:\s*var\((--color-[\w-]+)\)/.exec(css)?.[1])
+  .map((token) => colors[token as keyof typeof colors]);
+if (!labelLight || !labelDark)
   throw new Error("mail: brand label element carries no light and night colour");
-const [labelLight, labelDark] = labelColours;
 
 /** Each colour role a mail paints, light as sent and dark as the mail's own dark styles set it.
  * `ampersand` and `purple` only the signature paints (its wordmark), reached by its inline colour. */
