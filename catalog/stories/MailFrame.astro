@@ -5,11 +5,14 @@ interface Props {
   width: number;
 }
 const { html, width } = Astro.props;
-// A srcdoc frame resolves relative URLs against the story's page; a mail's data names its images
-// relative to the mail's own page under /mails/.
-const base = `<base href="${import.meta.env.BASE_URL.replace(/\/?$/, "/")}mails/">`;
-const framed = html.replace(/<head[^>]*>/, (head) => head + base);
-if (framed === html) throw new Error("MailFrame: the mail has no <head> to carry its <base>");
+// A mail's data names its images relative to the mail's own page under /mails/; a srcdoc frame
+// resolves them against the story's page. Each becomes a path from the root: Chrome fetched a
+// root-relative <base href> against the story's page first, a 404 beside every working image.
+const page = new URL(`${import.meta.env.BASE_URL.replace(/\/?$/, "/")}mails/`, "http://catalog");
+const framed = html.replace(
+  /\b(src|href)="(?![a-z][a-z\d+.-]*:|[/#])([^"]*)"/gi,
+  (_, name, url) => `${name}="${new URL(url, page).href.slice(page.origin.length)}"`,
+);
 ---
 
 <iframe

@@ -33,6 +33,7 @@
     "check": "scaffolding check",
     "check:elements": "CATALOG_FILE=1 bun run build && brand-elements",
     "check:colours": "brand-colours",
+    "check:frames": "bun run build && bun scripts/check-frames.ts",
     "check:copies": "brand-copies",
     "check:staged": "check-staged",
     "fix": "bun --bun eslint --cache --concurrency=auto . --fix && bun --bun prettier --write .",
@@ -72,7 +73,8 @@
         "check:colours",
         "check:copies"
       ],
-      "check:elements"
+      "check:elements",
+      "check:frames"
     ]
   }
 }
