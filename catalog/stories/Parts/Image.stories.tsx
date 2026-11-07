@@ -1,4 +1,4 @@
-import card from "@hackersandwizards/brand/logos/avatar-512.png";
+import card from "@hackersandwizards/brand/logos/icon-maskable-512.png";
 import { Image } from "../../../components/Image";
 import { meta, part, views } from "../frame";
 import data from "../../mails/brief-bild.json";

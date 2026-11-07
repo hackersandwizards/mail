@@ -31,7 +31,7 @@ export default defineConfig({
       previewStates: ["light", "loaded"],
       // The image a mail's data names by a relative path, as a sent mail names its URL, served at
       // its package path; the preset resolves it through brand's exports.
-      copy: ["@hackersandwizards/brand/logos/avatar-512.png"],
+      copy: ["@hackersandwizards/brand/logos/icon-maskable-512.png"],
       // Every story is the Astro frame, so no story module ships to the browser.
       serverOnly: true,
     }),
