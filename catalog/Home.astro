@@ -18,6 +18,21 @@ const roles = Object.keys(palette.light) as Role[];
 ---
 
 <Home>
+  {/* The published catalogs, each linking the others in this order. */}
+  <nav class="hw-header-nav" aria-label="Main" slot="nav">
+    <a class="hw-header-link" href="https://hackersandwizards.github.io/brand/">
+      Brand
+    </a>
+    <a class="hw-header-link" href="https://hackersandwizards.github.io/slides/">
+      Slides
+    </a>
+    <a class="hw-header-link" href="https://hackersandwizards.github.io/documents/">
+      Documents
+    </a>
+    <a class="hw-header-link" href={import.meta.env.BASE_URL} aria-current="page">
+      Mail
+    </a>
+  </nav>
   <details class="hw-disclosure foundations">
     <summary>
       Foundations: {roles.length} colour roles, 2 font stacks, {elements.uses.length} elements from

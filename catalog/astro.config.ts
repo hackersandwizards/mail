@@ -22,7 +22,13 @@ export default defineConfig({
     catalog({
       product: "Mail",
       lead: "Every mail and building block of the mail engine, rendered to the HTML a mail client receives and shown in a 600 px frame. Each tile opens its light and dark states; the data is made up.",
-      css: ["@hackersandwizards/brand/tokens.root.css", "@hackersandwizards/brand/elements.css"],
+      css: [
+        "@hackersandwizards/brand/tokens.root.css",
+        // The shell marks its pages data-hw-night; this turns brand's light tokens to night there,
+        // the header's included.
+        "@hackersandwizards/brand/night.css",
+        "@hackersandwizards/brand/elements.css",
+      ],
       head: "./Head.astro",
       home: "./Home.astro",
       groupOrder: ["Mails", "Parts"],
