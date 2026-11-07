@@ -9,7 +9,7 @@ may not be public. Every recipient and every word in the catalog data is invente
 template is the brand's own.
 
 The catalog shows every building block and every mail type, published at
-https://hackersandwizards.github.io/mail/ on every push to `main`.
+https://hackersandwizards.github.io/mail/catalog/ on every push to `main`.
 
 ## Use it in another repo
 

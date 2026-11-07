@@ -66,7 +66,7 @@
   },
   "prettier": "@hackersandwizards/scaffolding/prettier",
   "admin": {
-    "designSystem": "https://hackersandwizards.github.io/mail/"
+    "designSystem": "https://hackersandwizards.github.io/mail/catalog/"
   },
   "scaffolding": {
     "test": "test",
