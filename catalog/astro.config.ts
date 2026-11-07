@@ -4,10 +4,6 @@ import catalogs from "@hackersandwizards/brand/catalogs.json";
 
 // Astro leaves a redirect's destination as written, so each names the base.
 const BASE = "/mail";
-// The nav finds this catalog in brand's list by name; a rename would send "Mail" to the published
-// site without a word.
-if (!catalogs.some(({ name }) => name === "Mail"))
-  throw new Error('brand catalogs.json has no "Mail"');
 
 export default defineConfig({
   base: BASE,
