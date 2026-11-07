@@ -1,8 +1,8 @@
 /**
- * check:frames: opens the built catalog's home and every story page over HTTP under the Pages base
- * and fails on an image that answers an error, fails to load or paints nothing, in any frame. A
- * story's mail sits in a srcdoc frame, where a URL can resolve against the story's page instead of
- * the mail's (Brief-Bild fetched its picture from the story's folder, a 404, on 2026-11-06).
+ * check:frames: opens the built catalog's home, every story page and every rendered mail over HTTP
+ * under the Pages base and fails on an image that answers an error, fails to load or paints
+ * nothing, in any frame. A story's mail sits in a srcdoc frame, where a URL can resolve against the
+ * story's page instead of the mail's.
  */
 import { readdir } from "node:fs/promises";
 import { join } from "node:path";
@@ -33,7 +33,9 @@ const pages = (await readdir(DIST, { recursive: true }))
   .filter((f) => /^(dashboard|stories)\/.*index\.html$|^mails\/.*\.html$/.test(f))
   .map((f) => root + f.replace(/index\.html$/, ""));
 
-if (!pages.length) throw new Error("check:frames: the build holds no story page");
+// The mails alone would pass with no srcdoc frame opened.
+if (pages.every((p) => p.startsWith(`${root}mails/`)))
+  throw new Error("check:frames: the build holds no story page");
 
 const failures: string[] = [];
 
@@ -66,9 +68,9 @@ async function check(url: string) {
 const browser = await launch();
 try {
   const queue = [root, ...pages];
-  // Eight pages at a time; each waits half a second of network quiet.
+  // Sixteen pages at a time; each waits half a second of network quiet.
   await Promise.all(
-    Array.from({ length: 8 }, async () => {
+    Array.from({ length: 16 }, async () => {
       for (let url; (url = queue.shift());) await check(url);
     }),
   );

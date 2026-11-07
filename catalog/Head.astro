@@ -1,8 +1,12 @@
 ---
-// The brand's dense scale and focus ring for the catalog pages; the mails in the frames keep their
-// own sizes.
+// The brand's favicon, dense scale and focus ring for the catalog pages; the mails in the frames
+// keep their own sizes.
+import faviconIco from "@hackersandwizards/brand/logos/favicon.ico?url&no-inline";
+import faviconSvg from "@hackersandwizards/brand/logos/favicon.svg?url&no-inline";
 ---
 
+<link rel="icon" href={faviconIco} sizes="32x32" />
+<link rel="icon" href={faviconSvg} type="image/svg+xml" />
 <script is:inline>
   document.documentElement.dataset.hwScale = "dense";
   document.documentElement.classList.add("hw-focus-ring");

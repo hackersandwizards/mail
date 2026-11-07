@@ -16,9 +16,9 @@ goes in. Every word a mail prints is a prop; the catalog data is invented, and
 
 ## Layout
 
-- `components/theme.ts`: every brand value a mail uses: colours from
-  `@hackersandwizards/brand/tokens` (resolved hex), the mono and sans stacks read out of the brand's
-  mail-signature template. No component writes a colour or a stack of its own.
+- `components/theme.ts`: every brand value a mail uses: colours, the picture corner and the label
+  tracking from `@hackersandwizards/brand/tokens` (resolved values), the mono and sans stacks read
+  out of the brand's mail-signature template. No component writes a colour or a stack of its own.
 - `components/`: one React Email component per building block. `MailShell` holds the head
   (viewport, `color-scheme`, the dark rules under `prefers-color-scheme` and Outlook.com's
   `data-ogsc`) and the 600 px column; colours reach the dark rules through the `paint` classes.
@@ -29,9 +29,10 @@ goes in. Every word a mail prints is a prop; the catalog data is invented, and
   Chrome for Testing (scaffolding's `./chrome`) views (light, dark, inverted, images blocked), used by the tests and the
   catalog.
 - `catalog/`: one Astro app in scaffolding's catalog shell (`catalog/astro.config.ts`, preset
-  `catalog({...})`), built to `dist/` by `bun run build`, served on port 4455 by `bun run dev`, under the base
-  `/mail` of its Pages site `https://hackersandwizards.github.io/mail/`, which scaffolding's reusable
-  workflow publishes on every push to `main`.
+  `catalog({...})`), built to `dist/` by `bun run build` under the base `/mail` of its Pages site
+  `https://hackersandwizards.github.io/mail/`, which scaffolding's reusable workflow publishes on
+  every push to `main`; `bun run dev` serves it at the root on port 4455, and under a coding agent
+  Astro detaches that server, which `bun --bun astro dev stop` in `catalog/` ends.
   Its stories in `catalog/stories/` sit at the site's root, each mail type under `Mails/` light, dark,
   inverted and on a phone, the building blocks under `Parts/`; each shows the rendered HTML in a
   frame, since a component in the page is not what a mail client receives. `catalog/mails/*.json`
