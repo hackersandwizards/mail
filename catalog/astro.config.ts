@@ -1,6 +1,5 @@
 import { defineConfig } from "astro/config";
 import { catalog } from "@hackersandwizards/scaffolding/catalog";
-import catalogs from "@hackersandwizards/brand/catalogs.json";
 
 // Astro leaves a redirect's destination as written, so each names the base.
 const BASE = "/mail";
@@ -35,7 +34,6 @@ export default defineConfig({
       copy: ["@hackersandwizards/brand/logos/avatar-512.png"],
       // Every story is the Astro frame, so no story module ships to the browser.
       serverOnly: true,
-      nav: { items: catalogs, current: "Mail" },
     }),
   ],
 });
