@@ -6,7 +6,9 @@ import catalogs from "@hackersandwizards/brand/catalogs.json";
 import elements from "../brand-elements.json";
 import { fonts, palette, type Role } from "../components/theme";
 
-const brand = catalogs.find((c) => c.name === "Brand")!;
+const { portal, anchors } = catalogs.find((c) => c.name === "Brand") ?? {};
+if (!portal || !anchors?.element)
+  throw new Error("brand's catalogs.json has no Brand portal and element anchor");
 const notes: Record<string, string> = {
   card: "A tile per mail and part on this page.",
   pill: "The count of states on a tile.",
@@ -57,10 +59,7 @@ const roles = Object.keys(palette.light) as Role[];
       <div data-hw-tile={name} data-hw-version={version}>
         <p>
           from brand v{version} · <code>hw-{name}</code> ·{" "}
-          <a
-            class="hw-link"
-            href={brand.portal + brand.anchors!.element.replace("<element>", name)}
-          >
+          <a class="hw-link" href={portal + anchors.element.replace("<element>", name)}>
             catalog
           </a>
         </p>
@@ -87,7 +86,7 @@ const roles = Object.keys(palette.light) as Role[];
         {name === "link" && (
           <p>
             See{" "}
-            <a class="hw-link" href={brand.portal}>
+            <a class="hw-link" href={portal}>
               the brand catalog
             </a>{" "}
             first.
