@@ -5,12 +5,12 @@ import { version } from "@hackersandwizards/brand/package.json";
 import elements from "../brand-elements.json";
 import { fonts, palette, type Role } from "../components/theme";
 
-const CATALOGUE = "https://hackersandwizards.github.io/brand/catalogue.html";
+const BRAND_CATALOG = "https://hackersandwizards.github.io/brand/";
 const notes: Record<string, string> = {
   card: "A tile per mail and part on this page.",
   pill: "The count of states on a tile.",
   table: "The colour roles and font stacks above.",
-  link: "The catalogue link on each tile.",
+  link: "The brand catalog link on each tile.",
   label: "The colour of an item's label in a mail.",
 };
 const roles = Object.keys(palette.light) as Role[];
@@ -56,8 +56,8 @@ const roles = Object.keys(palette.light) as Role[];
       <div data-hw-tile={name} data-hw-version={version}>
         <p>
           from brand v{version} · <code>hw-{name}</code> ·{" "}
-          <a class="hw-link" href={`${CATALOGUE}#hw-${name}`}>
-            catalogue
+          <a class="hw-link" href={`${BRAND_CATALOG}#hw-${name}`}>
+            catalog
           </a>
         </p>
         <p class="note">{notes[name]}</p>
@@ -83,8 +83,8 @@ const roles = Object.keys(palette.light) as Role[];
         {name === "link" && (
           <p>
             See{" "}
-            <a class="hw-link" href={CATALOGUE}>
-              the brand catalogue
+            <a class="hw-link" href={BRAND_CATALOG}>
+              the brand catalog
             </a>{" "}
             first.
           </p>

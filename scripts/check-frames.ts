@@ -68,10 +68,21 @@ async function check(url: string) {
   // A home without tile frames would show no image and pass.
   if (url === root && page.frames().length < 2) failures.push(`${url}: no tile frame opened`);
   for (const frame of page.frames().filter((f) => !f.detached)) {
-    const unpainted = await frame.evaluate(() =>
-      [...document.images].filter((i) => !i.naturalWidth).map((i) => i.currentSrc || i.src),
-    );
+    // A lazy image the page hides never loads, such as the header's night lockup on a light
+    // page: its source must answer instead.
+    const [unpainted, unloaded] = await frame.evaluate(async () => {
+      const empty = [...document.images].filter((i) => !i.naturalWidth);
+      const hidden = (i: HTMLImageElement) => i.loading === "lazy" && !i.getClientRects().length;
+      const unanswered = await Promise.all(
+        empty.filter(hidden).map(async (i) => ((await fetch(i.src)).ok ? "" : i.src)),
+      );
+      return [
+        empty.filter((i) => !hidden(i)).map((i) => i.currentSrc || i.src),
+        unanswered.filter(Boolean),
+      ];
+    });
     for (const src of unpainted) bad("painted nothing", src);
+    for (const src of unloaded) bad("hidden and unanswered", src);
   }
   await page.close();
 }
