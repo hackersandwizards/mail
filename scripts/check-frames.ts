@@ -1,7 +1,7 @@
 /**
  * check:frames: opens the built catalog's home, every story page and every rendered mail over HTTP
  * under the Pages base and fails on an image that answers an error, fails to load or paints
- * nothing, in any frame. A story's mail sits in a srcdoc frame, where a URL can resolve against the
+ * nothing, or, lazy and hidden, does not decode, in any frame. A story's mail sits in a srcdoc frame, where a URL can resolve against the
  * story's page instead of the mail's.
  */
 import { readdir } from "node:fs/promises";
@@ -69,20 +69,25 @@ async function check(url: string) {
   if (url === root && page.frames().length < 2) failures.push(`${url}: no tile frame opened`);
   for (const frame of page.frames().filter((f) => !f.detached)) {
     // A lazy image the page hides never loads, such as the header's night lockup on a light
-    // page: its source must answer instead.
-    const [unpainted, unloaded] = await frame.evaluate(async () => {
-      const empty = [...document.images].filter((i) => !i.naturalWidth);
-      const hidden = (i: HTMLImageElement) => i.loading === "lazy" && !i.getClientRects().length;
-      const unanswered = await Promise.all(
-        empty.filter(hidden).map(async (i) => ((await fetch(i.src)).ok ? "" : i.src)),
-      );
-      return [
-        empty.filter((i) => !hidden(i)).map((i) => i.currentSrc || i.src),
-        unanswered.filter(Boolean),
-      ];
-    });
-    for (const src of unpainted) bad("painted nothing", src);
-    for (const src of unloaded) bad("hidden and unanswered", src);
+    // page: a copy of it must decode instead.
+    const found = await frame.evaluate(() =>
+      Promise.all(
+        [...document.images]
+          .filter((i) => !i.naturalWidth)
+          .map(async (i): Promise<[string, string] | null> => {
+            const src = i.currentSrc || i.src;
+            if (i.loading !== "lazy" || i.getClientRects().length || !i.getAttribute("src"))
+              return ["painted nothing", src];
+            const copy = new Image();
+            copy.src = src;
+            return copy.decode().then(
+              () => null,
+              () => ["hidden and does not decode", src],
+            );
+          }),
+      ),
+    );
+    for (const [why, src] of found.filter((f) => f !== null)) bad(why, src);
   }
   await page.close();
 }
