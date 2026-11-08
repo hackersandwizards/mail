@@ -56,6 +56,9 @@ async function check(url: string) {
   // A page that is not there would show no image and pass.
   const answer = await page.goto(url, { waitUntil: "networkidle0" });
   if (!answer?.ok()) failures.push(`${url}: the page answered ${answer?.status()}`);
+  // A tile's frame holds data-src until it starts loading, after the page's first paint.
+  await page.waitForFunction(() => !document.querySelector("iframe[data-src]"), { polling: 100 });
+  await page.waitForNetworkIdle();
   for (const frame of page.frames().filter((f) => !f.detached)) {
     const unpainted = await frame.evaluate(() =>
       [...document.images].filter((i) => !i.naturalWidth).map((i) => i.currentSrc || i.src),
@@ -67,7 +70,9 @@ async function check(url: string) {
 
 const browser = await launch();
 try {
-  const queue = [root, ...pages];
+  // Alone and in front: a background tab does not paint, so its tiles would not start.
+  await check(root);
+  const queue = [...pages];
   // Sixteen pages at a time; each waits half a second of network quiet.
   await Promise.all(
     Array.from({ length: 16 }, async () => {
