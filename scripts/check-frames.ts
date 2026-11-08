@@ -41,6 +41,8 @@ const failures: string[] = [];
 
 async function check(url: string) {
   const page = await browser.newPage();
+  // A background tab does not paint, and the home's tiles load after the first paint.
+  await page.emulateFocusedPage(true);
   // Tall, so the home's lazy tiles all load.
   await page.setViewport({ width: 1280, height: 4000 });
   const bad = (why: string, src: string) => {
@@ -48,17 +50,23 @@ async function check(url: string) {
   };
   page.on("requestfinished", (r) => {
     const status = r.response()?.status() ?? 0;
-    if (r.resourceType() === "image" && status >= 400) bad(String(status), r.url());
+    // A tile's frame that answers an error holds no image to fail.
+    if (["image", "document"].includes(r.resourceType()) && status >= 400)
+      bad(String(status), r.url());
   });
   page.on("requestfailed", (r) => {
     if (r.resourceType() === "image") bad("failed", r.url());
   });
   // A page that is not there would show no image and pass.
-  const answer = await page.goto(url, { waitUntil: "networkidle0" });
+  const answer = await page.goto(url);
   if (!answer?.ok()) failures.push(`${url}: the page answered ${answer?.status()}`);
-  // A tile's frame holds data-src until it starts loading, after the page's first paint.
-  await page.waitForFunction(() => !document.querySelector("iframe[data-src]"), { polling: 100 });
+  // A tile's frame has neither source until it starts loading.
+  await page
+    .waitForFunction(() => !document.querySelector("iframe:not([src],[srcdoc])"), { polling: 100 })
+    .catch(() => failures.push(`${url}: a frame never started loading`));
   await page.waitForNetworkIdle();
+  // A home without tile frames would show no image and pass.
+  if (url === root && page.frames().length < 2) failures.push(`${url}: no tile frame opened`);
   for (const frame of page.frames().filter((f) => !f.detached)) {
     const unpainted = await frame.evaluate(() =>
       [...document.images].filter((i) => !i.naturalWidth).map((i) => i.currentSrc || i.src),
@@ -70,9 +78,7 @@ async function check(url: string) {
 
 const browser = await launch();
 try {
-  // Alone and in front: a background tab does not paint, so its tiles would not start.
-  await check(root);
-  const queue = [...pages];
+  const queue = [root, ...pages];
   // Sixteen pages at a time; each waits half a second of network quiet.
   await Promise.all(
     Array.from({ length: 16 }, async () => {
