@@ -56,9 +56,8 @@ The catalog shows every mail type light, dark, inverted and at phone width under
 renders to `/mail/mails/<type>.html`, `.txt` and `.json`. `bun run build` writes the catalog to `dist/`.
 
 `bun run check` runs scaffolding's shared steps (format, lint, styles, types, tests, the catalog
-build and more), then the brand colour, copy and retired-line scans, `brand-elements` on the built
-catalog home and `check:frames`, which opens every built page and fails on an image that does not
-load. The git hooks check the staged files, the commit message and each push;
+build and more), then this repository's own steps, the `check:*` scripts `package.json` names under
+`scaffolding.check`. The git hooks check the staged files, the commit message and each push;
 [.githooks/README.md](.githooks/README.md) lists them.
 
 ## Release

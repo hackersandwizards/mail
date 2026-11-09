@@ -1,13 +1,14 @@
-# Performance, 09.11.2026 (v1.2.16)
+# Performance, 09.11.2026
 
 Re-measured the catalog on the Mac (Apple Silicon, Bun 1.4.4, Chrome for Testing 156) on servers this
-run started on free ports, with v1.2.15 plus scaffolding v5.5.1 and admin v1.20.1. Other sessions ran
+run started on free ports, on commit `ec596f6` (v1.2.15 with scaffolding v5.5.1 and admin v1.20.1). Other sessions ran
 on the same machine. The Lighthouse batch waited up to five minutes for the 1-minute load to reach
 the 16 cores or fewer, and the load sits beside every number as 1, 5 and 15 minutes.
 
 No fix was needed: every page type still scores 100 on performance, mobile and desktop, and this
-polish changed no code a page or a mail runs. The sections from Navigation down are the v1.2.13
-measurements of 08.11.2026, kept because nothing they measure has changed; only Lighthouse ran again.
+polish changed no code a page or a mail runs. Only Lighthouse ran again. The sections from Navigation
+down are the v1.2.13 measurements of 08.11.2026 and date from that build: the catalog shell has moved
+since (scaffolding v2.21.2 to v5.5.1, brand v1.38.0 to v1.64.0), and they were not repeated.
 
 ## Lighthouse 13.6.0, production build, median of three
 

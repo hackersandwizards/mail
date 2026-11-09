@@ -1,7 +1,7 @@
 /**
  * check:frames: opens the built catalog's home, every story page and every rendered mail over HTTP
- * under the Pages base and fails on an image that answers an error, fails to load or paints
- * nothing, or, lazy and hidden, does not decode, in any frame. A story's mail sits in a srcdoc
+ * under the Pages base and fails on a page, frame or image that answers an error or does not load,
+ * and on an image that paints nothing or, lazy and hidden, does not decode, in any frame. A story's mail sits in a srcdoc
  * frame, where a URL can resolve against the story's page instead of the mail's.
  */
 import { readdir } from "node:fs/promises";
@@ -42,6 +42,8 @@ const failures: string[] = [];
 
 async function check(url: string) {
   const page = await browser.newPage();
+  // Without focus a tab is hidden: it paints nothing and skips the tile loader a visitor gets.
+  await page.emulateFocusedPage(true);
   // Tall, so the home's lazy tiles all load.
   await page.setViewport({ width: 1280, height: 4000 });
   const bad = (why: string, src: string) => {
@@ -52,18 +54,16 @@ async function check(url: string) {
     if (WATCHED.includes(r.resourceType()) && status >= 400) bad(String(status), r.url());
   });
   page.on("requestfailed", (r) => {
-    if (WATCHED.includes(r.resourceType())) bad("failed", r.url());
+    if (WATCHED.includes(r.resourceType())) bad(r.failure()?.errorText ?? "failed", r.url());
   });
   // A page that is not there would show no image and pass.
   const answer = await page.goto(url);
   if (!answer?.ok()) failures.push(`${url}: the page answered ${answer?.status()}`);
   // A tile's frame has neither source until it starts loading.
-  await page
-    .waitForFunction(() => !document.querySelector("iframe:not([src],[srcdoc])"), { polling: 100 })
-    .catch(() => failures.push(`${url}: a frame never started loading`));
-  await page
-    .waitForNetworkIdle()
-    .catch(() => failures.push(`${url}: the network never went quiet`));
+  await page.waitForFunction(() => !document.querySelector("iframe:not([src],[srcdoc])"), {
+    polling: 100,
+  });
+  await page.waitForNetworkIdle();
   // A home without tile frames would show no image and pass.
   if (url === root && page.frames().length < 2) failures.push(`${url}: no tile frame opened`);
   for (const frame of page.frames().filter((f) => !f.detached)) {
@@ -97,7 +97,8 @@ try {
   // Sixteen pages at a time; each waits half a second of network quiet.
   await Promise.all(
     Array.from({ length: 16 }, async () => {
-      for (let url; (url = queue.shift());) await check(url);
+      for (let url; (url = queue.shift());)
+        await check(url).catch((e: Error) => failures.push(`${url}: ${e.message}`));
     }),
   );
 } finally {
@@ -108,4 +109,4 @@ if (failures.length) {
   console.error(`check:frames: ${failures.length} failure(s)\n${failures.join("\n")}`);
   process.exit(1);
 }
-console.log(`check:frames: ${pages.length + 1} pages, every image loads`);
+console.log(`check:frames: ${pages.length + 1} pages, every page, frame and image loads`);
