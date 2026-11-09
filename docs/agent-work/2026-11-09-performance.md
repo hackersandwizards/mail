@@ -1,27 +1,29 @@
-# Performance, 08.11.2026 (v1.2.13)
+# Performance, 09.11.2026 (v1.2.16)
 
-The first performance report for this repository, so it sets the baseline. Measured on the Mac
-(Apple Silicon, Bun 1.4.4, Chrome for Testing 156) on servers this run started on free ports. Other
-sessions ran Lighthouse on the same machine. Each Lighthouse batch waited until the 1-minute load was
-at or below 4, and the load sits beside every number as 1, 5 and 15 minutes.
+Re-measured the catalog on the Mac (Apple Silicon, Bun 1.4.4, Chrome for Testing 156) on servers this
+run started on free ports, with v1.2.15 plus scaffolding v5.5.1 and admin v1.20.1. Other sessions ran
+on the same machine. The Lighthouse batch waited up to five minutes for the 1-minute load to reach
+the 16 cores or fewer, and the load sits beside every number as 1, 5 and 15 minutes.
 
-Nothing in this repository needed a fix: every page type scores 100 on performance, mobile and
-desktop. The one cost found sits in react-email and is set out below.
+No fix was needed: every page type still scores 100 on performance, mobile and desktop, and this
+polish changed no code a page or a mail runs. The sections from Navigation down are the v1.2.13
+measurements of 08.11.2026, kept because nothing they measure has changed; only Lighthouse ran again.
 
 ## Lighthouse 13.6.0, production build, median of three
 
 The build was served as GitHub Pages serves it, under `/mail` with gzip and
 `Cache-Control: max-age=600`, which matches the live site's header.
 
-| Page                                    | Mobile | FCP    | LCP   | Desktop | Load at start, mobile / desktop |
-| --------------------------------------- | ------ | ------ | ----- | ------- | ------------------------------- |
-| Catalog home                            | 100    | 1.4 s  | 1.4 s | 100     | 3.77 4.24 4.35 / 3.48 4.10 4.30 |
-| Story in the dashboard (Brief, light)   | 100    | 0.8 s  | 1.4 s | 100     | 3.38 4.00 4.25 / 3.52 3.98 4.24 |
-| Story frame (Brief, light)              | none   | no FCP | none  | none    | 3.81 4.06 4.25 / 3.16 3.88 4.18 |
-| Rendered mail, `/mails/brief.html`      | 100    | 0.6 s  | 0.6 s | 100     | 2.99 3.76 4.12 / 3.03 3.71 4.09 |
-| Control: story frame with one text node | 100    | 0.8 s  | 0.8 s | 100     | 3.68 3.75 4.08 / 3.64 3.74 4.07 |
+| Page                                  | Mobile | FCP   | LCP   | Desktop | Load at start, mobile / desktop       |
+| ------------------------------------- | ------ | ----- | ----- | ------- | ------------------------------------- |
+| Catalog home                          | 100    | 1.1 s | 1.1 s | 100     | 16.69 15.45 14.31 / 11.16 14.23 13.91 |
+| Story in the dashboard (Brief, light) | 100    | 0.9 s | 1.3 s | 100     | 10.32 13.78 13.76 / 15.48 14.76 14.12 |
+| Rendered mail, `/mails/brief.html`    | 100    | 0.6 s | 0.6 s | 100     | 11.47 13.87 13.82 / 9.43 13.13 13.55  |
 
-All three runs scored the same on every page. TBT is 0 ms and CLS 0 everywhere.
+On 08.11. the same three pages read FCP 1.4, 0.8 and 0.6 s and LCP 1.4, 1.4 and 0.6 s, at a load of 3
+to 4 (v1.2.13). The story frame was not run again: Lighthouse cannot score it, as below.
+
+All three runs scored the same on every page. TBT is 0 ms and CLS 0 on all but one run; one mobile run of the rendered mail had a TBT of 10 ms.
 
 - **Story frame: Lighthouse cannot score it.** The page's only content is the mail in a `srcdoc`
   iframe, and Chrome counts no paint inside an iframe toward the page's first contentful paint, so
@@ -58,7 +60,8 @@ costs nothing visible.
 
 Launch to the first 200, three runs each:
 
-- `bun run dev` (`astro dev --ignore-lock`, served at the root): 892, 803, 845 ms (load 3.38 to 3.51).
+- `bun --bun astro dev --ignore-lock` from `catalog/`, that is `bun run dev` plus the flag, served at
+  the root: 892, 803, 845 ms (load 3.38 to 3.51).
 - `astro preview --ignore-lock`: 391, 392, 386 ms (load 3.51). There is no `preview` script; the
   catalog deploys as static files.
 - `bun run build`, whole process, 37 pages: 1.84 s on the first run with a cold Vite cache, then

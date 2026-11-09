@@ -1,8 +1,8 @@
 /**
  * check:frames: opens the built catalog's home, every story page and every rendered mail over HTTP
  * under the Pages base and fails on an image that answers an error, fails to load or paints
- * nothing, or, lazy and hidden, does not decode, in any frame. A story's mail sits in a srcdoc frame, where a URL can resolve against the
- * story's page instead of the mail's.
+ * nothing, or, lazy and hidden, does not decode, in any frame. A story's mail sits in a srcdoc
+ * frame, where a URL can resolve against the story's page instead of the mail's.
  */
 import { readdir } from "node:fs/promises";
 import { join } from "node:path";
@@ -13,6 +13,8 @@ const DIST = join(import.meta.dir, "../dist");
 const BASE = "/mail/";
 // The Image part's blocked stories name a source that never loads, on purpose.
 const BLOCKED = /\/blocked\.png$/;
+// A tile's frame that fails holds no image to fail.
+const WATCHED = ["image", "document"];
 
 const server = Bun.serve({
   port: 0,
@@ -28,7 +30,6 @@ const server = Bun.serve({
   },
 });
 const root = `http://127.0.0.1:${server.port}${BASE}`;
-// Every story page, and every mail as mail-render writes it.
 const pages = (await readdir(DIST, { recursive: true }))
   .filter((f) => /^(dashboard|stories)\/.*index\.html$|^mails\/.*\.html$/.test(f))
   .map((f) => root + f.replace(/index\.html$/, ""));
@@ -41,8 +42,6 @@ const failures: string[] = [];
 
 async function check(url: string) {
   const page = await browser.newPage();
-  // A background tab does not paint, and the home's tiles load after the first paint.
-  await page.emulateFocusedPage(true);
   // Tall, so the home's lazy tiles all load.
   await page.setViewport({ width: 1280, height: 4000 });
   const bad = (why: string, src: string) => {
@@ -50,12 +49,10 @@ async function check(url: string) {
   };
   page.on("requestfinished", (r) => {
     const status = r.response()?.status() ?? 0;
-    // A tile's frame that answers an error holds no image to fail.
-    if (["image", "document"].includes(r.resourceType()) && status >= 400)
-      bad(String(status), r.url());
+    if (WATCHED.includes(r.resourceType()) && status >= 400) bad(String(status), r.url());
   });
   page.on("requestfailed", (r) => {
-    if (r.resourceType() === "image") bad("failed", r.url());
+    if (WATCHED.includes(r.resourceType())) bad("failed", r.url());
   });
   // A page that is not there would show no image and pass.
   const answer = await page.goto(url);
@@ -64,7 +61,9 @@ async function check(url: string) {
   await page
     .waitForFunction(() => !document.querySelector("iframe:not([src],[srcdoc])"), { polling: 100 })
     .catch(() => failures.push(`${url}: a frame never started loading`));
-  await page.waitForNetworkIdle();
+  await page
+    .waitForNetworkIdle()
+    .catch(() => failures.push(`${url}: the network never went quiet`));
   // A home without tile frames would show no image and pass.
   if (url === root && page.frames().length < 2) failures.push(`${url}: no tile frame opened`);
   for (const frame of page.frames().filter((f) => !f.detached)) {
@@ -106,7 +105,7 @@ try {
   await server.stop(true);
 }
 if (failures.length) {
-  console.error(`check:frames: ${failures.length} image failure(s)\n${failures.join("\n")}`);
+  console.error(`check:frames: ${failures.length} failure(s)\n${failures.join("\n")}`);
   process.exit(1);
 }
 console.log(`check:frames: ${pages.length + 1} pages, every image loads`);
