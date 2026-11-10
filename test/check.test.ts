@@ -1,5 +1,6 @@
 // A data file that would render a wrong mail is refused, naming the field, before anything renders.
 import { describe, expect, test } from "bun:test";
+import { rejection } from "@hackersandwizards/scaffolding/rejection";
 import { spawnSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -23,19 +24,6 @@ function edit(path: string, value?: unknown) {
   else parent[last] = value;
   return out as BriefProps;
 }
-
-/** The message of the Error `promise` rejects with; fails when it resolves or rejects with no
- * Error. In place of bun's `expect().rejects`, which `eslint.config.js` refuses and says why. */
-const rejection = (promise: Promise<unknown>) =>
-  promise.then(
-    () => {
-      throw new Error("expected a rejection, it resolved");
-    },
-    (e: unknown) => {
-      if (e instanceof Error) return e.message;
-      throw new Error(`expected an Error, rejected with ${String(e)}`);
-    },
-  );
 
 const REQUIRED = [
   "lang",
