@@ -11,6 +11,18 @@ export const paint = {
   border: (role: Role) => `hw-border-${role}`,
 };
 
+/** A link in the accent, underlined: spread onto React Email's `Link`. The longhand overrides the
+ * `text-decoration-line: none` that `Link` sets, so the underline holds where a client drops the
+ * shorthand. */
+export const accentLink = {
+  className: paint.text("accent"),
+  style: {
+    color: palette.light.accent,
+    textDecoration: "underline",
+    textDecorationLine: "underline",
+  },
+} as const;
+
 // The dark rules, once per role, for Apple Mail and other clients honouring prefers-color-scheme,
 // and again under Outlook.com's data-ogsc marker. React Email's Body repeats its
 // background on an inner cell without a class, so the page rule names that cell too. The brand

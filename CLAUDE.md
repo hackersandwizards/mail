@@ -16,8 +16,8 @@ goes in. Every word a mail prints is a prop; the catalog data is invented, and
 
 ## Layout
 
-- `components/theme.ts`: every brand value a mail uses: colours, the picture corner and the label
-  tracking from `@hackersandwizards/brand/tokens` (resolved values), the mono and sans stacks read
+- `components/theme.ts`: every brand value a mail uses: colours, the picture corner and the
+  label's tracking and weight from `@hackersandwizards/brand/tokens` (resolved values), the mono and sans stacks read
   out of the brand's mail-signature template. No component writes a colour or a stack of its own.
 - `components/`: one React Email component per building block. `MailShell` holds the head
   (viewport, `color-scheme`, the dark rules under `prefers-color-scheme` and Outlook.com's

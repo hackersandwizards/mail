@@ -1,6 +1,6 @@
 // The brand values a mail uses, every one from @hackersandwizards/brand: colours from its resolved
-// token set (hex, since mail clients know no color-mix()), the picture corner and label tracking
-// from its tokens, the two font stacks from its mail signature template, which carries the stacks a
+// token set (hex, since mail clients know no color-mix()), the picture corner and the label's tracking
+// and weight from its tokens, the two font stacks from its mail signature template, which carries the stacks a
 // mail client can show (no web font: Gmail and classic Outlook load none). Server-side only: the
 // template is read from disk.
 import { readFileSync } from "node:fs";
@@ -74,7 +74,7 @@ export const corner = literal("--radius-sm");
 export const labelTracking = literal("--tracking-label");
 
 /** The weight of a label, as brand's label element sets it. The mail's mono stack has no medium
- * face, so a client draws brand's 500 in the regular one. */
-export const labelWeight = Number(tokens["--type-label-weight"]);
-if (!Number.isInteger(labelWeight))
+ * face, so a client draws a medium weight in the regular one. */
+if (!/^[1-9]00$/.test(tokens["--type-label-weight"]))
   throw new Error("mail: brand token --type-label-weight is no plain weight (brand peer range)");
+export const labelWeight = Number(tokens["--type-label-weight"]);

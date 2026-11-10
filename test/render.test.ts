@@ -3,7 +3,7 @@ import { spawnSync } from "node:child_process";
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { colors } from "@hackersandwizards/brand/tokens";
+import { colors, tokens } from "@hackersandwizards/brand/tokens";
 import type { BriefProps } from "../mails/Brief";
 import { renderBrief } from "../scripts/render";
 import data from "../catalog/mails/brief.json";
@@ -41,6 +41,18 @@ describe("renderBrief", async () => {
     expect(html).toContain(
       'href="mailto:kim.beispiel@example.com?subject=Bitte%20keine%20Updates%20mehr&amp;body=',
     );
+  });
+
+  test("item titles are underlined links, labels take brand's label weight", () => {
+    for (const item of brief.items) {
+      const link = html.match(new RegExp(`<a href="${item.href}"[^>]*>`))?.[0];
+      expect(link).toContain("text-decoration-line:underline");
+      expect(link).not.toContain("text-decoration-line:none");
+    }
+    const labels = html.match(/<p class="hw-label"[^>]*>/g) ?? [];
+    expect(labels).toHaveLength(brief.items.length);
+    for (const label of labels)
+      expect(label).toContain(`font-weight:${tokens["--type-label-weight"]}`);
   });
 
   test("the text part is written, not stripped: items, signature, the address without its query", () => {

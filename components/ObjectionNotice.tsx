@@ -1,5 +1,5 @@
 import { Link, Text } from "react-email";
-import { paint } from "./MailShell";
+import { accentLink, paint } from "./MailShell";
 import { palette } from "./theme";
 
 export type ObjectionProps = {
@@ -21,18 +21,14 @@ export function mailtoHref({ to, subject, body }: ObjectionProps["mailto"]): str
 
 /** The note on the right to object (§ 7 (3) UWG) a mail to existing clients ends on. */
 export function ObjectionNotice({ before, linkText, after, mailto }: ObjectionProps) {
-  const { muted, accent } = palette.light;
+  const { muted } = palette.light;
   return (
     <Text
       className={paint.text("muted")}
       style={{ fontSize: 12, lineHeight: "18px", color: muted, margin: "24px 0 0" }}
     >
       {before}
-      <Link
-        href={mailtoHref(mailto)}
-        className={paint.text("accent")}
-        style={{ color: accent, textDecoration: "underline" }}
-      >
+      <Link href={mailtoHref(mailto)} {...accentLink}>
         {linkText}
       </Link>
       {after}

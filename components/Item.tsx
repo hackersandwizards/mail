@@ -1,6 +1,6 @@
 import { Link, Text } from "react-email";
 import { Image, type ImageProps } from "./Image";
-import { paint } from "./MailShell";
+import { accentLink, paint } from "./MailShell";
 import { fonts, labelTracking, labelWeight, palette } from "./theme";
 
 export type ItemProps = {
@@ -50,11 +50,7 @@ export function Item({ label, title, href, text, image }: ItemProps) {
             <Text
               style={{ fontSize: 18, lineHeight: "26px", fontWeight: "bold", margin: "0 0 4px" }}
             >
-              <Link
-                href={href}
-                className={paint.text("accent")}
-                style={{ color: accent, textDecoration: "underline" }}
-              >
+              <Link href={href} {...accentLink}>
                 {title}
               </Link>
             </Text>
