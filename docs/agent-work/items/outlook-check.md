@@ -16,7 +16,7 @@ needs a person's go.
 1. **Outlook.com, dark mode:** do the name, contact line and item titles show the mail's own dark
    colours (`[data-ogsc]` rules in `components/MailShell.tsx`), or Outlook.com's? Sources disagree:
    hteumeuleu's 2019 article, edited 15.10.2019, says Outlook.com adds inline `!important` to every
-   style it edits, so "It's no longer possible to override Outlook.com's dark mode styles"; newer
+   style it edits, so "It’s no longer possible to override Outlook.com’s dark mode styles"; newer
    guides found by search in November 2026 still recommend the selector, and none names a test. If
    Outlook.com's colours win, the block is 2 KB that does nothing and goes.
 2. **Classic Outlook, column width:** does the column stay at 600 px? React Email's `Container` sets

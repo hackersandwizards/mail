@@ -1,6 +1,9 @@
 ---
-// The brand's .ico favicon beside the shell's svg one, for a browser without svg icons.
+// The brand's .ico favicon for a browser without svg icons, then the svg again: a browser takes the
+// last icon, and the shell links its svg ahead of this head.
 import faviconIco from "@hackersandwizards/brand/logos/favicon.ico?url&no-inline";
+import faviconSvg from "@hackersandwizards/brand/logos/favicon.svg?url&no-inline";
 ---
 
 <link rel="icon" href={faviconIco} sizes="32x32" />
+<link rel="icon" href={faviconSvg} type="image/svg+xml" />

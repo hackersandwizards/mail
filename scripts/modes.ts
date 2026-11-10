@@ -40,8 +40,8 @@ export async function launch(): Promise<Browser> {
   });
 }
 
-/** Ends the browser by a kill. Chrome's graceful close took 0.1 to 3.3 s at a load of 100 to 200
- * and outran bun's 5 s hook limit in two gates; the kill took under 50 ms at the same load.
+/** Ends the browser by a kill. Chrome's graceful close took 0.1 to 3.3 s at a one-minute load of 137
+ * to 223 and outran bun's 5 s hook limit in two gates; the kill took under 50 ms at 137 to 152.
  * `close` then finds the process gone and only removes puppeteer's profile, which it does nowhere
  * else before this process exits. */
 export async function quit(browser: Browser): Promise<void> {

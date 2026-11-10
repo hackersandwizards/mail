@@ -3,7 +3,7 @@ import { Body, Container, Head, Html, Preview } from "react-email";
 import { fonts, inlineColour, palette, roles, type Role } from "./theme";
 
 /** The column's width on a desktop, and the narrowest phone a mail is drawn for: 360 x 800 held
- * 9 % of phone screens worldwide in StatCounter's figures for August 2026. */
+ * 8.57 % of phone screens worldwide in StatCounter's figures for October 2026. */
 export const COLUMN_WIDTH = 600;
 export const PHONE_WIDTH = 360;
 /** The page's inset around the column, each side. */

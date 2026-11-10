@@ -54,7 +54,9 @@ export function checkBrief(data: unknown): asserts data is BriefProps {
   const lines = (value: unknown, path: string, min = 0) =>
     list(value, path, min).forEach((line, i) => text(line, `${path}[${i}]`));
   const https = (value: unknown, path: string) => {
-    if (!text(value, path).startsWith("https://")) fail(path, `must be an https URL, got ${value}`);
+    const url = text(value, path);
+    if (!url.startsWith("https://") || !URL.parse(url))
+      fail(path, `must be an https URL, got ${url}`);
   };
   const pixels = (value: unknown, path: string) => {
     if (!Number.isInteger(value) || (value as number) <= 0)

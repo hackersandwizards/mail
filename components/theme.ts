@@ -114,7 +114,7 @@ export const unreachedColours = (html: string) => [
     .filter((d) => !roles.some((r) => d === inlineColour(palette.light[r]))),
   ...[
     ...html.matchAll(
-      /(?:background[\w-]*|border[\w-]*|bgcolor)\s*[:=]\s*[^;"]*#[0-9a-f]{3,8}[^;"]*/gi,
+      /(?:background[\w-]*|border[\w-]*|bgcolor)\s*[:=]\s*"?[^;"]*#[0-9a-f]{3,8}[^;"]*/gi,
     ),
   ].map(([declaration]) => declaration.trim()),
 ];

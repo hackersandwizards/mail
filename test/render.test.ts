@@ -83,6 +83,7 @@ describe("renderBrief", () => {
     expect(unreachedColours('<td style="background-color: #eef1f4">')).toEqual([
       "background-color: #eef1f4",
     ]);
+    expect(unreachedColours('<td bgcolor="#eef1f4">')).toEqual(['bgcolor="#eef1f4']);
   });
 
   test("the text part is written, not stripped: items, signature, the address without its query", () => {

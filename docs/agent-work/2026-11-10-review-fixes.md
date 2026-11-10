@@ -13,7 +13,7 @@ blind review that put a destination line and more room into the teaser block.
 | M3     | Fixed. The narrowest phone is 360 px, so the widest image is 295 px; the headless test draws one that wide at 360 px.                                                                                                                                                               |
 | M4     | Not checkable here; open as `items/outlook-check.md`.                                                                                                                                                                                                                               |
 | M5     | Fixed. The Light, Phone and Inverted stories switch the dark rules off, as Dark switches them on.                                                                                                                                                                                   |
-| M6     | Fixed. The privacy test reads hosts with and without a scheme, addresses in any script, numbers, the LinkedIn address and the greeting's first name, against brand's invented person.                                                                                               |
+| M6     | Fixed. The privacy test reads hosts with and without a scheme, addresses in any script, numbers, the LinkedIn address and the greeting's first name, against brand's invented person. It does not read the closing lines, the signature role or a name outside the greeting.        |
 | M8     | Fixed. The headless test reads every colour an element sets inline, in every mode.                                                                                                                                                                                                  |
 | M9     | Fixed. A load-time guard refuses a signature template colour that no dark rule reaches.                                                                                                                                                                                             |
 | M10    | Brief for os.                                                                                                                                                                                                                                                                       |
@@ -45,19 +45,19 @@ blind review that put a destination line and more room into the teaser block.
 
 ## The slow close in the headless test (M2)
 
-`afterAll` awaited Chrome's graceful close, and bun gives a hook 5 s. Timed on this machine, 32
-views a run, as `test/modes.test.ts` opens them:
+`afterAll` awaited Chrome's graceful close, and bun gives a hook 5 s. Timed on this machine at 32 views a
+run, twice the 16 that `test/modes.test.ts` opened then (18 now):
 
 | Close    | Runs | Load (1 min) | Time            |
 | -------- | ---- | ------------ | --------------- |
-| graceful | 10   | 137 to 223   | 103 to 3,262 ms |
-| kill     | 4    | 137 to 148   | 28 to 43 ms     |
+| graceful | 10   | 137 to 223   | 114 to 3,262 ms |
+| kill     | 4    | 137 to 152   | 28 to 43 ms     |
 
 The graceful runs and the kill runs alternated at the same load. Puppeteer's removal of its profile
 took under 40 ms of each graceful close; the rest was Chrome's own shutdown. What pushed it past 5 s
 in the gates of 06.11. and 10.11. is not shown beyond load: the slowest close (3.3 s) came at
 load 189, while one at 221 took 0.2 s. `quit` in `scripts/modes.ts` now kills Chrome and then lets
-puppeteer remove the profile, which a kill alone left behind.
+puppeteer remove the profile, which a kill alone left behind. `beforeAll` keeps bun's limit too: its Chrome launch took 0.5 to 2.3 s in the same runs and never failed a gate, so it is left.
 
 ## Outlook (M4)
 
@@ -74,11 +74,14 @@ classic Outlook keeps the 600 px column, and how its forced inversion looks.
 - **`/simplify`, first batch:** ten cleanups, nine applied. A shared scratch-folder helper for the
   three test files was left: they share no helper file yet.
 - **`/simplify`, second batch:** four cleanups, all applied.
-- **`/code-review`:** ten findings, seven fixed: a missing file or malformed JSON now ends on the
+- **`/code-review`:** ten findings, six fixed and two in part: a missing file or malformed JSON now ends on the
   `mail-render: <file>:` line; image width and height, an unknown field and a line break in the
   objection subject are refused with their path; a protocol-relative image source is refused; the
-  signature guard also reports a background, border or `bgcolor` colour; the Text story takes the
-  mail's language. Three left:
+  signature guard also reports a background, border or `bgcolor` colour, with a test for each;
+  the Text story takes the mail's language. One fixed in part: an https link must now parse as a
+  URL, so `https:// x` is refused; the LinkedIn and alt rules `checkBrief` shares with brand's
+  `fillSignature` and `Image` stay, since `checkBrief` refuses before anything renders and names
+  the data path. Left, the second half of the image source finding included:
   - a relative image source still passes, since the catalog serves its picture that way and os
     writes no image today;
   - the load-time guards in `theme.ts` stay: without them a respelled signature colour turns dark
@@ -160,7 +163,8 @@ two 0.22 (largest 0.67, on K).
   line read as noise ("reads like a log line"). In round two K leads F by 0.67 on the overall, by
   1.0 on destination and fit, and trails it by 1.33 on hierarchy: the text drops to fourth place.
   That lead is outside the mean noise but equals the spread on K itself, where the design lead's
-  second run scored K and F alike; on the mean, as the earlier teaser review counted, K wins.
+  second run scored K and F alike. On the strict reading that makes K and F a tie; K shipped on the
+  mean, as the earlier teaser review counted, and that choice is an assumption of this run.
 - **Room:** V leads Q by 1.9 on breathing room and 0.45 overall; F leads B by 1.0 overall. Both
   outside the noise.
 - **Underline:** W leads Q by 0.33 overall and 1.2 on calm, outside the noise of one model, and

@@ -75,6 +75,7 @@ describe("renderBrief refuses data that would render a wrong mail", () => {
     ["objection.mailto.subject", "Abmelden\nBcc: x@example.com"],
     ["items[1].href", "javascript:alert(1)"],
     ["items[1].href", "http://example.com/"],
+    ["items[1].href", "https:// x"],
     ["items[0].image.src", "http://example.com/a.png"],
     ["items[0].image.src", "data:image/png;base64,AA"],
     ["items[0].image.href", "data:text/html,<p>"],
