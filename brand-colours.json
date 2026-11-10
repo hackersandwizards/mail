@@ -1,12 +1,1 @@
-{
-  "components/theme.ts": {
-    "hex": 0,
-    "tokenHex": 0,
-    "font": 1,
-    "palette": 0,
-    "rgb": 0,
-    "radius": 0,
-    "shadow": 0,
-    "reason": "Reads the brand's mail font stacks out of its mail-signature template; the counted stack is the pattern that finds them, not a stack of its own."
-  }
-}
+{}

@@ -1,10 +1,11 @@
 // The brand values a mail uses, every one from @hackersandwizards/brand: colours from its resolved
 // token set (hex, since mail clients know no color-mix()), the picture corner and the label's type
-// from its tokens, the two font stacks from its mail signature template, which carries the stacks a
-// mail client can show (no web font: Gmail and classic Outlook load none). Server-side only: the
-// template is read from disk.
+// from its tokens, the two font stacks its fonts.json gives a mail, the stacks of its mail signature
+// template (no web font: Gmail and classic Outlook load none). Server-side only: the template is
+// read from disk.
 import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
+import brandFonts from "@hackersandwizards/brand/fonts.json";
 import { colors, tokens } from "@hackersandwizards/brand/tokens";
 
 const brandFile = (path: string) =>
@@ -16,13 +17,9 @@ export const signatureTemplate = {
   text: brandFile("mail-signature/template.txt"),
 };
 
-// The monospace stack quotes family names as &quot;, so the pattern reads past them.
-const stacks = [
-  ...signatureTemplate.html.matchAll(/font-family:\s*([^;"]+?(?:&quot;[^&]+&quot;[^;"]*?)*);/g),
-].map((m) => m[1].replaceAll("&quot;", '"').trim());
-const mono = stacks.find((s) => /monospace/.test(s));
-const sans = stacks.find((s) => /sans-serif/.test(s));
-if (!mono || !sans) throw new Error("mail: brand mail-signature template carries no font stack");
+const { mono, sans } = (brandFonts as { mail?: { mono?: string; sans?: string } }).mail ?? {};
+if (!mono || !sans)
+  throw new Error("mail: brand fonts.json carries no mail stack (brand peer range)");
 export const fonts = { mono, sans };
 
 /** Each colour role a mail paints, light as sent and dark as the mail's own dark styles set it.
