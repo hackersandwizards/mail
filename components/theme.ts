@@ -5,7 +5,7 @@
 // read from disk.
 import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
-import brandFonts from "@hackersandwizards/brand/fonts.json";
+import brandFonts from "@hackersandwizards/brand/fonts.json" with { type: "json" };
 import { colors, tokens } from "@hackersandwizards/brand/tokens";
 
 const brandFile = (path: string) =>
@@ -17,10 +17,8 @@ export const signatureTemplate = {
   text: brandFile("mail-signature/template.txt"),
 };
 
-const { mono, sans } = (brandFonts as { mail?: { mono?: string; sans?: string } }).mail ?? {};
-if (!mono || !sans)
-  throw new Error("mail: brand fonts.json carries no mail stack (brand peer range)");
-export const fonts = { mono, sans };
+/** The sans and mono stacks, which brand generates from its mail signature template. */
+export const fonts = brandFonts.mail;
 
 /** Each colour role a mail paints, light as sent and dark as the mail's own dark styles set it.
  * `ampersand` and `purple` only the signature paints (its wordmark), reached by its inline colour. */
