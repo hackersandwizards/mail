@@ -1,8 +1,16 @@
 import type { ReactNode } from "react";
 import { Body, Container, Head, Html, Preview } from "react-email";
-import { fonts, palette, type Role } from "./theme";
+import { fonts, palette, roles, type Role } from "./theme";
 
-const roles = Object.keys(palette.light) as Role[];
+/** The column's width on a desktop, and the narrowest phone a mail is drawn for: 360 x 800 held
+ * 9 % of phone screens worldwide in StatCounter's figures for August 2026. */
+export const COLUMN_WIDTH = 600;
+export const PHONE_WIDTH = 360;
+/** The page's inset around the column, each side. */
+export const PAGE_INSET = 24;
+
+/** The media query the mail's dark rules sit under. */
+export const DARK_MEDIA = "@media (prefers-color-scheme: dark)";
 
 /** Class names that paint a role: text colour, background, border colour. */
 export const paint = {
@@ -43,7 +51,7 @@ function darkRules(prefix: string): string {
 
 export const darkStyle =
   `:root{color-scheme:light dark;supported-color-schemes:light dark}` +
-  `@media (prefers-color-scheme: dark){${darkRules("")}}` +
+  `${DARK_MEDIA}{${darkRules("")}}` +
   darkRules("[data-ogsc] ");
 
 export type MailShellProps = {
@@ -76,8 +84,8 @@ export function MailShell({ lang, title, preview, children }: MailShellProps) {
       >
         <Container
           style={{
-            maxWidth: 600,
-            padding: "24px",
+            maxWidth: COLUMN_WIDTH,
+            padding: PAGE_INSET,
             fontFamily: fonts.sans,
             color: palette.light.ink,
           }}

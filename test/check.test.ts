@@ -1,0 +1,105 @@
+// A data file that would render a wrong mail is refused, naming the field, before anything renders.
+import { describe, expect, test } from "bun:test";
+import { spawnSync } from "node:child_process";
+import { mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import type { BriefProps } from "../mails/Brief";
+import { renderBrief } from "../scripts/render";
+import data from "../catalog/mails/brief-bild.json";
+
+const root = join(import.meta.dir, "..");
+const copy = (): Record<string, unknown> => structuredClone(data);
+
+/** The data with the value at the path removed or replaced. */
+function edit(path: string, value?: unknown) {
+  const out = copy();
+  const keys = path.split(/\.|\[|\]/).filter(Boolean);
+  const last = keys.pop()!;
+  const parent = keys.reduce<Record<string, unknown>>(
+    (node, key) => node[key] as Record<string, unknown>,
+    out,
+  );
+  if (value === undefined) delete parent[last];
+  else parent[last] = value;
+  return out as BriefProps;
+}
+
+const REQUIRED = [
+  "lang",
+  "subject",
+  "preview",
+  "greeting",
+  "intro",
+  "items",
+  "outro",
+  "closing",
+  "signature",
+  "signature.name",
+  "signature.role",
+  "objection",
+  "objection.before",
+  "objection.linkText",
+  "objection.after",
+  "objection.mailto",
+  "objection.mailto.to",
+  "items[0].label",
+  "items[0].title",
+  "items[0].href",
+  "items[0].text",
+  "items[0].image.src",
+  "items[0].image.alt",
+];
+
+describe("renderBrief refuses data that would render a wrong mail", () => {
+  test("the catalog data passes", async () => {
+    expect((await renderBrief(copy() as BriefProps)).text).toContain(data.greeting);
+  });
+
+  test.each(REQUIRED)("without %s", async (path) => {
+    await expect(renderBrief(edit(path))).rejects.toThrow(path);
+  });
+
+  test.each([
+    ["lang", "fr"],
+    ["subject", " "],
+    ["intro[0]", 7],
+    ["closing", []],
+    ["items", []],
+    ["preview", "x".repeat(201)],
+    ["items[1].href", "javascript:alert(1)"],
+    ["items[1].href", "http://example.com/"],
+    ["items[0].image.src", "http://example.com/a.png"],
+    ["items[0].image.src", "data:image/png;base64,AA"],
+    ["items[0].image.href", "data:text/html,<p>"],
+    ["objection.mailto.to", "kim@example.com?bcc=x@example.com"],
+    ["objection.mailto.to", "kim"],
+    ["signature.linkedin", "http://www.linkedin.com/in/kim-beispiel"],
+  ])("%s set to %p", async (path, value) => {
+    await expect(renderBrief(edit(path, value))).rejects.toThrow(path);
+  });
+
+  test("mail-render names the data file and the field, and writes nothing", () => {
+    const cache = join(root, "node_modules", ".cache", "mail-test");
+    mkdirSync(cache, { recursive: true });
+    const dir = mkdtempSync(join(cache, "check-"));
+    try {
+      const file = join(dir, "missing-to.json");
+      writeFileSync(file, JSON.stringify(edit("objection.mailto.to")));
+      const run = spawnSync("bun", ["scripts/render.ts", file, "--out", join(dir, "out")], {
+        cwd: root,
+        encoding: "utf-8",
+      });
+      expect(run.status).toBe(1);
+      expect(run.stdout).toBe("");
+      expect(run.stderr).toContain(`mail-render: ${file}: objection.mailto.to`);
+      expect(readdirSync(dir)).toEqual(["missing-to.json"]);
+    } finally {
+      rmSync(dir, { recursive: true });
+    }
+  });
+});
+
+test("a line break in the objection mail's body is encoded as CRLF (RFC 6068 section 5)", async () => {
+  const { html } = await renderBrief(edit("objection.mailto.body", "Hallo,\nbitte nicht mehr."));
+  expect(html).toContain("body=Hallo%2C%0D%0Abitte");
+});

@@ -14,7 +14,8 @@ export type ObjectionProps = {
 export function mailtoHref({ to, subject, body }: ObjectionProps["mailto"]): string {
   const query = Object.entries({ subject, body })
     .filter(([, v]) => v)
-    .map(([k, v]) => `${k}=${encodeURIComponent(v as string)}`)
+    // RFC 6068 section 5: a line break in the body is encoded as %0D%0A.
+    .map(([k, v]) => `${k}=${encodeURIComponent((v as string).replace(/\r?\n/g, "\r\n"))}`)
     .join("&");
   return `mailto:${to}${query ? `?${query}` : ""}`;
 }

@@ -12,5 +12,5 @@ const { html, width } = Astro.props;
   srcdoc={html}
   width={width}
   style={`width:${width}px;height:900px;border:1px solid var(--color-border)`}
-  onload="this.style.height = this.contentDocument.documentElement.scrollHeight + 2 + 'px'"
+  onload="this.style.height = '0'; this.style.height = this.contentDocument.documentElement.scrollHeight + 2 + 'px'"
 ></iframe>

@@ -58,6 +58,7 @@ for (const [mode, roles] of Object.entries(palette))
       throw new Error(`mail: brand tokens carry no ${mode} ${role} colour (brand peer range)`);
 
 export type Role = keyof typeof palette.light;
+export const roles = Object.keys(palette.light) as Role[];
 
 // A mail inlines these with no stylesheet behind them, so only a plain length holds.
 function literal(name: keyof typeof tokens): string {
@@ -70,11 +71,52 @@ function literal(name: keyof typeof tokens): string {
 /** The corner a picture takes, as brand's shape rule (tokens.css) gives a picture in a mail. */
 export const corner = literal("--radius-sm");
 
-/** The letter spacing of a label set in capitals. */
-export const labelTracking = literal("--tracking-label");
+// A mail inlines a rem length in pixels at the browsers' default root size: classic Outlook
+// honours no rem.
+function pixels(name: keyof typeof tokens): number {
+  const rem = /^([\d.]+)rem$/.exec(tokens[name])?.[1];
+  if (!rem) throw new Error(`mail: brand token ${name} is no rem length (brand peer range)`);
+  return Number(rem) * 16;
+}
 
-/** The weight of a label, as brand's label element sets it. The mail's mono stack has no medium
- * face, so a client draws a medium weight in the regular one. */
-if (!/^[1-9]00$/.test(tokens["--type-label-weight"]))
-  throw new Error("mail: brand token --type-label-weight is no plain weight (brand peer range)");
-export const labelWeight = Number(tokens["--type-label-weight"]);
+function plain(name: keyof typeof tokens, pattern: RegExp): string {
+  if (!pattern.test(tokens[name]))
+    throw new Error(`mail: brand token ${name} is no plain value (brand peer range)`);
+  return tokens[name];
+}
+
+const labelSize = pixels("--text-label");
+
+/** The type of a label, as brand's label element sets it: mono, size, line height, weight, tracking
+ * and case. The mail's mono stack has no medium face, so a client draws a medium weight in the
+ * regular one. */
+export const label = {
+  fontFamily: fonts.mono,
+  fontSize: `${labelSize}px`,
+  lineHeight: `${+(labelSize * Number(plain("--text-label--line-height", /^[\d.]+$/))).toFixed(2)}px`,
+  fontWeight: Number(plain("--type-label-weight", /^[1-9]00$/)),
+  letterSpacing: literal("--tracking-label"),
+  textTransform: plain("--type-label-case", /^(uppercase|lowercase|none)$/) as
+    "uppercase" | "lowercase" | "none",
+};
+
+/** A label's words in the text part, in the case the HTML part sets them. */
+export const labelText = (words: string) =>
+  label.textTransform === "uppercase"
+    ? words.toUpperCase()
+    : label.textTransform === "lowercase"
+      ? words.toLowerCase()
+      : words;
+
+/** Each inline colour declaration of a signature template that no dark rule reaches: MailShell
+ * names a signature colour as `color: <light hex>`, exactly as brand's template spells it today. */
+export const unreachedColours = (html: string) =>
+  [...html.matchAll(/(?<![\w-])color\s*:\s*[^;"]+/gi)]
+    .map(([declaration]) => declaration.trim())
+    .filter((d) => !roles.some((r) => d === `color: ${palette.light[r]}`));
+
+const unreached = unreachedColours(signatureTemplate.html);
+if (unreached.length)
+  throw new Error(
+    `mail: brand's mail signature paints ${unreached.join(", ")}, which no dark rule reaches (brand peer range)`,
+  );

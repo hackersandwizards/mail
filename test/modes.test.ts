@@ -1,5 +1,6 @@
-// Renders each catalog mail headless in each mode and reads what the reader would see. With MAIL_SHOTS
-// set to a folder, also writes each view there as <mail>-<mode>-<width>.png for a review.
+// Renders each catalog mail, and one with an image at the widest allowed, headless in each mode and
+// reads what the reader would see. With MAIL_SHOTS set to a folder, also writes each view there as
+// <mail>-<mode>-<width>.png for a review.
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import {
   mkdirSync,
@@ -10,18 +11,21 @@ import {
   symlinkSync,
   writeFileSync,
 } from "node:fs";
-import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { Browser } from "puppeteer-core";
-import { palette, type Role } from "../components/theme";
+import { MAX_IMAGE_WIDTH } from "../components/Image";
+import { COLUMN_WIDTH, PHONE_WIDTH } from "../components/MailShell";
+import { palette, roles } from "../components/theme";
 import type { BriefProps } from "../mails/Brief";
-import { MODES, launch, openMail } from "../scripts/modes";
+import { MODES, launch, openMail, quit } from "../scripts/modes";
 import { renderBrief } from "../scripts/render";
 
 // Each mail goes one folder down beside a link to brand at its package path, as in the built
 // catalog, so the image its data names by a relative path loads.
-const tmp = mkdtempSync(join(tmpdir(), "mail-modes-"));
+const cache = join(import.meta.dir, "..", "node_modules", ".cache", "mail-test");
+mkdirSync(cache, { recursive: true });
+const tmp = mkdtempSync(join(cache, "modes-"));
 const dir = join(tmp, "mails");
 const shots = process.env.MAIL_SHOTS;
 const data = join(import.meta.dir, "..", "catalog", "mails");
@@ -30,7 +34,9 @@ const mails = Object.fromEntries(
     .filter((f) => f.endsWith(".json"))
     .map((f) => [f.slice(0, -5), JSON.parse(readFileSync(join(data, f), "utf8")) as BriefProps]),
 );
-const roles = Object.keys(palette.light) as Role[];
+const widest = structuredClone(mails["brief-bild"]);
+widest.items[0].image = { ...widest.items[0].image!, width: MAX_IMAGE_WIDTH, height: 160 };
+mails["widest-image"] = widest;
 const rgb = (hex: string) =>
   `rgb(${[1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(", ")})`;
 
@@ -47,12 +53,12 @@ beforeAll(async () => {
   browser = await launch();
 });
 afterAll(async () => {
-  await browser?.close();
   rmSync(tmp, { recursive: true });
+  if (browser) await quit(browser);
 });
 
 describe.each(Object.keys(mails))("mail %s", (mail) => {
-  test.each(MODES.flatMap((mode) => [600, 390].map((width) => [mode, width] as const)))(
+  test.each(MODES.flatMap((mode) => [COLUMN_WIDTH, PHONE_WIDTH].map((w) => [mode, w] as const)))(
     "%s at %i px",
     async (mode, width) => {
       const page = await openMail(browser, join(dir, `${mail}.html`), mode, width);
@@ -62,14 +68,19 @@ describe.each(Object.keys(mails))("mail %s", (mail) => {
           const img = document.querySelector("img");
           return {
             page: getComputedStyle(document.body).backgroundColor,
-            // React Email's inner Body cell and the brand signature, which the dark rules reach by
-            // structure and by inline colour.
+            // React Email's inner Body cell, which the dark rules reach by structure.
             cell: getComputedStyle(document.querySelector(".hw-body>table>tbody>tr>td")!)
               .backgroundColor,
-            sig: [...document.querySelectorAll(".hw-sig [style*='color']")].map((e) => [
-              (e as HTMLElement).style.color,
-              getComputedStyle(e).color,
-            ]),
+            sig: document.querySelectorAll(".hw-sig [style*='color']").length,
+            // Every colour an element sets inline, with the colour it shows.
+            painted: [...document.querySelectorAll<HTMLElement>("[style]")].flatMap((e) =>
+              (["color", "backgroundColor", "borderLeftColor"] as const)
+                // A border shorthand without a colour leaves the keyword, which paints no role.
+                .filter(
+                  (prop) => e.style[prop] && !/^(currentcolor|transparent)$/i.test(e.style[prop]),
+                )
+                .map((prop) => [prop, e.style[prop], getComputedStyle(e)[prop]]),
+            ),
             title: title ? getComputedStyle(title).color : "",
             filter: getComputedStyle(document.documentElement).filter,
             overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
@@ -82,12 +93,16 @@ describe.each(Object.keys(mails))("mail %s", (mail) => {
         const scheme = mode === "dark" ? palette.dark : palette.light;
         expect(seen.page).toBe(rgb(scheme.page));
         expect(seen.cell).toBe(rgb(scheme.page));
-        expect(seen.sig.length).toBeGreaterThan(0);
-        // Each signature colour shows as its own role's colour in the mode.
-        for (const [inline, shown] of seen.sig) {
-          const role = roles.find((r) => rgb(palette.light[r]) === inline);
-          expect(role).toBeDefined();
-          expect(shown).toBe(rgb(scheme[role!]));
+        expect(seen.sig).toBeGreaterThan(0);
+        // Each colour set inline, the signature's included, is a role's colour as sent and shows as
+        // that role's colour in the mode: a part setting a colour without its class stays light.
+        expect(seen.painted.length).toBeGreaterThan(seen.sig);
+        for (const [prop, inline, shown] of seen.painted) {
+          const shownAs = roles
+            .filter((r) => rgb(palette.light[r]) === inline)
+            .map((r) => rgb(scheme[r]));
+          expect(shownAs.length, `${prop} ${inline} is no role's colour`).toBeGreaterThan(0);
+          expect(shownAs, `${prop} ${inline}`).toContain(shown);
         }
         expect(seen.title).toBe(rgb(scheme.accent));
         expect(seen.filter).toBe(mode === "invert" ? "invert(1) hue-rotate(180deg)" : "none");

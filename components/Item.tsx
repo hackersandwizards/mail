@@ -1,7 +1,7 @@
 import { Link, Text } from "react-email";
 import { Image, type ImageProps } from "./Image";
 import { accentLink, paint } from "./MailShell";
-import { fonts, labelTracking, labelWeight, palette } from "./theme";
+import { label as labelType, labelText, palette } from "./theme";
 
 export type ItemProps = {
   /** The kind of item, set in capitals: "Artikel", "Podcast", "Talk". */
@@ -12,6 +12,10 @@ export type ItemProps = {
   text: string;
   image?: ImageProps;
 };
+
+/** An item in the text part: label, title, address, text. */
+export const itemText = ({ label, title, href, text }: ItemProps) =>
+  `${labelText(label)}: ${title}\n${href}\n${text}`;
 
 /** One labelled entry behind a rule in the accent: label, title as link, short text. */
 export function Item({ label, title, href, text, image }: ItemProps) {
@@ -34,16 +38,7 @@ export function Item({ label, title, href, text, image }: ItemProps) {
             {image ? <Image {...image} href={image.href ?? href} /> : null}
             <Text
               className={paint.text("label")}
-              style={{
-                fontFamily: fonts.mono,
-                fontSize: 12,
-                lineHeight: "16px",
-                fontWeight: labelWeight,
-                letterSpacing: labelTracking,
-                textTransform: "uppercase",
-                color: palette.light.label,
-                margin: "0 0 4px",
-              }}
+              style={{ ...labelType, color: palette.light.label, margin: "0 0 4px" }}
             >
               {label}
             </Text>

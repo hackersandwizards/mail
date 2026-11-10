@@ -1,4 +1,3 @@
-import type { BriefProps } from "../../mails/Brief";
 import { renderBrief } from "../../scripts/render";
 
 const raw = import.meta.glob<string>("./*.json", {
@@ -10,8 +9,9 @@ const raw = import.meta.glob<string>("./*.json", {
 export const mails = await Promise.all(
   Object.entries(raw)
     .sort(([a], [b]) => a.localeCompare(b))
-    .map(async ([path, json]) => {
-      const data: BriefProps = JSON.parse(json);
-      return { base: path.replace(/^.*\/|\.json$/g, ""), json, data, ...(await renderBrief(data)) };
-    }),
+    .map(async ([path, json]) => ({
+      base: path.replace(/^.*\/|\.json$/g, ""),
+      json,
+      ...(await renderBrief(JSON.parse(json))),
+    })),
 );

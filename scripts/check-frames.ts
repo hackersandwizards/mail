@@ -5,8 +5,8 @@
  * frame, where a URL can resolve against the story's page instead of the mail's.
  */
 import { readdir } from "node:fs/promises";
-import { join } from "node:path";
-import { launch } from "./modes";
+import { join, relative } from "node:path";
+import { launch, quit } from "./modes";
 
 const DIST = join(import.meta.dir, "../dist");
 // The catalog's base, set in catalog/astro.config.ts.
@@ -20,10 +20,11 @@ const server = Bun.serve({
   port: 0,
   hostname: "127.0.0.1",
   async fetch(req) {
-    // Undecoded, so a path cannot step out of dist/.
-    const path = new URL(req.url).pathname;
+    // Decoded, as the build names its files; a path stepping out of dist/ answers 404.
+    const path = decodeURIComponent(new URL(req.url).pathname);
     if (!path.startsWith(BASE)) return new Response(null, { status: 404 });
     const file = join(DIST, path.slice(BASE.length));
+    if (relative(DIST, file).startsWith("..")) return new Response(null, { status: 404 });
     for (const candidate of [file, join(file, "index.html")])
       if (await Bun.file(candidate).exists()) return new Response(Bun.file(candidate));
     return new Response(null, { status: 404 });
@@ -102,7 +103,7 @@ try {
     }),
   );
 } finally {
-  await browser.close();
+  await quit(browser);
   await server.stop(true);
 }
 if (failures.length) {

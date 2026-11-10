@@ -24,6 +24,9 @@ export default defineConfig({
       lead: "Every mail and building block of the mail engine, rendered to the HTML a mail client receives and shown in a 600 px frame. Each tile opens its light and dark states; the data is made up.",
       css: ["@hackersandwizards/brand/tokens.root.css", "@hackersandwizards/brand/elements.css"],
       head: "./Head.astro",
+      // Dense on every page, the mails in the frames keeping their own sizes.
+      storyScale: "dense",
+      htmlClass: ["hw-focus-ring"],
       home: "./Home.astro",
       groupOrder: ["Mails", "Parts"],
       previewSize: [602, 400],

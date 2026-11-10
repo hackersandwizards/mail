@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { renderToStaticMarkup } from "react-dom/server";
 import { colors, tokens } from "@hackersandwizards/brand/tokens";
-import { Image } from "../components/Image";
+import { Image, MAX_IMAGE_WIDTH } from "../components/Image";
 import type { BriefProps } from "../mails/Brief";
 import { renderBrief } from "../scripts/render";
 import data from "../catalog/mails/brief-bild.json";
@@ -9,7 +9,7 @@ import data from "../catalog/mails/brief-bild.json";
 const tint = colors["--color-tint"];
 const muted = colors["--color-muted"];
 const corner = tokens["--radius-sm"];
-const props = { src: "https://example.com/card.png", alt: "Vorschaubild", width: 300, height: 152 };
+const props = { src: "https://example.com/card.png", alt: "Vorschaubild", width: 280, height: 152 };
 
 /** The style attribute of the first element of that tag, as a property map. */
 function style(html: string, tag: string): Record<string, string> {
@@ -35,8 +35,8 @@ describe("Image keeps its box while images are blocked", async () => {
     ["in the Brief", inMail],
   ] as const) {
     test(`${where}: whole-pixel width and height in attribute and style, never auto`, () => {
-      const box = data.items[0].image ?? props;
-      expect(attr(html, "img", "width")).toBe(String(where === "alone" ? 300 : box.width));
+      const box = data.items[0].image!;
+      expect(attr(html, "img", "width")).toBe(String(where === "alone" ? 280 : box.width));
       expect(attr(html, "img", "height")).toBe(String(where === "alone" ? 152 : box.height));
       const img = style(html, "img");
       expect(img.width).toBe(`${attr(html, "img", "width")}px`);
@@ -72,7 +72,9 @@ describe("Image keeps its box while images are blocked", async () => {
   test("refuses a size that is no whole pixel, too wide for a phone, or an image without alt", () => {
     expect(() => renderToStaticMarkup(<Image {...props} width={300.5} />)).toThrow("whole number");
     expect(() => renderToStaticMarkup(<Image {...props} height={0} />)).toThrow("whole number");
-    expect(() => renderToStaticMarkup(<Image {...props} width={321} />)).toThrow("phone column");
+    expect(() => renderToStaticMarkup(<Image {...props} width={MAX_IMAGE_WIDTH + 1} />)).toThrow(
+      "phone column",
+    );
     expect(() => renderToStaticMarkup(<Image {...props} alt=" " />)).toThrow("no alt text");
   });
 });

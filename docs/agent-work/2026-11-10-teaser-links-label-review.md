@@ -8,8 +8,8 @@ titles were not.
 **Result:** titles underlined, labels at brand's weight (`--type-label-weight`, 500). The mail's
 mono stack (Menlo, Consolas, Courier New) has no medium face, so a client draws the label in the
 regular one: the comparison was bold against regular. Built in mail v1.3.0: `accentLink` in
-`components/MailShell.tsx` underlines the titles and the objection link, `labelWeight` in
-`components/theme.ts` reads the weight, and the brand peer range starts at v2.9.0, the first
+`components/MailShell.tsx` underlines the titles and the objection link, `label` in
+`components/theme.ts` reads the weight with the rest of brand's label type, and the brand peer range starts at v2.9.0, the first
 release with the signature's underlined links.
 
 ## Method

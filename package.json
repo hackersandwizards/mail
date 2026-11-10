@@ -19,12 +19,6 @@
   "bin": {
     "mail-render": "scripts/render.ts"
   },
-  "files": [
-    "components",
-    "mails",
-    "scripts/render.ts",
-    "LICENSE"
-  ],
   "scripts": {
     "prepare": "[ \"$(git rev-parse --show-toplevel 2>/dev/null)\" = \"$(pwd -P)\" ] && git config core.hooksPath .githooks || true",
     "dev": "cd catalog && bun --bun astro dev",

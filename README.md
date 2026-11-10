@@ -21,22 +21,25 @@ Add the dependency pinned to the newest tag
 "@hackersandwizards/mail": "git+https://github.com/hackersandwizards/mail.git#v<version>"
 ```
 
-| Import or command                              | What                                                                                       |
-| ---------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| `bun run mail-render <data.json> --out <path>` | writes `<path>.html` and `<path>.txt`; without `--out`, prints the HTML                    |
-| `@hackersandwizards/mail/render`               | `renderBrief(props)`, returning `{ html, text }`                                           |
-| `@hackersandwizards/mail/mails/Brief`          | the Brief mail and its `BriefProps`                                                        |
-| `@hackersandwizards/mail/components/<Name>`    | `MailShell`, `Paragraph`, `Item`, `Image`, `Signature`, `ObjectionNotice`                  |
-| `@hackersandwizards/mail/theme`                | the colour roles, the mail font stacks and the label's tracking and weight, from the brand |
+| Import or command                              | What                                                                        |
+| ---------------------------------------------- | --------------------------------------------------------------------------- |
+| `bun run mail-render <data.json> --out <path>` | writes `<path>.html` and `<path>.txt`; without `--out`, prints the HTML     |
+| `@hackersandwizards/mail/render`               | `renderBrief(props)`, returning `{ html, text }`                            |
+| `@hackersandwizards/mail/mails/Brief`          | the Brief mail and its `BriefProps`                                         |
+| `@hackersandwizards/mail/components/<Name>`    | `MailShell`, `Paragraph`, `Item`, `Image`, `Signature`, `ObjectionNotice`   |
+| `@hackersandwizards/mail/theme`                | the colour roles, the mail font stacks and the label's type, from the brand |
 
 The data file holds every word of the mail except the brand's signature template;
-[`catalog/mails/brief.json`](catalog/mails/brief.json) shows its shape.
+[`catalog/mails/brief.json`](catalog/mails/brief.json) shows its shape. `renderBrief` and
+`mail-render` refuse a data file with a missing or empty field, a link other than https or an
+objection address carrying a query, and name the field.
 
 ## Images
 
 `Image` keeps its box while a client blocks pictures: width and height as whole pixels in the
 attribute and the style, the brand tint behind the image and its cell, and alt text in Arial 12/16,
-muted, without the link underline. It refuses an image wider than the phone column (320 px).
+muted, without the link underline. It refuses an image wider than the column on a 360 px phone
+(295 px).
 Classic Outlook on Windows shows its own notice instead of styled alt text.
 
 ## Work on the package
@@ -52,7 +55,8 @@ bun scripts/render.ts catalog/mails/brief.json --out /tmp/brief   # /tmp/brief.h
 bun run check                                # the whole gate
 ```
 
-The catalog shows every mail type light, dark, inverted and at phone width under `Mails/`; each
+The catalog shows every mail type light, dark, inverted, at phone width and as its text part
+under `Mails/`; each
 renders to `/mail/mails/<type>.html`, `.txt` and `.json`. `bun run build` writes the catalog to `dist/`.
 
 `bun run check` runs scaffolding's shared steps (format, lint, styles, types, tests, the catalog
@@ -62,8 +66,9 @@ build and more), then this repository's own steps, the `check:*` scripts `packag
 
 ## Release
 
-A release raises `version` in `package.json`, commits, and tags `v<version>` to match
-(`git tag v<version> && git push origin main v<version>`); consumers then raise the tag in their
+A release raises `version` in `package.json`, commits, pushes, and tags `v<version>` to match once
+the push has landed (`git push origin main && git tag v<version> && git push origin v<version>`):
+pushed together, a rejected `main` still publishes the tag. Consumers then raise the tag in their
 dependency line. The layout and the rules for changing it: [CLAUDE.md](CLAUDE.md).
 
 Security issues: [SECURITY.md](SECURITY.md). Licence: PolyForm Strict 1.0.0, see

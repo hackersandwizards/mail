@@ -1,14 +1,10 @@
 ---
 // The brand elements here are the catalog's own: the mails inline every value and wear none.
+import Element from "@hackersandwizards/brand/Element.astro";
 import Home from "@hackersandwizards/scaffolding/catalog/Home.astro";
-import { version } from "@hackersandwizards/brand/package.json";
-import catalogs from "@hackersandwizards/brand/catalogs.json";
 import elements from "../brand-elements.json";
-import { fonts, palette, type Role } from "../components/theme";
+import { fonts, palette, roles } from "../components/theme";
 
-const { portal, anchors } = catalogs.find((c) => c.name === "Brand") ?? {};
-if (!portal || !anchors?.element)
-  throw new Error("brand's catalogs.json has no Brand portal and element anchor");
 const notes: Record<string, string> = {
   card: "A tile per mail and part on this page.",
   pill: "The count of states on a tile.",
@@ -16,7 +12,6 @@ const notes: Record<string, string> = {
   link: "The brand catalog link on each tile.",
   label: "The colour of an item's label in a mail.",
 };
-const roles = Object.keys(palette.light) as Role[];
 ---
 
 <Home>
@@ -56,43 +51,7 @@ const roles = Object.keys(palette.light) as Role[];
   </table>
   <div class="tiles">
     {elements.uses.map((name) => (
-      <div data-hw-tile={name} data-hw-version={version}>
-        <p>
-          from brand v{version} · <code>hw-{name}</code> ·{" "}
-          <a class="hw-link" href={portal + anchors.element.replace("<element>", name)}>
-            catalog
-          </a>
-        </p>
-        <p class="note">{notes[name]}</p>
-        {name === "card" && <div class="hw-card">Brief</div>}
-        {name === "pill" && (
-          <span class="hw-pill" data-tone="neutral">
-            4 states
-          </span>
-        )}
-        {name === "table" && (
-          <table class="hw-table">
-            <tbody>
-              <tr>
-                <td>accent</td>
-                <td>
-                  <code>teal</code>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        )}
-        {name === "label" && <span class="hw-label">Artikel</span>}
-        {name === "link" && (
-          <p>
-            See{" "}
-            <a class="hw-link" href={portal}>
-              the brand catalog
-            </a>{" "}
-            first.
-          </p>
-        )}
-      </div>
+      <Element name={name} scale="dense" note={notes[name]} />
     ))}
   </div>
 </Home>
@@ -111,11 +70,5 @@ const roles = Object.keys(palette.light) as Role[];
     grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
     gap: 1rem;
     margin-top: 1.5rem;
-  }
-  .tiles p {
-    margin: 0 0 0.5rem;
-  }
-  .note {
-    color: var(--color-muted);
   }
 </style>

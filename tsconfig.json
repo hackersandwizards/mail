@@ -3,10 +3,7 @@
   "compilerOptions": {
     "jsx": "react-jsx",
     "jsxImportSource": "react",
-    "allowImportingTsExtensions": true,
-    "noEmit": true,
     "types": ["bun", "astro/client"]
   },
-  "include": ["components", "mails", "scripts", "catalog", "test", "catalog/.astro/types.d.ts"],
-  "exclude": ["dist", "node_modules"]
+  "include": ["components", "mails", "scripts", "catalog", "test", "catalog/.astro/types.d.ts"]
 }

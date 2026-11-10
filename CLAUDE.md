@@ -17,14 +17,15 @@ goes in. Every word a mail prints is a prop; the catalog data is invented, and
 ## Layout
 
 - `components/theme.ts`: every brand value a mail uses: colours, the picture corner and the
-  label's tracking and weight from `@hackersandwizards/brand/tokens` (resolved values), the mono and sans stacks read
+  label's type from `@hackersandwizards/brand/tokens` (resolved values), the mono and sans stacks read
   out of the brand's mail-signature template. No component writes a colour or a stack of its own.
 - `components/`: one React Email component per building block. `MailShell` holds the head
   (viewport, `color-scheme`, the dark rules under `prefers-color-scheme` and Outlook.com's
   `data-ogsc`) and the 600 px column; colours reach the dark rules through the `paint` classes.
   `Signature` fills the brand's template; never copy it.
-- `mails/Brief.tsx`: the Brief (os row `mail-engine-variant`) and `briefText`, the text part the
-  engine writes itself rather than stripping the HTML.
+- `mails/Brief.tsx`: the Brief (os row `mail-engine-variant`), `briefText`, the text part the
+  engine writes itself rather than stripping the HTML, and `checkBrief`, which `renderBrief` runs
+  first and which refuses data that would render a wrong mail.
 - `scripts/render.ts`: `renderBrief` and the `mail-render` command. `scripts/modes.ts`: headless
   Chrome for Testing (scaffolding's `./chrome`) views (light, dark, inverted, images blocked), used by the tests and the
   catalog.
@@ -34,7 +35,7 @@ goes in. Every word a mail prints is a prop; the catalog data is invented, and
   every push to `main`; `bun run dev` serves it at the root on port 4455, and under a coding agent
   Astro detaches that server, which `bun --bun astro dev stop` in `catalog/` ends.
   Its stories in `catalog/stories/` sit at the site's root, each mail type under `Mails/` light, dark,
-  inverted and on a phone, the building blocks under `Parts/`; each shows the rendered HTML in a
+  inverted, on a phone and as its text part, the building blocks under `Parts/`; each shows the rendered HTML in a
   frame, since a component in the page is not what a mail client receives. `catalog/mails/*.json`
   holds every mail type's invented data; `catalog/mails/index.ts` renders each with `renderBrief`,
   and the route in `catalog/pages/mails/` serves it as `/mails/<type>.html` and `.txt`, the bytes
