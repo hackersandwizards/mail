@@ -24,14 +24,17 @@ function edit(path: string, value?: unknown) {
   return out as BriefProps;
 }
 
-/** The error `promise` rejects with, as text; fails when it resolves. In place of bun's
- * `expect().rejects`, which `eslint.config.js` refuses and says why. */
+/** The message of the Error `promise` rejects with; fails when it resolves or rejects with no
+ * Error. In place of bun's `expect().rejects`, which `eslint.config.js` refuses and says why. */
 const rejection = (promise: Promise<unknown>) =>
   promise.then(
-    (value) => {
-      throw new Error(`expected a rejection, resolved with ${JSON.stringify(value)}`);
+    () => {
+      throw new Error("expected a rejection, it resolved");
     },
-    (e: unknown) => String(e),
+    (e: unknown) => {
+      if (e instanceof Error) return e.message;
+      throw new Error(`expected an Error, rejected with ${String(e)}`);
+    },
   );
 
 const REQUIRED = [

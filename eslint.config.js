@@ -1,7 +1,9 @@
 import base from "@hackersandwizards/scaffolding/eslint";
 
 // The shared config's rule for test files, kept whole: a second `no-restricted-syntax` replaces it.
-const tests = base.find((config) => config.rules?.["no-restricted-syntax"]);
+const tests = base.find((config) => config.files && config.rules?.["no-restricted-syntax"]);
+if (!tests)
+  throw new Error("scaffolding's eslint config has no no-restricted-syntax for test files");
 
 export default [
   ...base,
