@@ -3,6 +3,7 @@ import { describe, expect, test } from "bun:test";
 import { spawnSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { mailtoHref } from "../components/ObjectionNotice";
 import type { BriefProps } from "../mails/Brief";
 import { renderBrief } from "../scripts/render";
 import data from "../catalog/mails/brief-bild.json";
@@ -66,6 +67,7 @@ describe("renderBrief refuses data that would render a wrong mail", () => {
     ["closing", []],
     ["items", []],
     ["preview", "x".repeat(201)],
+    ["items[1].destination", " "],
     ["items[1].href", "javascript:alert(1)"],
     ["items[1].href", "http://example.com/"],
     ["items[0].image.src", "http://example.com/a.png"],
@@ -99,7 +101,8 @@ describe("renderBrief refuses data that would render a wrong mail", () => {
   });
 });
 
-test("a line break in the objection mail's body is encoded as CRLF (RFC 6068 section 5)", async () => {
-  const { html } = await renderBrief(edit("objection.mailto.body", "Hallo,\nbitte nicht mehr."));
-  expect(html).toContain("body=Hallo%2C%0D%0Abitte");
+test("a line break in the objection mail's body is encoded as CRLF (RFC 6068 section 5)", () => {
+  expect(mailtoHref({ to: "kim@example.com", body: "Hallo,\nbitte nicht mehr." })).toBe(
+    "mailto:kim@example.com?body=Hallo%2C%0D%0Abitte%20nicht%20mehr.",
+  );
 });

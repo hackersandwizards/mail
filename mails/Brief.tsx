@@ -62,6 +62,7 @@ export function checkBrief(data: unknown): asserts data is BriefProps {
     const path = `items[${i}]`;
     const item = record(entry, path);
     for (const key of ["label", "title", "text"]) text(item[key], `${path}.${key}`);
+    if (item.destination !== undefined) text(item.destination, `${path}.destination`);
     https(item.href, `${path}.href`);
     if (item.image === undefined) return;
     const image = record(item.image, `${path}.image`);

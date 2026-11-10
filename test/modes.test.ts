@@ -57,70 +57,73 @@ afterAll(async () => {
   if (browser) await quit(browser);
 });
 
+// The widest image only needs the narrowest phone, with and without the picture.
+const views = (mail: string) =>
+  mail === "widest-image"
+    ? (["light", "noimg"] as const).map((mode) => [mode, PHONE_WIDTH] as const)
+    : MODES.flatMap((mode) => [COLUMN_WIDTH, PHONE_WIDTH].map((w) => [mode, w] as const));
+
 describe.each(Object.keys(mails))("mail %s", (mail) => {
-  test.each(MODES.flatMap((mode) => [COLUMN_WIDTH, PHONE_WIDTH].map((w) => [mode, w] as const)))(
-    "%s at %i px",
-    async (mode, width) => {
-      const page = await openMail(browser, join(dir, `${mail}.html`), mode, width);
-      try {
-        const seen = await page.evaluate(() => {
-          const title = document.querySelector("p > a[href^='https://example.com/']");
-          const img = document.querySelector("img");
-          return {
-            page: getComputedStyle(document.body).backgroundColor,
-            // React Email's inner Body cell, which the dark rules reach by structure.
-            cell: getComputedStyle(document.querySelector(".hw-body>table>tbody>tr>td")!)
-              .backgroundColor,
-            sig: document.querySelectorAll(".hw-sig [style*='color']").length,
-            // Every colour an element sets inline, with the colour it shows.
-            painted: [...document.querySelectorAll<HTMLElement>("[style]")].flatMap((e) =>
-              (["color", "backgroundColor", "borderLeftColor"] as const)
-                // A border shorthand without a colour leaves the keyword, which paints no role.
-                .filter(
-                  (prop) => e.style[prop] && !/^(currentcolor|transparent)$/i.test(e.style[prop]),
-                )
-                .map((prop) => [prop, e.style[prop], getComputedStyle(e)[prop]]),
-            ),
-            title: title ? getComputedStyle(title).color : "",
-            filter: getComputedStyle(document.documentElement).filter,
-            overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
-            loaded: img ? img.complete && img.naturalWidth > 0 : null,
-            imgBox: img
-              ? [img.getBoundingClientRect().width, img.getBoundingClientRect().height]
-              : null,
-          };
-        });
-        const scheme = mode === "dark" ? palette.dark : palette.light;
-        expect(seen.page).toBe(rgb(scheme.page));
-        expect(seen.cell).toBe(rgb(scheme.page));
-        expect(seen.sig).toBeGreaterThan(0);
-        // Each colour set inline, the signature's included, is a role's colour as sent and shows as
-        // that role's colour in the mode: a part setting a colour without its class stays light.
-        expect(seen.painted.length).toBeGreaterThan(seen.sig);
-        for (const [prop, inline, shown] of seen.painted) {
-          const shownAs = roles
-            .filter((r) => rgb(palette.light[r]) === inline)
-            .map((r) => rgb(scheme[r]));
-          expect(shownAs.length, `${prop} ${inline} is no role's colour`).toBeGreaterThan(0);
-          expect(shownAs, `${prop} ${inline}`).toContain(shown);
-        }
-        expect(seen.title).toBe(rgb(scheme.accent));
-        expect(seen.filter).toBe(mode === "invert" ? "invert(1) hue-rotate(180deg)" : "none");
-        expect(seen.overflow).toBe(0);
-        // The box stays at its size whether the picture loaded or not.
-        const image = mails[mail].items.find((item) => item.image)?.image;
-        if (image) {
-          expect(seen.loaded).toBe(mode !== "noimg");
-          expect(seen.imgBox).toEqual([image.width, image.height]);
-        }
-        if (shots) {
-          mkdirSync(shots, { recursive: true });
-          const png = await page.screenshot({ fullPage: true, type: "png" });
-          writeFileSync(join(shots, `${mail}-${mode}-${width}.png`), png);
-        }
-      } finally {
-        await page.close();
+  test.each(views(mail))("%s at %i px", async (mode, width) => {
+    const page = await openMail(browser, join(dir, `${mail}.html`), mode, width);
+    try {
+      const seen = await page.evaluate(() => {
+        const title = document.querySelector("p > a[href^='https://example.com/']");
+        const img = document.querySelector("img");
+        return {
+          page: getComputedStyle(document.body).backgroundColor,
+          // React Email's inner Body cell, which the dark rules reach by structure.
+          cell: getComputedStyle(document.querySelector(".hw-body>table>tbody>tr>td")!)
+            .backgroundColor,
+          sig: document.querySelectorAll(".hw-sig [style*='color']").length,
+          // Every colour an element sets inline, with the colour it shows.
+          painted: [...document.querySelectorAll<HTMLElement>("[style]")].flatMap((e) =>
+            (["color", "backgroundColor", "borderLeftColor"] as const)
+              // A border shorthand without a colour leaves the keyword, which paints no role.
+              .filter(
+                (prop) => e.style[prop] && !/^(currentcolor|transparent)$/i.test(e.style[prop]),
+              )
+              .map((prop) => [prop, e.style[prop], getComputedStyle(e)[prop]]),
+          ),
+          title: title ? getComputedStyle(title).color : "",
+          filter: getComputedStyle(document.documentElement).filter,
+          overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+          loaded: img ? img.complete && img.naturalWidth > 0 : null,
+          imgBox: img
+            ? [img.getBoundingClientRect().width, img.getBoundingClientRect().height]
+            : null,
+        };
+      });
+      const scheme = mode === "dark" ? palette.dark : palette.light;
+      expect(seen.page).toBe(rgb(scheme.page));
+      expect(seen.cell).toBe(rgb(scheme.page));
+      expect(seen.sig).toBeGreaterThan(0);
+      // Each colour set inline, the signature's included, is a role's colour as sent and shows as
+      // that role's colour in the mode: a part setting a colour without its class stays light.
+      expect(seen.painted.length).toBeGreaterThan(seen.sig);
+      for (const [prop, inline, shown] of seen.painted) {
+        const shownAs = roles
+          .filter((r) => rgb(palette.light[r]) === inline)
+          .map((r) => rgb(scheme[r]));
+        expect(shownAs.length, `${prop} ${inline} is no role's colour`).toBeGreaterThan(0);
+        expect(shownAs, `${prop} ${inline}`).toContain(shown);
       }
-    },
-  );
+      expect(seen.title).toBe(rgb(scheme.accent));
+      expect(seen.filter).toBe(mode === "invert" ? "invert(1) hue-rotate(180deg)" : "none");
+      expect(seen.overflow).toBe(0);
+      // The box stays at its size whether the picture loaded or not.
+      const image = mails[mail].items.find((item) => item.image)?.image;
+      if (image) {
+        expect(seen.loaded).toBe(mode !== "noimg");
+        expect(seen.imgBox).toEqual([image.width, image.height]);
+      }
+      if (shots) {
+        mkdirSync(shots, { recursive: true });
+        const png = await page.screenshot({ fullPage: true, type: "png" });
+        writeFileSync(join(shots, `${mail}-${mode}-${width}.png`), png);
+      }
+    } finally {
+      await page.close();
+    }
+  });
 });

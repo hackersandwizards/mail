@@ -1,5 +1,5 @@
 import { Img } from "react-email";
-import { paint } from "./MailShell";
+import { ITEM_INSET, ITEM_RULE, PAGE_INSET, PHONE_WIDTH, paint } from "./MailShell";
 import { corner, fonts, palette } from "./theme";
 
 // React types carry no bgcolor; the attribute is what classic Outlook paints a cell from.
@@ -21,9 +21,8 @@ export type ImageProps = {
   href?: string;
 };
 
-/** The widest image the narrowest column holds: a 360 px phone less the page's insets (2 x 24) and
- * the item's rule and inset (3 + 14). `test/modes.test.ts` draws one this wide at that width. */
-export const MAX_IMAGE_WIDTH = 295;
+/** The widest image an item holds on the narrowest phone; `test/modes.test.ts` draws one there. */
+export const MAX_IMAGE_WIDTH = PHONE_WIDTH - 2 * PAGE_INSET - ITEM_RULE - ITEM_INSET;
 
 /**
  * An image that keeps its box while the client blocks images: whole-pixel width and height in the

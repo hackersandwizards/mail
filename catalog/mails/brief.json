@@ -9,19 +9,22 @@
       "label": "Artikel",
       "title": "Kleine Pull Requests zählen wieder, seit Agenten mitschreiben",
       "href": "https://example.com/artikel/kleine-pull-requests",
-      "text": "Wer Agenten große Änderungen schreiben lässt, verschiebt die Arbeit ins Review. Drei Regeln, die den Diff klein halten."
+      "text": "Wer Agenten große Änderungen schreiben lässt, verschiebt die Arbeit ins Review. Drei Regeln, die den Diff klein halten.",
+      "destination": "Auf unserer Website, 6 Min. Lesezeit"
     },
     {
       "label": "Podcast",
       "title": "Folge 12: Tests als Vertrag zwischen Team und Agent",
       "href": "https://example.com/podcast/folge-12",
-      "text": "Warum ein roter Test die beste Anweisung ist, die ein Agent bekommen kann, und wo das aufhört."
+      "text": "Warum ein roter Test die beste Anweisung ist, die ein Agent bekommen kann, und wo das aufhört.",
+      "destination": "Player auf unserer Website, 41 Min."
     },
     {
       "label": "Talk",
       "title": "Agenten im Terminal: sechs Monate im Rückblick",
       "href": "https://example.com/talks/agenten-im-terminal",
-      "text": "Was sich bewährt hat, was wir wieder abgeschaltet haben, und welche Rechte ein Agent nie bekommt."
+      "text": "Was sich bewährt hat, was wir wieder abgeschaltet haben, und welche Rechte ein Agent nie bekommt.",
+      "destination": "Video auf YouTube, 32 Min."
     }
   ],
   "outro": [

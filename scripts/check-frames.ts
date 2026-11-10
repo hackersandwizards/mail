@@ -20,8 +20,14 @@ const server = Bun.serve({
   port: 0,
   hostname: "127.0.0.1",
   async fetch(req) {
-    // Decoded, as the build names its files; a path stepping out of dist/ answers 404.
-    const path = decodeURIComponent(new URL(req.url).pathname);
+    // Decoded, as the build names its files; a malformed escape or a path stepping out of dist/
+    // answers 404.
+    let path: string;
+    try {
+      path = decodeURIComponent(new URL(req.url).pathname);
+    } catch {
+      return new Response(null, { status: 404 });
+    }
     if (!path.startsWith(BASE)) return new Response(null, { status: 404 });
     const file = join(DIST, path.slice(BASE.length));
     if (relative(DIST, file).startsWith("..")) return new Response(null, { status: 404 });

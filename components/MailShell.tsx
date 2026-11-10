@@ -1,13 +1,15 @@
 import type { ReactNode } from "react";
 import { Body, Container, Head, Html, Preview } from "react-email";
-import { fonts, palette, roles, type Role } from "./theme";
+import { fonts, inlineColour, palette, roles, type Role } from "./theme";
 
 /** The column's width on a desktop, and the narrowest phone a mail is drawn for: 360 x 800 held
  * 9 % of phone screens worldwide in StatCounter's figures for August 2026. */
 export const COLUMN_WIDTH = 600;
 export const PHONE_WIDTH = 360;
-/** The page's inset around the column, each side. */
+/** The page's inset around the column, each side, and an item's rule and inset before its words. */
 export const PAGE_INSET = 24;
+export const ITEM_RULE = 3;
+export const ITEM_INSET = 14;
 
 /** The media query the mail's dark rules sit under. */
 export const DARK_MEDIA = "@media (prefers-color-scheme: dark)";
@@ -44,7 +46,9 @@ function darkRules(prefix: string): string {
   ]);
   rules.push(`${prefix}.hw-body>table>tbody>tr>td{background-color:${d.page}!important}`);
   for (const r of roles) {
-    rules.push(`${prefix}.hw-sig [style*="color: ${palette.light[r]}"]{color:${d[r]}!important}`);
+    rules.push(
+      `${prefix}.hw-sig [style*="${inlineColour(palette.light[r])}"]{color:${d[r]}!important}`,
+    );
   }
   return rules.join("");
 }

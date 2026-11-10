@@ -50,6 +50,6 @@ export function mail(base: string) {
     ...views(html),
     text: { args: { html: textPage(found.text), width: COLUMN_WIDTH } },
     inverted: { args: { html: forceInvert(html), width: COLUMN_WIDTH } },
-    phone: views(html, PHONE_WIDTH).light,
+    phone: { args: { html: forceLight(html), width: PHONE_WIDTH } },
   };
 }

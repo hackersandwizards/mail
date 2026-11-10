@@ -1,6 +1,6 @@
 // The brand values a mail uses, every one from @hackersandwizards/brand: colours from its resolved
-// token set (hex, since mail clients know no color-mix()), the picture corner and the label's tracking
-// and weight from its tokens, the two font stacks from its mail signature template, which carries the stacks a
+// token set (hex, since mail clients know no color-mix()), the picture corner and the label's type
+// from its tokens, the two font stacks from its mail signature template, which carries the stacks a
 // mail client can show (no web font: Gmail and classic Outlook load none). Server-side only: the
 // template is read from disk.
 import { readFileSync } from "node:fs";
@@ -60,13 +60,14 @@ for (const [mode, roles] of Object.entries(palette))
 export type Role = keyof typeof palette.light;
 export const roles = Object.keys(palette.light) as Role[];
 
-// A mail inlines these with no stylesheet behind them, so only a plain length holds.
-function literal(name: keyof typeof tokens): string {
-  const value = tokens[name];
-  if (!/^[\d.]+(px|em)$/.test(value))
-    throw new Error(`mail: brand token ${name} is no plain length (brand peer range)`);
-  return value;
+function plain(name: keyof typeof tokens, pattern: RegExp): string {
+  if (!pattern.test(tokens[name]))
+    throw new Error(`mail: brand token ${name} is no plain value (brand peer range)`);
+  return tokens[name];
 }
+
+// A mail inlines these with no stylesheet behind them, so only a plain length holds.
+const literal = (name: keyof typeof tokens) => plain(name, /^[\d.]+(px|em)$/);
 
 /** The corner a picture takes, as brand's shape rule (tokens.css) gives a picture in a mail. */
 export const corner = literal("--radius-sm");
@@ -77,12 +78,6 @@ function pixels(name: keyof typeof tokens): number {
   const rem = /^([\d.]+)rem$/.exec(tokens[name])?.[1];
   if (!rem) throw new Error(`mail: brand token ${name} is no rem length (brand peer range)`);
   return Number(rem) * 16;
-}
-
-function plain(name: keyof typeof tokens, pattern: RegExp): string {
-  if (!pattern.test(tokens[name]))
-    throw new Error(`mail: brand token ${name} is no plain value (brand peer range)`);
-  return tokens[name];
 }
 
 const labelSize = pixels("--text-label");
@@ -108,12 +103,14 @@ export const labelText = (words: string) =>
       ? words.toLowerCase()
       : words;
 
-/** Each inline colour declaration of a signature template that no dark rule reaches: MailShell
- * names a signature colour as `color: <light hex>`, exactly as brand's template spells it today. */
+/** A signature colour as brand's template spells it inline, which MailShell's dark rules match. */
+export const inlineColour = (hex: string) => `color: ${hex}`;
+
+/** Each inline colour declaration of a signature template that no dark rule reaches. */
 export const unreachedColours = (html: string) =>
   [...html.matchAll(/(?<![\w-])color\s*:\s*[^;"]+/gi)]
     .map(([declaration]) => declaration.trim())
-    .filter((d) => !roles.some((r) => d === `color: ${palette.light[r]}`));
+    .filter((d) => !roles.some((r) => d === inlineColour(palette.light[r])));
 
 const unreached = unreachedColours(signatureTemplate.html);
 if (unreached.length)

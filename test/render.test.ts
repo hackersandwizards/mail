@@ -12,13 +12,7 @@ const brief = data as BriefProps;
 const root = join(import.meta.dir, "..");
 const mail = await renderBrief(brief);
 /** A data string as React writes it into the HTML. */
-const escaped = (s: string) =>
-  s
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#x27;");
+const escaped = Bun.escapeHTML;
 
 describe("renderBrief", () => {
   const { html, text } = mail;
@@ -52,7 +46,7 @@ describe("renderBrief", () => {
     );
   });
 
-  test("item titles are underlined links, labels take brand's label weight", () => {
+  test("item titles are underlined links, each says where it leads, labels take brand's label type", () => {
     for (const item of brief.items) {
       const link = html.match(
         new RegExp(`<a href="${RegExp.escape(escaped(item.href))}"[^>]*>`),
@@ -60,6 +54,13 @@ describe("renderBrief", () => {
       expect(link).toContain("text-decoration-line:underline");
       expect(link).not.toContain("text-decoration-line:none");
     }
+    // Where each title leads, muted, right under the title.
+    for (const item of brief.items)
+      expect(html).toMatch(
+        new RegExp(
+          `${RegExp.escape(escaped(item.title))}</a></p><p class="hw-muted"[^>]*>${RegExp.escape(escaped(item.destination!))}</p>`,
+        ),
+      );
     const labels = html.match(/<p class="hw-label"[^>]*>/g) ?? [];
     expect(labels).toHaveLength(brief.items.length);
     const size = parseFloat(tokens["--text-label"]) * 16;
@@ -74,8 +75,7 @@ describe("renderBrief", () => {
     }
   });
 
-  test("every colour of brand's signature has a dark rule; a respelled one would not", () => {
-    expect(unreachedColours(signatureTemplate.html)).toEqual([]);
+  test("a signature colour respelled or outside the roles has no dark rule", () => {
     const respelled = signatureTemplate.html.replace(/color: (#[0-9a-f]{6})/, "color:$1");
     expect(unreachedColours(respelled)).toHaveLength(1);
     expect(unreachedColours('<span style="color: #123456">')).toEqual(["color: #123456"]);
@@ -85,7 +85,7 @@ describe("renderBrief", () => {
     expect(text.startsWith(`${brief.greeting}\n\n`)).toBe(true);
     for (const item of brief.items) {
       expect(text).toContain(
-        `${item.label.toUpperCase()}: ${item.title}\n${item.href}\n${item.text}`,
+        `${item.label.toUpperCase()}: ${item.title}\n${item.href}\n${item.destination}\n${item.text}\n`,
       );
     }
     expect(text).toContain(`\n\n${brief.signature.name}\n`);

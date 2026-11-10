@@ -70,9 +70,10 @@ per cell).
 
 What keeps S below 10, named by every reviewer: three underlined bold titles cost calm (Claude 6.7
 against N's 8.8). The underline is brand's plain `text-decoration: underline`, as in the signature
-and the footer. A thinner underline with an offset (brand's web link) was not scored. A Gmail night
+and the footer. A thinner underline with an offset (brand's web link) was scored later, with where a title
+leads and the spacing: [2026-11-10-review-fixes.md](2026-11-10-review-fixes.md). A Gmail night
 view keeps a white mail inside a dark frame, which reviewers named for every version. All of them
-asked where a title leads: a page on the website, a podcast player, a recording or a sign-up.
+asked where a title leads; the later report answers that too.
 
 Skipped combinations: Outlook (classic and Outlook.com), forced inversion (Gmail app, classic
 Outlook), phone width, and the step after the click.
