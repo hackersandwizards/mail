@@ -75,6 +75,12 @@ async function check(url: string) {
   await page.waitForNetworkIdle();
   // A home without tile frames would show no image and pass.
   if (url === root && page.frames().length < 2) failures.push(`${url}: no tile frame opened`);
+  // Head.astro links the svg again after the .ico, since the shell links its svg first and a browser
+  // that takes the last icon showed the .ico in v2.0.0.
+  if (url === root) {
+    const last = await page.$$eval('link[rel="icon"]', (l) => l.at(-1)?.getAttribute("type"));
+    if (last !== "image/svg+xml") failures.push(`${url}: the last icon link is not the svg`);
+  }
   for (const frame of page.frames().filter((f) => !f.detached)) {
     // A lazy image the page hides never loads, such as the header's night lockup on a light
     // page: a copy of it must decode instead.

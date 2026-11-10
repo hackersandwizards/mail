@@ -45,8 +45,8 @@ blind review that put a destination line and more room into the teaser block.
 
 ## The slow close in the headless test (M2)
 
-`afterAll` awaited Chrome's graceful close, and bun gives a hook 5 s. Timed on this machine at 32 views a
-run, twice the 16 that `test/modes.test.ts` opened then (18 now):
+`afterAll` awaited Chrome's graceful close, and bun gives a hook 5 s. Timed on this machine at 32
+views a run, twice the 16 that `test/modes.test.ts` opened then (18 now):
 
 | Close    | Runs | Load (1 min) | Time            |
 | -------- | ---- | ------------ | --------------- |
@@ -57,7 +57,10 @@ The graceful runs and the kill runs alternated at the same load. Puppeteer's rem
 took under 40 ms of each graceful close; the rest was Chrome's own shutdown. What pushed it past 5 s
 in the gates of 06.11. and 10.11. is not shown beyond load: the slowest close (3.3 s) came at
 load 189, while one at 221 took 0.2 s. `quit` in `scripts/modes.ts` now kills Chrome and then lets
-puppeteer remove the profile, which a kill alone left behind. `beforeAll` keeps bun's limit too: its Chrome launch took 0.5 to 2.3 s in the same runs and never failed a gate, so it is left.
+puppeteer remove the profile, which a kill alone left behind.
+
+`beforeAll` has the same 5 s limit and is left as it is: its Chrome launch took 0.5 to 2.3 s in
+the 17 timed runs, and no gate in the review or in this run failed there.
 
 ## Outlook (M4)
 
@@ -65,6 +68,13 @@ No Outlook engine runs here: classic Outlook's Word engine runs only on Windows.
 or using a paid render service needs a person's go, so three readings stay open in
 `items/outlook-check.md`: whether Outlook.com's dark mode lets the `[data-ogsc]` rules win, whether
 classic Outlook keeps the 600 px column, and how its forced inversion looks.
+
+## The catalog favicon
+
+v2.0.0's catalog linked the brand's `.ico` after the svg the shell links, so a browser that takes
+the last icon showed the `.ico`. v2.0.1 links the svg again after it, and `check:frames` fails where
+the home's last icon link is not the svg; with the old order it failed, as a control. The
+last-icon rule is read from the markup, not from watching which file a browser fetched.
 
 ## Reviews of this run's code
 
@@ -74,10 +84,11 @@ classic Outlook keeps the 600 px column, and how its forced inversion looks.
 - **`/simplify`, first batch:** ten cleanups, nine applied. A shared scratch-folder helper for the
   three test files was left: they share no helper file yet.
 - **`/simplify`, second batch:** four cleanups, all applied.
-- **`/code-review`:** ten findings, six fixed and two in part: a missing file or malformed JSON now ends on the
-  `mail-render: <file>:` line; image width and height, an unknown field and a line break in the
+- **`/code-review`:** ten findings, six fixed and two in part: a missing file or malformed JSON
+  now ends on the `mail-render: <file>:` line; image width and height, an unknown field and a line break in the
   objection subject are refused with their path; a protocol-relative image source is refused; the
-  signature guard also reports a background, border or `bgcolor` colour, with a test for each;
+  signature guard also reports a background, border or `bgcolor` colour, with a test for a
+  background and for `bgcolor`;
   the Text story takes the mail's language. One fixed in part: an https link must now parse as a
   URL, so `https:// x` is refused; the LinkedIn and alt rules `checkBrief` shares with brand's
   `fillSignature` and `Image` stay, since `checkBrief` refuses before anything renders and names
