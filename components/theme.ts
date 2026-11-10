@@ -72,3 +72,9 @@ export const corner = literal("--radius-sm");
 
 /** The letter spacing of a label set in capitals. */
 export const labelTracking = literal("--tracking-label");
+
+/** The weight of a label, as brand's label element sets it. The mail's mono stack has no medium
+ * face, so a client draws brand's 500 in the regular one. */
+export const labelWeight = Number(tokens["--type-label-weight"]);
+if (!Number.isInteger(labelWeight))
+  throw new Error("mail: brand token --type-label-weight is no plain weight (brand peer range)");

@@ -1,7 +1,7 @@
 import { Link, Text } from "react-email";
 import { Image, type ImageProps } from "./Image";
 import { paint } from "./MailShell";
-import { fonts, labelTracking, palette } from "./theme";
+import { fonts, labelTracking, labelWeight, palette } from "./theme";
 
 export type ItemProps = {
   /** The kind of item, set in capitals: "Artikel", "Podcast", "Talk". */
@@ -38,7 +38,7 @@ export function Item({ label, title, href, text, image }: ItemProps) {
                 fontFamily: fonts.mono,
                 fontSize: 12,
                 lineHeight: "16px",
-                fontWeight: "bold",
+                fontWeight: labelWeight,
                 letterSpacing: labelTracking,
                 textTransform: "uppercase",
                 color: palette.light.label,
@@ -53,7 +53,7 @@ export function Item({ label, title, href, text, image }: ItemProps) {
               <Link
                 href={href}
                 className={paint.text("accent")}
-                style={{ color: accent, textDecoration: "none" }}
+                style={{ color: accent, textDecoration: "underline" }}
               >
                 {title}
               </Link>
