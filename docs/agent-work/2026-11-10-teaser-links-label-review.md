@@ -7,8 +7,10 @@ titles were not.
 
 **Result:** titles underlined, labels at brand's weight (`--type-label-weight`, 500). The mail's
 mono stack (Menlo, Consolas, Courier New) has no medium face, so a client draws the label in the
-regular one: the comparison was bold against regular. Built in `components/Item.tsx` and
-`components/theme.ts`.
+regular one: the comparison was bold against regular. Built in mail v1.3.0: `accentLink` in
+`components/MailShell.tsx` underlines the titles and the objection link, `labelWeight` in
+`components/theme.ts` reads the weight, and the brand peer range starts at v2.9.0, the first
+release with the signature's underlined links.
 
 ## Method
 
@@ -39,7 +41,9 @@ a head of engineering at a 200-person software company (both models), a senior d
 attended a training (Claude), and a design lead for B2B mail (both models, twice each for the
 noise). Criteria, 1 to 10, fixed before any score: titles recognised as links, label legible and
 calm, hierarchy, visual calm, breathing room, fit for the reader, overall. Each reviewer first
-listed what they would click.
+listed what they would click. The Codex runs opened the hub's `shell-tools`, `voice` and
+`blind-review` skills and the global rules on their own; none of those names a version of this
+review or says which one is current.
 
 ## Scores
 
