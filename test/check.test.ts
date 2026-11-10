@@ -24,6 +24,16 @@ function edit(path: string, value?: unknown) {
   return out as BriefProps;
 }
 
+/** The error `promise` rejects with, as text; fails when it resolves. In place of bun's
+ * `expect().rejects`, which `eslint.config.js` refuses and says why. */
+const rejection = (promise: Promise<unknown>) =>
+  promise.then(
+    (value) => {
+      throw new Error(`expected a rejection, resolved with ${JSON.stringify(value)}`);
+    },
+    (e: unknown) => String(e),
+  );
+
 const REQUIRED = [
   "lang",
   "subject",
@@ -56,7 +66,7 @@ describe("renderBrief refuses data that would render a wrong mail", () => {
   });
 
   test.each(REQUIRED)("without %s", async (path) => {
-    await expect(renderBrief(edit(path))).rejects.toThrow(path);
+    expect(await rejection(renderBrief(edit(path)))).toContain(path);
   });
 
   test.each([
@@ -83,7 +93,7 @@ describe("renderBrief refuses data that would render a wrong mail", () => {
     ["objection.mailto.to", "kim"],
     ["signature.linkedin", "http://www.linkedin.com/in/kim-beispiel"],
   ])("%s set to %p", async (path, value) => {
-    await expect(renderBrief(edit(path, value))).rejects.toThrow(path);
+    expect(await rejection(renderBrief(edit(path, value)))).toContain(path);
   });
 
   test("mail-render names the data file and the field, and writes nothing", () => {

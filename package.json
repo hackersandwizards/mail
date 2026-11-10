@@ -1,6 +1,6 @@
 {
   "name": "@hackersandwizards/mail",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "private": true,
   "description": "The hackers&wizards mail engine: React Email components on the brand tokens, a render command writing the HTML and plain-text parts of a mail from a data file.",
   "license": "SEE LICENSE IN LICENSE",
@@ -32,7 +32,7 @@
     "check:copies": "brand-copies",
     "check:staged": "check-staged",
     "fix": "bun --bun eslint --cache --concurrency=auto . --fix && bun --bun prettier --write .",
-    "test": "bun test"
+    "test": "bun test --timeout ${SCAFFOLDING_TEST_TIMEOUT_MS:-5000}"
   },
   "dependencies": {
     "react": "19.3.1",
@@ -45,7 +45,7 @@
   "devDependencies": {
     "@hackersandwizards/admin": "git+https://github.com/hackersandwizards/admin.git#v1.20.7",
     "@hackersandwizards/brand": "git+https://github.com/hackersandwizards/brand.git#v2.9.0",
-    "@hackersandwizards/scaffolding": "git+https://github.com/hackersandwizards/scaffolding.git#v5.7.7",
+    "@hackersandwizards/scaffolding": "git+https://github.com/hackersandwizards/scaffolding.git#v5.12.1",
     "@types/bun": "1.4.4",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
