@@ -23,19 +23,25 @@ export type BriefProps = {
 const PREVIEW_MAX = 200;
 
 /**
- * Refuses data that would render a wrong mail, naming the field: a missing or empty text (printed
- * as `undefined` or left blank), a language other than `de` or `en`, a link other than https, an
- * objection address carrying a query of its own. An image source may also be a relative path, which
- * only the catalog serves.
+ * Refuses data that would render a wrong mail, naming the field: a missing, empty or unknown field
+ * (printed as `undefined`, left blank or silently dropped), a language other than `de` or `en`, a
+ * link other than https, an image size that is no whole pixel, an objection address carrying a query
+ * of its own or a subject spanning lines. An image source may also be a path relative to the mail,
+ * which only the catalog serves.
  */
 export function checkBrief(data: unknown): asserts data is BriefProps {
   const fail = (path: string, why: string): never => {
     throw new Error(`${path} ${why}`);
   };
-  const record = (value: unknown, path: string) =>
-    typeof value === "object" && value !== null && !Array.isArray(value)
-      ? (value as Record<string, unknown>)
-      : fail(path, "must be an object");
+  const record = (value: unknown, path: string, keys: string[]) => {
+    if (typeof value !== "object" || value === null || Array.isArray(value))
+      fail(path, "must be an object");
+    const fields = value as Record<string, unknown>;
+    for (const key of Object.keys(fields))
+      if (!keys.includes(key))
+        fail(`${path}.${key}`, `is no field; the fields are ${keys.join(", ")}`);
+    return fields;
+  };
   const text = (value: unknown, path: string) =>
     typeof value === "string" && value.trim()
       ? value
@@ -50,8 +56,23 @@ export function checkBrief(data: unknown): asserts data is BriefProps {
   const https = (value: unknown, path: string) => {
     if (!text(value, path).startsWith("https://")) fail(path, `must be an https URL, got ${value}`);
   };
+  const pixels = (value: unknown, path: string) => {
+    if (!Number.isInteger(value) || (value as number) <= 0)
+      fail(path, `must be a whole number of pixels above 0, got ${value}`);
+  };
 
-  const p = record(data, "the data");
+  const p = record(data, "the data", [
+    "lang",
+    "subject",
+    "preview",
+    "greeting",
+    "intro",
+    "items",
+    "outro",
+    "closing",
+    "signature",
+    "objection",
+  ]);
   if (p.lang !== "de" && p.lang !== "en") fail("lang", `must be "de" or "en", got ${p.lang}`);
   text(p.subject, "subject");
   if (text(p.preview, "preview").length > PREVIEW_MAX)
@@ -60,31 +81,37 @@ export function checkBrief(data: unknown): asserts data is BriefProps {
   lines(p.intro, "intro");
   list(p.items, "items", 1).forEach((entry, i) => {
     const path = `items[${i}]`;
-    const item = record(entry, path);
+    const item = record(entry, path, ["label", "title", "href", "text", "destination", "image"]);
     for (const key of ["label", "title", "text"]) text(item[key], `${path}.${key}`);
     if (item.destination !== undefined) text(item.destination, `${path}.destination`);
     https(item.href, `${path}.href`);
     if (item.image === undefined) return;
-    const image = record(item.image, `${path}.image`);
-    if (/^[a-z][a-z\d+.-]*:/i.test(text(image.src, `${path}.image.src`)))
-      https(image.src, `${path}.image.src`);
+    const image = record(item.image, `${path}.image`, ["src", "alt", "width", "height", "href"]);
+    const src = text(image.src, `${path}.image.src`);
+    if (/^[a-z][a-z\d+.-]*:|^\/\//i.test(src)) https(src, `${path}.image.src`);
     text(image.alt, `${path}.image.alt`);
+    pixels(image.width, `${path}.image.width`);
+    pixels(image.height, `${path}.image.height`);
     if (image.href !== undefined) https(image.href, `${path}.image.href`);
   });
   lines(p.outro, "outro");
   lines(p.closing, "closing", 1);
-  const signature = record(p.signature, "signature");
+  const signature = record(p.signature, "signature", ["name", "role", "phone", "linkedin"]);
   text(signature.name, "signature.name");
   text(signature.role, "signature.role");
   if (signature.phone !== undefined) text(signature.phone, "signature.phone");
   if (signature.linkedin !== undefined) https(signature.linkedin, "signature.linkedin");
-  const objection = record(p.objection, "objection");
+  const objection = record(p.objection, "objection", ["before", "linkText", "after", "mailto"]);
   for (const key of ["before", "linkText", "after"]) text(objection[key], `objection.${key}`);
-  const mailto = record(objection.mailto, "objection.mailto");
+  const mailto = record(objection.mailto, "objection.mailto", ["to", "subject", "body"]);
   if (!/^[^\s@?&#,]+@[^\s@?&#,]+$/.test(text(mailto.to, "objection.mailto.to")))
     fail("objection.mailto.to", `must be one plain address, got ${mailto.to}`);
-  for (const key of ["subject", "body"])
-    if (mailto[key] !== undefined) text(mailto[key], `objection.mailto.${key}`);
+  if (
+    mailto.subject !== undefined &&
+    /[\r\n]/.test(text(mailto.subject, "objection.mailto.subject"))
+  )
+    fail("objection.mailto.subject", "must be one line");
+  if (mailto.body !== undefined) text(mailto.body, "objection.mailto.body");
 }
 
 /**

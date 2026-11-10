@@ -4,6 +4,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { colors, tokens } from "@hackersandwizards/brand/tokens";
 import type { BriefProps } from "../mails/Brief";
+import { mailtoHref } from "../components/ObjectionNotice";
 import { signatureTemplate, unreachedColours } from "../components/theme";
 import { renderBrief } from "../scripts/render";
 import data from "../catalog/mails/brief.json";
@@ -79,6 +80,9 @@ describe("renderBrief", () => {
     const respelled = signatureTemplate.html.replace(/color: (#[0-9a-f]{6})/, "color:$1");
     expect(unreachedColours(respelled)).toHaveLength(1);
     expect(unreachedColours('<span style="color: #123456">')).toEqual(["color: #123456"]);
+    expect(unreachedColours('<td style="background-color: #eef1f4">')).toEqual([
+      "background-color: #eef1f4",
+    ]);
   });
 
   test("the text part is written, not stripped: items, signature, the address without its query", () => {
@@ -125,4 +129,10 @@ describe("mail-render", () => {
     expect(run.status).toBe(1);
     expect(run.stderr).toContain("usage");
   });
+});
+
+test("a line break in the objection mail's body is encoded as CRLF (RFC 6068 section 5)", () => {
+  expect(mailtoHref({ to: "kim@example.com", body: "Hallo,\nbitte nicht mehr." })).toBe(
+    "mailto:kim@example.com?body=Hallo%2C%0D%0Abitte%20nicht%20mehr.",
+  );
 });

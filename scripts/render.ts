@@ -31,10 +31,13 @@ if (import.meta.main) {
     process.exit(1);
   }
   const file = positionals[0];
-  const mail = await renderBrief(JSON.parse(readFileSync(file, "utf-8"))).catch((e: Error) => {
-    console.error(`mail-render: ${file}: ${e.message}`);
-    process.exit(1);
-  });
+  // A missing file, malformed JSON and refused data all end on one line naming the file.
+  const mail = await Promise.try(() => renderBrief(JSON.parse(readFileSync(file, "utf-8")))).catch(
+    (e: Error) => {
+      console.error(`mail-render: ${file}: ${e.message}`);
+      process.exit(1);
+    },
+  );
   if (!values.out) console.log(mail.html);
   else {
     writeFileSync(`${values.out}.html`, mail.html);

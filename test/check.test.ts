@@ -3,7 +3,6 @@ import { describe, expect, test } from "bun:test";
 import { spawnSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { mailtoHref } from "../components/ObjectionNotice";
 import type { BriefProps } from "../mails/Brief";
 import { renderBrief } from "../scripts/render";
 import data from "../catalog/mails/brief-bild.json";
@@ -68,6 +67,12 @@ describe("renderBrief refuses data that would render a wrong mail", () => {
     ["items", []],
     ["preview", "x".repeat(201)],
     ["items[1].destination", " "],
+    ["items[1].destinaton", "Video, 32 Min."],
+    ["signature.phnoe", "+49 40 1234 5678"],
+    ["items[0].image.width", "152"],
+    ["items[0].image.height", 0],
+    ["items[0].image.src", "//cdn.example.com/a.png"],
+    ["objection.mailto.subject", "Abmelden\nBcc: x@example.com"],
     ["items[1].href", "javascript:alert(1)"],
     ["items[1].href", "http://example.com/"],
     ["items[0].image.src", "http://example.com/a.png"],
@@ -94,15 +99,16 @@ describe("renderBrief refuses data that would render a wrong mail", () => {
       expect(run.status).toBe(1);
       expect(run.stdout).toBe("");
       expect(run.stderr).toContain(`mail-render: ${file}: objection.mailto.to`);
+      writeFileSync(file, "{");
+      const broken = spawnSync("bun", ["scripts/render.ts", file], {
+        cwd: root,
+        encoding: "utf-8",
+      });
+      expect(broken.status).toBe(1);
+      expect(broken.stderr).toStartWith(`mail-render: ${file}: `);
       expect(readdirSync(dir)).toEqual(["missing-to.json"]);
     } finally {
       rmSync(dir, { recursive: true });
     }
   });
-});
-
-test("a line break in the objection mail's body is encoded as CRLF (RFC 6068 section 5)", () => {
-  expect(mailtoHref({ to: "kim@example.com", body: "Hallo,\nbitte nicht mehr." })).toBe(
-    "mailto:kim@example.com?body=Hallo%2C%0D%0Abitte%20nicht%20mehr.",
-  );
 });

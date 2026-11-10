@@ -31,8 +31,8 @@ Add the dependency pinned to the newest tag
 
 The data file holds every word of the mail except the brand's signature template;
 [`catalog/mails/brief.json`](catalog/mails/brief.json) shows its shape. `renderBrief` and
-`mail-render` refuse a data file with a missing or empty field, a link other than https or an
-objection address carrying a query, and name the field.
+`mail-render` refuse a data file with a missing, empty or unknown field, a link other than https, an
+image size that is no whole pixel or an objection address carrying a query, and name the field.
 
 ## Images
 

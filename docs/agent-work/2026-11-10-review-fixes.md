@@ -66,6 +66,26 @@ or using a paid render service needs a person's go, so three readings stay open 
 `items/outlook-check.md`: whether Outlook.com's dark mode lets the `[data-ogsc]` rules win, whether
 classic Outlook keeps the 600 px column, and how its forced inversion looks.
 
+## Reviews of this run's code
+
+`/simplify` and `/code-review high` ran on the changes, each as a nested `claude -p` on Claude Opus
+5.5 at high effort.
+
+- **`/simplify`, first batch:** ten cleanups, nine applied. A shared scratch-folder helper for the
+  three test files was left: they share no helper file yet.
+- **`/simplify`, second batch:** four cleanups, all applied.
+- **`/code-review`:** ten findings, seven fixed: a missing file or malformed JSON now ends on the
+  `mail-render: <file>:` line; image width and height, an unknown field and a line break in the
+  objection subject are refused with their path; a protocol-relative image source is refused; the
+  signature guard also reports a background, border or `bgcolor` colour; the Text story takes the
+  mail's language. Three left:
+  - a relative image source still passes, since the catalog serves its picture that way and os
+    writes no image today;
+  - the load-time guards in `theme.ts` stay: without them a respelled signature colour turns dark
+    text dark-on-dark with no error, and the gate checks them at the brand version mail pins;
+  - the forced-light frames keep the mail's `color-scheme`: measured white under a dark viewer,
+    and a frame sized to its mail shows no scrollbar the scheme could paint.
+
 ## Ideas from the review
 
 - **The text part in the catalog:** built, a Text story beside each mail.

@@ -106,11 +106,18 @@ export const labelText = (words: string) =>
 /** A signature colour as brand's template spells it inline, which MailShell's dark rules match. */
 export const inlineColour = (hex: string) => `color: ${hex}`;
 
-/** Each inline colour declaration of a signature template that no dark rule reaches. */
-export const unreachedColours = (html: string) =>
-  [...html.matchAll(/(?<![\w-])color\s*:\s*[^;"]+/gi)]
+/** Each colour of a signature template that no dark rule reaches: the dark rules repaint only an
+ * inline text colour of a role, so a background, a border or a `bgcolor` stays light in dark mode. */
+export const unreachedColours = (html: string) => [
+  ...[...html.matchAll(/(?<![\w-])color\s*:\s*[^;"]+/gi)]
     .map(([declaration]) => declaration.trim())
-    .filter((d) => !roles.some((r) => d === inlineColour(palette.light[r])));
+    .filter((d) => !roles.some((r) => d === inlineColour(palette.light[r]))),
+  ...[
+    ...html.matchAll(
+      /(?:background[\w-]*|border[\w-]*|bgcolor)\s*[:=]\s*[^;"]*#[0-9a-f]{3,8}[^;"]*/gi,
+    ),
+  ].map(([declaration]) => declaration.trim()),
+];
 
 const unreached = unreachedColours(signatureTemplate.html);
 if (unreached.length)

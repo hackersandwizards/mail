@@ -16,11 +16,11 @@ export const part = (node: ReactNode) =>
     </MailShell>,
   );
 
-/** The light and dark story of one rendered mail at a width, each whatever the viewer's scheme. */
-export function views(html: string, width = COLUMN_WIDTH) {
+/** The light and dark story of one rendered mail, each whatever the viewer's scheme. */
+export function views(html: string) {
   return {
-    light: { args: { html: forceLight(html), width } },
-    dark: { args: { html: forceDark(html), width } },
+    light: { args: { html: forceLight(html), width: COLUMN_WIDTH } },
+    dark: { args: { html: forceDark(html), width: COLUMN_WIDTH } },
   };
 }
 
@@ -35,8 +35,8 @@ const rooted = (html: string) =>
   );
 
 /** A text part as a mail program without HTML shows it: the lines as written, in a mono face. */
-const textPage = (text: string) =>
-  `<!doctype html><html lang="de"><body style="margin:0;padding:24px;background:${palette.light.page};color:${palette.light.ink}">` +
+const textPage = (text: string, lang: string) =>
+  `<!doctype html><html lang="${lang}"><body style="margin:0;padding:24px;background:${palette.light.page};color:${palette.light.ink}">` +
   `<pre style="margin:0;white-space:pre-wrap;font:13px/1.5 ${fonts.mono.replaceAll('"', "'")}">` +
   `${text.replaceAll("&", "&amp;").replaceAll("<", "&lt;")}</pre></body></html>`;
 
@@ -48,7 +48,9 @@ export function mail(base: string) {
   const html = rooted(found.html);
   return {
     ...views(html),
-    text: { args: { html: textPage(found.text), width: COLUMN_WIDTH } },
+    text: {
+      args: { html: textPage(found.text, JSON.parse(found.json).lang), width: COLUMN_WIDTH },
+    },
     inverted: { args: { html: forceInvert(html), width: COLUMN_WIDTH } },
     phone: { args: { html: forceLight(html), width: PHONE_WIDTH } },
   };

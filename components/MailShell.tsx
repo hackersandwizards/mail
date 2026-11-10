@@ -6,8 +6,9 @@ import { fonts, inlineColour, palette, roles, type Role } from "./theme";
  * 9 % of phone screens worldwide in StatCounter's figures for August 2026. */
 export const COLUMN_WIDTH = 600;
 export const PHONE_WIDTH = 360;
-/** The page's inset around the column, each side, and an item's rule and inset before its words. */
+/** The page's inset around the column, each side. */
 export const PAGE_INSET = 24;
+/** An item's rule in the accent, and its inset after the rule; here, since `Image` reads them too. */
 export const ITEM_RULE = 3;
 export const ITEM_INSET = 14;
 

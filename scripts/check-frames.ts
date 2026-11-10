@@ -16,6 +16,8 @@ const BLOCKED = /\/blocked\.png$/;
 // A tile's frame that fails holds no image to fail.
 const WATCHED = ["image", "document"];
 
+const notFound = () => new Response(null, { status: 404 });
+
 const server = Bun.serve({
   port: 0,
   hostname: "127.0.0.1",
@@ -26,14 +28,14 @@ const server = Bun.serve({
     try {
       path = decodeURIComponent(new URL(req.url).pathname);
     } catch {
-      return new Response(null, { status: 404 });
+      return notFound();
     }
-    if (!path.startsWith(BASE)) return new Response(null, { status: 404 });
+    if (!path.startsWith(BASE)) return notFound();
     const file = join(DIST, path.slice(BASE.length));
-    if (relative(DIST, file).startsWith("..")) return new Response(null, { status: 404 });
+    if (relative(DIST, file).startsWith("..")) return notFound();
     for (const candidate of [file, join(file, "index.html")])
       if (await Bun.file(candidate).exists()) return new Response(Bun.file(candidate));
-    return new Response(null, { status: 404 });
+    return notFound();
   },
 });
 const root = `http://127.0.0.1:${server.port}${BASE}`;
