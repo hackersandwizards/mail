@@ -1,8 +1,6 @@
-// The brand values a mail uses, every one from @hackersandwizards/brand: colours from its resolved
-// token set (hex, since mail clients know no color-mix()), the picture corner and the label's type
-// from its tokens, the two font stacks its fonts.json gives a mail, the stacks of its mail signature
-// template (no web font: Gmail and classic Outlook load none). Server-side only: the template is
-// read from disk.
+// The brand values a mail uses. Colours come as resolved hex, since mail clients know no
+// color-mix(); the font stacks hold no web font, since Gmail and classic Outlook load none.
+// Server-side only: the signature template is read from disk.
 import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import brandFonts from "@hackersandwizards/brand/fonts.json" with { type: "json" };
@@ -21,7 +19,8 @@ export const signatureTemplate = {
 export const fonts = brandFonts.mail;
 
 /** Each colour role a mail paints, light as sent and dark as the mail's own dark styles set it.
- * `ampersand` and `purple` only the signature paints (its wordmark), reached by its inline colour. */
+ * `ampersand`, `purple` and `rule` only the signature paints (its wordmark and separators), reached
+ * by its inline colour. */
 export const palette = {
   light: {
     page: colors["--color-white"],
@@ -102,14 +101,15 @@ export const labelText = (words: string) =>
 export const inlineColour = (hex: string) => `color: ${hex}`;
 
 /** Each colour of a signature template that no dark rule reaches: the dark rules repaint only an
- * inline text colour of a role, so a background, a border or a `bgcolor` stays light in dark mode. */
+ * inline text colour of a role, so a background, a border or a colour attribute stays light in dark
+ * mode. A border colour given by name is not seen. */
 export const unreachedColours = (html: string) => [
   ...[...html.matchAll(/(?<![\w-])color\s*:\s*[^;"]+/gi)]
     .map(([declaration]) => declaration.trim())
     .filter((d) => !roles.some((r) => d === inlineColour(palette.light[r]))),
   ...[
     ...html.matchAll(
-      /(?:background[\w-]*|border[\w-]*|bgcolor)\s*[:=]\s*"?[^;"]*#[0-9a-f]{3,8}[^;"]*/gi,
+      /(?:bgcolor|(?<![\w-])color)\s*=\s*"?[^"\s>]+|background(?:-color|-image)?\s*:(?!\s*(?:none|transparent))[^;"]+|border[\w-]*\s*:[^;"]*(?:#[0-9a-f]{3,8}|rgba?\(|hsla?\()[^;"]*/gi,
     ),
   ].map(([declaration]) => declaration.trim()),
 ];

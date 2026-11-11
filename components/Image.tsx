@@ -44,7 +44,6 @@ export function Image({ src, alt, width, height, href }: ImageProps) {
   }
   if (!alt.trim()) throw new Error(`mail Image: ${src} has no alt text`);
   const { tint, muted } = palette.light;
-  // The box image and cell share, so it holds while the image is blocked.
   const box = {
     width: `${width}px`,
     height: `${height}px`,

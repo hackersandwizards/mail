@@ -31,12 +31,8 @@ describe("renderBrief", () => {
     expect(Buffer.byteLength(html)).toBeLessThan(102_000);
   });
 
-  test("the HTML part holds every word of the data and the brand's colours", () => {
-    for (const item of brief.items) {
-      expect(html).toContain(escaped(item.title));
-      expect(html).toContain(`href="${escaped(item.href)}"`);
-    }
-    expect(html).toContain(escaped(brief.greeting));
+  test("the HTML part carries the links, one wordmark and the brand's colours", () => {
+    for (const item of brief.items) expect(html).toContain(`href="${escaped(item.href)}"`);
     // No header: the signature's wordmark is the only one, after the greeting.
     expect(html.match(/>hackers<\/span>/g)).toHaveLength(1);
     expect(html.indexOf(escaped(brief.greeting))).toBeLessThan(html.indexOf(">hackers</span>"));
@@ -45,6 +41,25 @@ describe("renderBrief", () => {
     expect(html).toContain(
       'href="mailto:kim.beispiel@example.com?subject=Bitte%20keine%20Updates%20mehr&amp;body=',
     );
+  });
+
+  test("both parts hold every word the data gives the engine's own parts", () => {
+    const words = [
+      brief.greeting,
+      ...brief.intro,
+      ...brief.items.flatMap((item) => [item.title, item.text, item.destination!]),
+      ...brief.outro,
+      ...brief.closing,
+      brief.objection.before,
+      brief.objection.linkText,
+      brief.objection.after,
+    ];
+    for (const said of words) {
+      expect(html).toContain(escaped(said));
+      expect(text).toContain(said);
+    }
+    for (const item of brief.items) expect(html).toContain(`>${escaped(item.label)}</p>`);
+    expect(text).toContain(`${brief.signature.role}, `);
   });
 
   test("item titles are underlined links, each says where it leads, labels take brand's label type", () => {
@@ -84,6 +99,13 @@ describe("renderBrief", () => {
       "background-color: #eef1f4",
     ]);
     expect(unreachedColours('<td bgcolor="#eef1f4">')).toEqual(['bgcolor="#eef1f4']);
+    // Not only hex: a named background, a functional border colour, a colour attribute.
+    expect(
+      unreachedColours(
+        '<td style="background: white; border: 1px solid rgb(1, 2, 3)"><font color="navy">',
+      ),
+    ).toEqual(["background: white", "border: 1px solid rgb(1, 2, 3)", 'color="navy']);
+    expect(unreachedColours('<table border="0" style="background: none; border: 0">')).toEqual([]);
   });
 
   test("the text part is written, not stripped: items, signature, the address without its query", () => {
