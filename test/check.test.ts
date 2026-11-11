@@ -4,6 +4,7 @@ import { rejection } from "@hackersandwizards/scaffolding/rejection";
 import { spawnSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { MAX_IMAGE_WIDTH } from "../components/Image";
 import type { BriefProps } from "../mails/Brief";
 import { renderBrief } from "../scripts/render";
 import data from "../catalog/mails/brief-bild.json";
@@ -56,8 +57,10 @@ describe("renderBrief refuses data that would render a wrong mail", () => {
     expect((await renderBrief(copy() as BriefProps)).text).toContain(data.greeting);
   });
 
+  // The refusal starts with the path: rendering without the check also fails on a missing list, with
+  // an engine error that quotes the field somewhere.
   test.each(REQUIRED)("without %s", async (path) => {
-    expect(await rejection(renderBrief(edit(path)))).toContain(path);
+    expect(await rejection(renderBrief(edit(path)))).toStartWith(`Error: ${path} `);
   });
 
   test.each([
@@ -72,19 +75,33 @@ describe("renderBrief refuses data that would render a wrong mail", () => {
     ["signature.phnoe", "+49 40 1234 5678"],
     ["items[0].image.width", "152"],
     ["items[0].image.height", 0],
+    ["items[0].image.width", MAX_IMAGE_WIDTH + 1],
     ["items[0].image.src", "//cdn.example.com/a.png"],
+    ["items[0].image.src", " http://example.com/a.png"],
+    ["items[0].image.src", "ht\ttp://example.com/a.png"],
+    ["items[0].image.src", "\\\\cdn.example.com/a.png"],
+    ["items[0].image.src", "\u0001//cdn.example.com/a.png"],
     ["objection.mailto.subject", "Abmelden\nBcc: x@example.com"],
     ["items[1].href", "javascript:alert(1)"],
     ["items[1].href", "http://example.com/"],
     ["items[1].href", "https:// x"],
+    ["items[1].href", "https://example.com/podcast/folge-12\n"],
+    ["items[1].href", "https://exam\tple.com/talks"],
+    ["items[1].href", "https://example.com/\u0001talks"],
     ["items[0].image.src", "http://example.com/a.png"],
     ["items[0].image.src", "data:image/png;base64,AA"],
     ["items[0].image.href", "data:text/html,<p>"],
     ["objection.mailto.to", "kim@example.com?bcc=x@example.com"],
     ["objection.mailto.to", "kim"],
+    ["objection.mailto.to", "kim@example.com%2Cx%40example.com"],
     ["signature.linkedin", "http://www.linkedin.com/in/kim-beispiel"],
   ])("%s set to %p", async (path, value) => {
-    expect(await rejection(renderBrief(edit(path, value)))).toContain(path);
+    expect(await rejection(renderBrief(edit(path, value)))).toStartWith(`Error: ${path} `);
+  });
+
+  test("a preview of 200 characters reaches the inbox line uncut", async () => {
+    const preview = "x".repeat(200);
+    expect((await renderBrief(edit("preview", preview))).html).toContain(`>${preview}<`);
   });
 
   test("mail-render names the data file and the field, and writes nothing", () => {

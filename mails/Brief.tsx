@@ -1,3 +1,4 @@
+import { MAX_IMAGE_WIDTH } from "../components/Image";
 import { Item, itemText, type ItemProps } from "../components/Item";
 import { MailShell } from "../components/MailShell";
 import { ObjectionNotice, objectionText, type ObjectionProps } from "../components/ObjectionNotice";
@@ -25,9 +26,9 @@ const PREVIEW_MAX = 200;
 /**
  * Refuses data that would render a wrong mail, naming the field: a missing, empty or unknown field
  * (printed as `undefined`, left blank or silently dropped), a language other than `de` or `en`, a
- * link other than https, an image size that is no whole pixel, an objection address carrying a query
- * of its own or a subject spanning lines. An image source may also be a path relative to the mail,
- * which only the catalog serves.
+ * link other than https, an image size that is no whole pixel or wider than the phone column, an
+ * objection address carrying a query or an escape of its own or a subject spanning lines. An image
+ * source may also be a path relative to the mail, which only the catalog serves.
  */
 export function checkBrief(data: unknown): asserts data is BriefProps {
   const fail = (path: string, why: string): never => {
@@ -53,10 +54,13 @@ export function checkBrief(data: unknown): asserts data is BriefProps {
   };
   const lines = (value: unknown, path: string, min = 0) =>
     list(value, path, min).forEach((line, i) => text(line, `${path}[${i}]`));
+  // A URL parser drops or encodes whitespace and control characters and reads a backslash as a
+  // slash, so a link holding one is not the link the mail prints.
+  const unsafe = /[\s\p{Cc}\\]/u;
   const https = (value: unknown, path: string) => {
     const url = text(value, path);
-    if (!url.startsWith("https://") || !URL.parse(url))
-      fail(path, `must be an https URL, got ${url}`);
+    if (!url.startsWith("https://") || unsafe.test(url) || !URL.parse(url))
+      fail(path, `must be an https URL, got ${JSON.stringify(url)}`);
   };
   const pixels = (value: unknown, path: string) => {
     if (!Number.isInteger(value) || (value as number) <= 0)
@@ -90,9 +94,13 @@ export function checkBrief(data: unknown): asserts data is BriefProps {
     if (item.image === undefined) return;
     const image = record(item.image, `${path}.image`, ["src", "alt", "width", "height", "href"]);
     const src = text(image.src, `${path}.image.src`);
-    if (/^[a-z][a-z\d+.-]*:|^\/\//i.test(src)) https(src, `${path}.image.src`);
+    // Only a plain path is relative: a colon, a leading `//` or an unsafe character can name
+    // another scheme or host.
+    if (unsafe.test(src) || /:|^\/\//.test(src)) https(src, `${path}.image.src`);
     text(image.alt, `${path}.image.alt`);
     pixels(image.width, `${path}.image.width`);
+    if ((image.width as number) > MAX_IMAGE_WIDTH)
+      fail(`${path}.image.width`, `is wider than the ${MAX_IMAGE_WIDTH} px the phone column holds`);
     pixels(image.height, `${path}.image.height`);
     if (image.href !== undefined) https(image.href, `${path}.image.href`);
   });
@@ -106,7 +114,7 @@ export function checkBrief(data: unknown): asserts data is BriefProps {
   const objection = record(p.objection, "objection", ["before", "linkText", "after", "mailto"]);
   for (const key of ["before", "linkText", "after"]) text(objection[key], `objection.${key}`);
   const mailto = record(objection.mailto, "objection.mailto", ["to", "subject", "body"]);
-  if (!/^[^\s@?&#,]+@[^\s@?&#,]+$/.test(text(mailto.to, "objection.mailto.to")))
+  if (!/^[^\s@?&#,%]+@[^\s@?&#,%]+$/.test(text(mailto.to, "objection.mailto.to")))
     fail("objection.mailto.to", `must be one plain address, got ${mailto.to}`);
   if (
     mailto.subject !== undefined &&
