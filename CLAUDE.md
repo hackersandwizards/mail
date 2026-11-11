@@ -44,3 +44,10 @@ goes in. Every word a mail prints is a prop; the catalog data is invented, and
   `bun run check:elements` measures on the built home.
 - `bun run check` is scaffolding's runner; the repository's own steps are the `check:<what>`
   scripts named in `package.json` under `scaffolding.check`.
+
+## Release
+
+A release raises `version` in `package.json`, commits, pushes, and tags `v<version>` to match once
+the push has landed (`git push origin main && git tag v<version> && git push origin v<version>`):
+pushed together, a rejected `main` still publishes the tag. Consumers then raise the tag in their
+dependency line.
