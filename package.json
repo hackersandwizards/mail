@@ -1,6 +1,6 @@
 {
   "name": "@hackersandwizards/mail",
-  "version": "2.0.6",
+  "version": "2.0.7",
   "private": true,
   "description": "The hackers&wizards mail engine: React Email components on the brand tokens, a render command writing the HTML and plain-text parts of a mail from a data file.",
   "license": "SEE LICENSE IN LICENSE",
