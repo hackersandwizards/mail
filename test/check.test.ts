@@ -88,12 +88,15 @@ describe("renderBrief refuses data that would render a wrong mail", () => {
     ["items[1].href", "https://example.com/podcast/folge-12\n"],
     ["items[1].href", "https://exam\tple.com/talks"],
     ["items[1].href", "https://example.com/\u0001talks"],
+    ["items[1].href", "https://exam​ple.com/talks"],
+    ["items[1].href", "https://ｅxample.com/talks"],
     ["items[0].image.src", "http://example.com/a.png"],
     ["items[0].image.src", "data:image/png;base64,AA"],
     ["items[0].image.href", "data:text/html,<p>"],
     ["objection.mailto.to", "kim@example.com?bcc=x@example.com"],
     ["objection.mailto.to", "kim"],
     ["objection.mailto.to", "kim@example.com%2Cx%40example.com"],
+    ["objection.mailto.to", "kim@example.com\u0001"],
     ["signature.linkedin", "http://www.linkedin.com/in/kim-beispiel"],
   ])("%s set to %p", async (path, value) => {
     expect(await rejection(renderBrief(edit(path, value)))).toStartWith(`Error: ${path} `);

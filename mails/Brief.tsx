@@ -54,18 +54,24 @@ export function checkBrief(data: unknown): asserts data is BriefProps {
   };
   const lines = (value: unknown, path: string, min = 0) =>
     list(value, path, min).forEach((line, i) => text(line, `${path}[${i}]`));
-  // A URL parser drops or encodes whitespace and control characters and reads a backslash as a
-  // slash, so a link holding one is not the link the mail prints.
-  const unsafe = /[\s\p{Cc}\\]/u;
-  const https = (value: unknown, path: string) => {
+  // A URL parser drops or encodes whitespace, control and format characters, reads a backslash as
+  // a slash and maps a full-width letter in the host, so a link holding one is not the link the
+  // mail prints.
+  const unsafe = /[\s\p{Cc}\p{Cf}\\]/u;
+  const https = (value: unknown, path: string, want = "an https URL") => {
     const url = text(value, path);
-    if (!url.startsWith("https://") || unsafe.test(url) || !URL.parse(url))
-      fail(path, `must be an https URL, got ${JSON.stringify(url)}`);
+    if (
+      !url.startsWith("https://") ||
+      unsafe.test(url) ||
+      url.normalize("NFKC") !== url ||
+      !URL.parse(url)
+    )
+      fail(path, `must be ${want}, got ${JSON.stringify(url)}`);
   };
-  const pixels = (value: unknown, path: string) => {
-    if (!Number.isInteger(value) || (value as number) <= 0)
-      fail(path, `must be a whole number of pixels above 0, got ${value}`);
-  };
+  const pixels = (value: unknown, path: string) =>
+    Number.isInteger(value) && (value as number) > 0
+      ? (value as number)
+      : fail(path, `must be a whole number of pixels above 0, got ${value}`);
 
   const p = record(data, "the data", [
     "lang",
@@ -96,10 +102,10 @@ export function checkBrief(data: unknown): asserts data is BriefProps {
     const src = text(image.src, `${path}.image.src`);
     // Only a plain path is relative: a colon, a leading `//` or an unsafe character can name
     // another scheme or host.
-    if (unsafe.test(src) || /:|^\/\//.test(src)) https(src, `${path}.image.src`);
+    if (unsafe.test(src) || /:|^\/\//.test(src))
+      https(src, `${path}.image.src`, "an https URL or a plain relative path");
     text(image.alt, `${path}.image.alt`);
-    pixels(image.width, `${path}.image.width`);
-    if ((image.width as number) > MAX_IMAGE_WIDTH)
+    if (pixels(image.width, `${path}.image.width`) > MAX_IMAGE_WIDTH)
       fail(`${path}.image.width`, `is wider than the ${MAX_IMAGE_WIDTH} px the phone column holds`);
     pixels(image.height, `${path}.image.height`);
     if (image.href !== undefined) https(image.href, `${path}.image.href`);
@@ -114,8 +120,9 @@ export function checkBrief(data: unknown): asserts data is BriefProps {
   const objection = record(p.objection, "objection", ["before", "linkText", "after", "mailto"]);
   for (const key of ["before", "linkText", "after"]) text(objection[key], `objection.${key}`);
   const mailto = record(objection.mailto, "objection.mailto", ["to", "subject", "body"]);
-  if (!/^[^\s@?&#,%]+@[^\s@?&#,%]+$/.test(text(mailto.to, "objection.mailto.to")))
-    fail("objection.mailto.to", `must be one plain address, got ${mailto.to}`);
+  const to = text(mailto.to, "objection.mailto.to");
+  if (unsafe.test(to) || !/^[^@?&#,%]+@[^@?&#,%]+$/.test(to))
+    fail("objection.mailto.to", `must be one plain address, got ${JSON.stringify(to)}`);
   if (
     mailto.subject !== undefined &&
     /[\r\n]/.test(text(mailto.subject, "objection.mailto.subject"))
