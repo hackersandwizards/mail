@@ -48,6 +48,17 @@ pages read a mobile FCP of 1.1, 0.9 and 0.6 s and an LCP of 1.1, 1.3 and 0.6 s (
   at the root: 1,020, 939 and 964 ms (load 15.43 15.57 13.25). On 08.11. it took 803 to 892 ms at a
   load of 3.4.
 
+## The gate
+
+`check:elements`, `check:frames` and `check:retired` built the catalog again each, after the gate's
+`catalog` step. Since 47d2c14 they read that build: one build per `bun run check` instead of four.
+Two gates each side, every step run one after another:
+
+| Tree    | 1-minute load | The three steps | `bun run check` |
+| ------- | ------------- | --------------- | --------------- |
+| before  | 20, 19        | 8.0 s, 7.8 s    | 13.1 s, 12.5 s  |
+| 47d2c14 | 20, 22        | 5.1 s, 5.2 s    | 9.8 s, 10.3 s   |
+
 ## The engine
 
 This package serves no endpoints; a consumer calls it as the `mail-render` command, once per mail.
