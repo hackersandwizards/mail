@@ -105,6 +105,18 @@ describe("renderBrief", () => {
         '<td style="background: white; border: 1px solid rgb(1, 2, 3)"><font color="navy">',
       ),
     ).toEqual(["background: white", "border: 1px solid rgb(1, 2, 3)", 'color="navy']);
+    // Any property carrying a colour literal, and SVG paint.
+    expect(
+      unreachedColours(
+        '<td style="outline: 1px solid #123456; box-shadow: 0 0 0 1px oklch(0.5 0.1 200)"><path fill="#123456">',
+      ),
+    ).toEqual([
+      "outline: 1px solid #123456",
+      "box-shadow: 0 0 0 1px oklch(0.5 0.1 200)",
+      'fill="#123456',
+    ]);
+    // A colour word in a link's query paints nothing.
+    expect(unreachedColours('<a href="https://example.com/?color=red&bgcolor=red">')).toEqual([]);
     expect(unreachedColours('<table border="0" style="background: none; border: 0">')).toEqual([]);
   });
 
