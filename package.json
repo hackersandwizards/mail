@@ -44,8 +44,8 @@
   },
   "devDependencies": {
     "@hackersandwizards/admin": "git+https://github.com/hackersandwizards/admin.git#v1.31.3",
-    "@hackersandwizards/brand": "git+https://github.com/hackersandwizards/brand.git#v2.21.0",
-    "@hackersandwizards/scaffolding": "git+https://github.com/hackersandwizards/scaffolding.git#v5.19.3",
+    "@hackersandwizards/brand": "git+https://github.com/hackersandwizards/brand.git#v2.21.2",
+    "@hackersandwizards/scaffolding": "git+https://github.com/hackersandwizards/scaffolding.git#v5.20.0",
     "@types/bun": "1.4.4",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
