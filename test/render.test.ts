@@ -118,6 +118,21 @@ describe("renderBrief", () => {
     // A colour word in a link's query paints nothing.
     expect(unreachedColours('<a href="https://example.com/?color=red&bgcolor=red">')).toEqual([]);
     expect(unreachedColours('<table border="0" style="background: none; border: 0">')).toEqual([]);
+    // A style element, which no dark rule reaches, and a style attribute without quotes.
+    expect(unreachedColours("<style>td{background:#ffffff;color:#1a7285}</style>")).toEqual([
+      "background:#ffffff",
+      "color:#1a7285",
+    ]);
+    expect(unreachedColours("<td style=background:#fff>")).toEqual(["background:#fff"]);
+    expect(unreachedColours("<span style='color: #123456'>")).toEqual(["color: #123456"]);
+    // A role's colour in a style element too, a selector that reads as hex is no colour, and a
+    // comment hides none.
+    expect(unreachedColours("<style>#face td{color: #1a7285}</style>")).toEqual(["color: #1a7285"]);
+    expect(unreachedColours('<td style="/* x */ color: red">')).toEqual(["color: red"]);
+    // Named colours in a fill, a stroke or a colour longhand.
+    expect(
+      unreachedColours('<rect style="fill: red; stroke: navy; border-bottom-color: silver">'),
+    ).toEqual(["fill: red", "stroke: navy", "border-bottom-color: silver"]);
   });
 
   test("the text part is written, not stripped: items, signature, the address without its query", () => {

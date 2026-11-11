@@ -101,21 +101,32 @@ export const labelText = (words: string) =>
 export const inlineColour = (hex: string) => `color: ${hex}`;
 
 /** Each colour of a signature template that no dark rule reaches: the dark rules repaint only an
- * inline text colour of a role, so any other colour in a style or a colour attribute stays light in
- * dark mode. A colour given by name is seen only as a text colour, a background or an attribute. */
-export const unreachedColours = (html: string) => [
-  ...[...html.matchAll(/\sstyle\s*=\s*(["'])(.*?)\1/gis)]
-    .flatMap(([, , style = ""]) => style.split(";").map((d) => d.trim()))
-    .filter((d) =>
-      /^color\s*:/i.test(d)
-        ? !roles.some((r) => d === inlineColour(palette.light[r]))
-        : /#[0-9a-f]{3,8}\b|\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch|color)\(/i.test(d) ||
-          /^background(?:-color|-image)?\s*:(?!\s*(?:none|transparent)\s*$)/i.test(d),
+ * inline text colour of a role, so any other colour in a style attribute, a style element or a
+ * colour attribute stays light in dark mode. A colour given by name is seen only in `color`, `fill`,
+ * `stroke`, a `-color` longhand, a background or an attribute. */
+export const unreachedColours = (html: string) => {
+  const paints = (d: string) =>
+    /^(?:color|fill|stroke|[\w-]*-color)\s*:/i.test(d) ||
+    /#[0-9a-f]{3,8}\b|\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch|color)\(/i.test(d) ||
+    /^background(?:-color|-image)?\s*:(?!\s*(?:none|transparent)\s*$)/i.test(d);
+  const declarations = (css: string) =>
+    css
+      .replace(/\/\*.*?\*\//gs, "")
+      .split(";")
+      .map((d) => d.trim());
+  return [
+    ...[...html.matchAll(/<style\b[^>]*>(.*?)<\/style>/gis)]
+      .flatMap(([, css]) => [...css.matchAll(/\{([^{}]*)\}/g)])
+      .flatMap(([, block]) => declarations(block))
+      .filter(paints),
+    ...[...html.matchAll(/\sstyle\s*=\s*(?:(["'])(.*?)\1|([^\s"'>]+))/gis)]
+      .flatMap(([, , quoted, bare]) => declarations(quoted ?? bare))
+      .filter((d) => paints(d) && !roles.some((r) => d === inlineColour(palette.light[r]))),
+    ...[...html.matchAll(/\s(?:bgcolor|color|fill|stroke)\s*=\s*["']?[^"'\s>]+/gi)].map(([a]) =>
+      a.trim(),
     ),
-  ...[...html.matchAll(/\s(?:bgcolor|color|fill|stroke)\s*=\s*["']?[^"'\s>]+/gi)].map(([a]) =>
-    a.trim(),
-  ),
-];
+  ];
+};
 
 const unreached = unreachedColours(signatureTemplate.html);
 if (unreached.length)

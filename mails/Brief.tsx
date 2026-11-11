@@ -27,8 +27,9 @@ const PREVIEW_MAX = 200;
  * Refuses data that would render a wrong mail, naming the field: a missing, empty or unknown field
  * (printed as `undefined`, left blank or silently dropped), a language other than `de` or `en`, a
  * link other than https, an image size that is no whole pixel or wider than the phone column, an
- * objection address carrying a query or an escape of its own or a subject spanning lines. An image
- * source may also be a path relative to the mail, which only the catalog serves.
+ * objection address carrying a query or an escape of its own, or a subject or objection subject
+ * spanning lines. An image source may also be a path relative to the mail, which only the catalog
+ * serves.
  */
 export function checkBrief(data: unknown): asserts data is BriefProps {
   const fail = (path: string, why: string): never => {
@@ -54,18 +55,17 @@ export function checkBrief(data: unknown): asserts data is BriefProps {
   };
   const lines = (value: unknown, path: string, min = 0) =>
     list(value, path, min).forEach((line, i) => text(line, `${path}[${i}]`));
-  // A URL parser drops or encodes whitespace, control and format characters, reads a backslash as
-  // a slash and maps a full-width letter in the host, so a link holding one is not the link the
-  // mail prints.
+  const oneLine = (value: unknown, path: string) => {
+    if (/[\n\v\f\r\u0085\u2028\u2029]/.test(text(value, path))) fail(path, "must be one line");
+  };
+  // A URL parser drops or encodes whitespace, control and format characters and reads a backslash
+  // as a slash; it also maps a full-width letter in the host, so a link or address that NFKC changes
+  // is not the one the mail prints.
   const unsafe = /[\s\p{Cc}\p{Cf}\\]/u;
+  const plain = (value: string) => !unsafe.test(value) && value.normalize("NFKC") === value;
   const https = (value: unknown, path: string, want = "an https URL") => {
     const url = text(value, path);
-    if (
-      !url.startsWith("https://") ||
-      unsafe.test(url) ||
-      url.normalize("NFKC") !== url ||
-      !URL.parse(url)
-    )
+    if (!url.startsWith("https://") || !plain(url) || !URL.parse(url))
       fail(path, `must be ${want}, got ${JSON.stringify(url)}`);
   };
   const pixels = (value: unknown, path: string) =>
@@ -86,7 +86,7 @@ export function checkBrief(data: unknown): asserts data is BriefProps {
     "objection",
   ]);
   if (p.lang !== "de" && p.lang !== "en") fail("lang", `must be "de" or "en", got ${p.lang}`);
-  text(p.subject, "subject");
+  oneLine(p.subject, "subject");
   if (text(p.preview, "preview").length > PREVIEW_MAX)
     fail("preview", `is longer than ${PREVIEW_MAX} characters, where the inbox line is cut`);
   text(p.greeting, "greeting");
@@ -121,13 +121,9 @@ export function checkBrief(data: unknown): asserts data is BriefProps {
   for (const key of ["before", "linkText", "after"]) text(objection[key], `objection.${key}`);
   const mailto = record(objection.mailto, "objection.mailto", ["to", "subject", "body"]);
   const to = text(mailto.to, "objection.mailto.to");
-  if (unsafe.test(to) || !/^[^@?&#,%]+@[^@?&#,%]+$/.test(to))
+  if (!plain(to) || !/^[^@?&#,%;<>"/]+@[^@?&#,%;<>"/]+$/.test(to))
     fail("objection.mailto.to", `must be one plain address, got ${JSON.stringify(to)}`);
-  if (
-    mailto.subject !== undefined &&
-    /[\r\n]/.test(text(mailto.subject, "objection.mailto.subject"))
-  )
-    fail("objection.mailto.subject", "must be one line");
+  if (mailto.subject !== undefined) oneLine(mailto.subject, "objection.mailto.subject");
   if (mailto.body !== undefined) text(mailto.body, "objection.mailto.body");
 }
 

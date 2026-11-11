@@ -57,6 +57,11 @@ describe("renderBrief refuses data that would render a wrong mail", () => {
     expect((await renderBrief(copy() as BriefProps)).text).toContain(data.greeting);
   });
 
+  test("a relative image path may hold a decomposed letter, as a macOS file name does", async () => {
+    const src = "bilder/U\u0308bersicht.png";
+    expect((await renderBrief(edit("items[0].image.src", src))).html).toContain(`src="${src}"`);
+  });
+
   // The refusal starts with the path: rendering without the check also fails on a missing list, with
   // an engine error that quotes the field somewhere.
   test.each(REQUIRED)("without %s", async (path) => {
@@ -81,6 +86,8 @@ describe("renderBrief refuses data that would render a wrong mail", () => {
     ["items[0].image.src", "ht\ttp://example.com/a.png"],
     ["items[0].image.src", "\\\\cdn.example.com/a.png"],
     ["items[0].image.src", "\u0001//cdn.example.com/a.png"],
+    ["subject", "Update\nBcc: x@example.com"],
+    ["subject", "Update\u2028Bcc: x@example.com"],
     ["objection.mailto.subject", "Abmelden\nBcc: x@example.com"],
     ["items[1].href", "javascript:alert(1)"],
     ["items[1].href", "http://example.com/"],
@@ -97,6 +104,8 @@ describe("renderBrief refuses data that would render a wrong mail", () => {
     ["objection.mailto.to", "kim"],
     ["objection.mailto.to", "kim@example.com%2Cx%40example.com"],
     ["objection.mailto.to", "kim@example.com\u0001"],
+    ["objection.mailto.to", "kim@exam\uff50le.com"],
+    ["objection.mailto.to", "kim;x@example.com"],
     ["signature.linkedin", "http://www.linkedin.com/in/kim-beispiel"],
   ])("%s set to %p", async (path, value) => {
     expect(await rejection(renderBrief(edit(path, value)))).toStartWith(`Error: ${path} `);
