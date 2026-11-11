@@ -25,7 +25,7 @@
     "catalog": "bun run dev",
     "build": "check-lock sh -c 'cd catalog && bun --bun astro build'",
     "check": "scaffolding check",
-    "check:elements": "check-lock sh -c 'CATALOG_FILE=1 bun run build && brand-elements'",
+    "check:elements": "check-lock sh -c 'bun run build && brand-elements'",
     "check:colours": "brand-colours",
     "check:frames": "check-lock sh -c 'bun run build && bun scripts/check-frames.ts'",
     "check:retired": "check-lock sh -c 'bun run build && brand-retired dist'",
@@ -43,9 +43,9 @@
     "@hackersandwizards/brand": ">=2.11.0"
   },
   "devDependencies": {
-    "@hackersandwizards/admin": "git+https://github.com/hackersandwizards/admin.git#v1.27.0",
-    "@hackersandwizards/brand": "git+https://github.com/hackersandwizards/brand.git#v2.14.0",
-    "@hackersandwizards/scaffolding": "git+https://github.com/hackersandwizards/scaffolding.git#v5.16.0",
+    "@hackersandwizards/admin": "git+https://github.com/hackersandwizards/admin.git#v1.27.1",
+    "@hackersandwizards/brand": "git+https://github.com/hackersandwizards/brand.git#v2.15.0",
+    "@hackersandwizards/scaffolding": "git+https://github.com/hackersandwizards/scaffolding.git#v5.17.1",
     "@types/bun": "1.4.4",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",

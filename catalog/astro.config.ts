@@ -9,11 +9,6 @@ export default defineConfig({
   srcDir: ".",
   devToolbar: { enabled: false },
   server: { host: "127.0.0.1", port: 4455 },
-  // CATALOG_FILE=1 builds pages brand-elements opens from disk, where they find their stylesheets by
-  // file URL (check:elements); the published build keeps root-relative assets.
-  ...(process.env.CATALOG_FILE && {
-    build: { assetsPrefix: new URL("../dist/", import.meta.url).href },
-  }),
   redirects: {
     "/design-system": `${BASE}/`,
     "/specimen": `${BASE}/`,

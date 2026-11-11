@@ -1,5 +1,6 @@
 {
-  "pages": ["dist/index.html"],
+  "pages": ["/mail/"],
+  "site": { "dir": "dist", "at": "/mail/" },
   "uses": ["card", "pill", "table", "link", "label"],
   "exceptions": {}
 }
