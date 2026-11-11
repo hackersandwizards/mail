@@ -62,7 +62,7 @@ catalog to `dist/`.
 
 `bun run check` runs scaffolding's shared steps (format, lint, styles, types, tests, the catalog
 build and more), then this repository's own steps, the `check:*` scripts `package.json` names under
-`scaffolding.check`. The git hooks check the staged files, the commit message and each push;
+`scaffolding.check`, which read that build: run alone, they need `bun run build` first. The git hooks check the staged files, the commit message and each push;
 [.githooks/README.md](.githooks/README.md) lists them.
 
 ## Release

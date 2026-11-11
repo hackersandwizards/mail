@@ -53,8 +53,11 @@ beforeAll(async () => {
   browser = await launch();
 });
 afterAll(async () => {
-  if (browser) await quit(browser);
-  rmSync(tmp, { recursive: true });
+  try {
+    if (browser) await quit(browser);
+  } finally {
+    rmSync(tmp, { recursive: true });
+  }
 });
 
 // The widest image only needs the narrowest phone, with and without the picture.

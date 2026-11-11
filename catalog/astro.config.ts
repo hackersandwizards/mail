@@ -17,7 +17,7 @@ export default defineConfig({
   integrations: [
     catalog({
       product: "Mail",
-      lead: "Every mail and building block of the mail engine, rendered to the HTML a mail client receives and shown in a frame. Each tile opens its states: light and dark, and for a mail also inverted, on a phone and as its text part. The data is made up.",
+      lead: "Every mail and building block of the mail engine, rendered to the HTML a mail client receives and shown in a frame. Each tile opens its states: light and dark; a mail also inverted, on a phone and as its text part; the image also with pictures blocked. The data is made up.",
       css: ["@hackersandwizards/brand/tokens.root.css", "@hackersandwizards/brand/elements.css"],
       head: "./Head.astro",
       // Dense on every page, the mails in the frames keeping their own sizes.
