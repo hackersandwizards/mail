@@ -1,8 +1,9 @@
 /**
  * check:frames: opens the built catalog's home, every story page and every rendered mail over HTTP
  * under the Pages base and fails on a page, frame or image that answers an error or does not load,
- * and on an image that paints nothing or, lazy and hidden, does not decode, in any frame. A story's mail sits in a srcdoc
- * frame, where a URL can resolve against the story's page instead of the mail's.
+ * and on an image that paints nothing or, lazy and hidden, does not decode, in any frame. A story's
+ * mail sits in a srcdoc frame, where a URL can resolve against the story's page instead of the
+ * mail's.
  */
 import { readdir } from "node:fs/promises";
 import { join, relative } from "node:path";

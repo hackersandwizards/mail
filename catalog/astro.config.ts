@@ -5,6 +5,7 @@ import { catalog } from "@hackersandwizards/scaffolding/catalog";
 const BASE = "/mail";
 
 export default defineConfig({
+  site: "https://hackersandwizards.github.io",
   base: BASE,
   srcDir: ".",
   devToolbar: { enabled: false },
@@ -16,7 +17,7 @@ export default defineConfig({
   integrations: [
     catalog({
       product: "Mail",
-      lead: "Every mail and building block of the mail engine, rendered to the HTML a mail client receives and shown in a 600 px frame. Each tile opens its light and dark states; the data is made up.",
+      lead: "Every mail and building block of the mail engine, rendered to the HTML a mail client receives and shown in a frame. Each tile opens its states: light and dark, and for a mail also inverted, on a phone and as its text part. The data is made up.",
       css: ["@hackersandwizards/brand/tokens.root.css", "@hackersandwizards/brand/elements.css"],
       head: "./Head.astro",
       // Dense on every page, the mails in the frames keeping their own sizes.

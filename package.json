@@ -53,6 +53,7 @@
     "astro": "7.4.10",
     "astrobook": "0.13.3",
     "eslint": "10.14.0",
+    "eslint-plugin-astro": "3.2.1",
     "prettier": "3.9.10",
     "puppeteer-core": "25.17.0",
     "stylelint": "18.0.0",
