@@ -102,7 +102,7 @@ export const inlineColour = (hex: string) => `color: ${hex}`;
 
 /** Each colour of a signature template that no dark rule reaches: the dark rules repaint only an
  * inline text colour of a role, so any other colour in a style or a colour attribute stays light in
- * dark mode. A colour given by name is seen only as a text colour or a background. */
+ * dark mode. A colour given by name is seen only as a text colour, a background or an attribute. */
 export const unreachedColours = (html: string) => [
   ...[...html.matchAll(/\sstyle\s*=\s*(["'])(.*?)\1/gis)]
     .flatMap(([, , style = ""]) => style.split(";").map((d) => d.trim()))
