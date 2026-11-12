@@ -61,7 +61,8 @@
   },
   "prettier": "@hackersandwizards/scaffolding/prettier",
   "admin": {
-    "designSystem": "https://hackersandwizards.github.io/mail/catalog/"
+    "designSystem": "https://hackersandwizards.github.io/mail/catalog/",
+    "label": "Mail engine"
   },
   "scaffolding": {
     "test": "test",
