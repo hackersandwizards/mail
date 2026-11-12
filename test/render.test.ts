@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { colors, tokens } from "@hackersandwizards/brand/tokens";
 import type { BriefProps } from "../mails/Brief";
 import { mailtoHref } from "../components/ObjectionNotice";
-import { signatureTemplate, unreachedColours } from "../components/theme";
+import { labelText, signatureTemplate, unreachedColours } from "../components/theme";
 import { renderBrief } from "../scripts/render";
 import data from "../catalog/mails/brief.json";
 
@@ -187,29 +187,31 @@ test("a line break in the objection mail's body is encoded as CRLF (RFC 6068 sec
   );
 });
 
-test("a line break in a greeting, a paragraph or an item reads the same in both parts", async () => {
-  const lines = (...said: string[]) => ({
-    html: said.map(escaped).join("<br/>"),
-    text: said.join("\n"),
-  });
+test("a line break in any field the engine prints reads the same in both parts", async () => {
+  const breaks = ["\n", "\r\n", "\r", "\u2028", "\u2029", "\u0085", "\v", "\f"];
+  const fields: [string, (mail: BriefProps, value: string) => void, (said: string) => string][] = [
+    ["greeting", (m, v) => (m.greeting = v), String],
+    ["intro", (m, v) => (m.intro[0] = v), String],
+    ["outro", (m, v) => (m.outro[0] = v), String],
+    ["closing", (m, v) => (m.closing[0] = v), String],
+    ["label", (m, v) => (m.items[0]!.label = v), labelText],
+    ["title", (m, v) => (m.items[0]!.title = v), String],
+    ["destination", (m, v) => (m.items[0]!.destination = v), String],
+    ["text", (m, v) => (m.items[0]!.text = v), String],
+    ["objection.before", (m, v) => (m.objection.before = v), String],
+    ["objection.linkText", (m, v) => (m.objection.linkText = v), String],
+    ["objection.after", (m, v) => (m.objection.after = v), String],
+  ];
   const given = structuredClone(brief);
-  given.greeting = "Moin Robin,\r\nschön, von dir zu hören.";
-  given.intro = ["Erste Zeile\nzweite Zeile"];
-  given.items[0]!.title = "Titel\noben";
-  given.items[0]!.text = "Erster Satz.\u2028Zweiter Satz.";
-  given.objection.before = "Vorher\n";
+  fields.forEach(([, set], i) => set(given, `Zeile ${i}${breaks[i % breaks.length]}weiter ${i}`));
   const both = await renderBrief(given);
-  for (const want of [
-    lines("Moin Robin,", "schön, von dir zu hören."),
-    lines("Erste Zeile", "zweite Zeile"),
-    lines("Titel", "oben"),
-    lines("Erster Satz.", "Zweiter Satz."),
-  ]) {
-    expect(both.html).toContain(want.html);
-    expect(both.text).toContain(want.text);
-  }
-  // The control: a single line passes untouched, and no other kind of break reaches the text part.
-  expect(both.html).toContain(escaped(brief.outro[0]!));
+  const differ = fields.flatMap(([name, , form], i) => {
+    const html = both.html.includes(`Zeile ${i}<br/>weiter ${i}`);
+    const text = both.text.includes(form(`Zeile ${i}\nweiter ${i}`));
+    return html && text ? [] : [`${name}:${html ? "" : " html"}${text ? "" : " text"}`];
+  });
+  expect(differ).toEqual([]);
+  // The control: a field without a break renders as before, and the text part holds only LF.
+  expect(both.html).toContain(`>${escaped(brief.items[1]!.text)}</p>`);
   expect(both.text).not.toMatch(/[\v\f\r\u0085\u2028\u2029]/);
-  expect(both.html).toContain("Vorher<br/>");
 });

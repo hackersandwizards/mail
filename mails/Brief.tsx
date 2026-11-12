@@ -27,8 +27,8 @@ const PREVIEW_MAX = 200;
  * Refuses data that would render a wrong mail, naming the field: a missing, empty or unknown field
  * (printed as `undefined`, left blank or silently dropped), a language other than `de` or `en`, a
  * link other than https, an image size that is no whole pixel or wider than the phone column, an
- * objection address carrying a query or an escape of its own, or a subject or objection subject
- * spanning lines. An image source may also be a path relative to the mail, which only the catalog
+ * objection address carrying a query or an escape of its own, or a subject, objection subject or
+ * signature field spanning lines. A line break anywhere else reads the same in both parts. An image source may also be a path relative to the mail, which only the catalog
  * serves.
  */
 export function checkBrief(data: unknown): asserts data is BriefProps {
@@ -113,9 +113,10 @@ export function checkBrief(data: unknown): asserts data is BriefProps {
   lines(p.outro, "outro");
   lines(p.closing, "closing", 1);
   const signature = record(p.signature, "signature", ["name", "role", "phone", "linkedin"]);
-  text(signature.name, "signature.name");
-  text(signature.role, "signature.role");
-  if (signature.phone !== undefined) text(signature.phone, "signature.phone");
+  // The brand's signature template folds a line break the text part keeps.
+  oneLine(signature.name, "signature.name");
+  oneLine(signature.role, "signature.role");
+  if (signature.phone !== undefined) oneLine(signature.phone, "signature.phone");
   if (signature.linkedin !== undefined) https(signature.linkedin, "signature.linkedin");
   const objection = record(p.objection, "objection", ["before", "linkText", "after", "mailto"]);
   for (const key of ["before", "linkText", "after"]) text(objection[key], `objection.${key}`);

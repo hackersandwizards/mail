@@ -115,6 +115,10 @@ describe("renderBrief refuses data that would render a wrong mail", () => {
     ["objection.mailto.to", 'kim"x@example.com'],
     ["objection.mailto.to", "kim@example.com/x"],
     ["signature.linkedin", "http://www.linkedin.com/in/kim-beispiel"],
+    // The brand's signature template folds a break the text part keeps.
+    ["signature.name", "Kim\nBeispiel"],
+    ["signature.role", "Gründerin\u2028CEO"],
+    ["signature.phone", "+49 40\r1234 5678"],
   ])("%s set to %p", async (path, value) => {
     expect(await rejection(renderBrief(edit(path, value)))).toStartWith(`Error: ${path} `);
   });
