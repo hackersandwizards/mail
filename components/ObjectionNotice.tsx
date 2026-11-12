@@ -1,5 +1,6 @@
 import { Link, Text } from "react-email";
 import { accentLink, paint } from "./MailShell";
+import { broken } from "./Paragraph";
 import { palette } from "./theme";
 
 export type ObjectionProps = {
@@ -28,11 +29,11 @@ export function ObjectionNotice({ before, linkText, after, mailto }: ObjectionPr
       className={paint.text("muted")}
       style={{ fontSize: 12, lineHeight: "18px", color: muted, margin: "24px 0 0" }}
     >
-      {before}
+      {broken(before)}
       <Link href={mailtoHref(mailto)} {...accentLink}>
-        {linkText}
+        {broken(linkText)}
       </Link>
-      {after}
+      {broken(after)}
     </Text>
   );
 }

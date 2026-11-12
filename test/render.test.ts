@@ -186,3 +186,30 @@ test("a line break in the objection mail's body is encoded as CRLF (RFC 6068 sec
     "mailto:kim@example.com?body=Hallo%2C%0D%0Abitte%20nicht%20mehr.",
   );
 });
+
+test("a line break in a greeting, a paragraph or an item reads the same in both parts", async () => {
+  const lines = (...said: string[]) => ({
+    html: said.map(escaped).join("<br/>"),
+    text: said.join("\n"),
+  });
+  const given = structuredClone(brief);
+  given.greeting = "Moin Robin,\r\nschön, von dir zu hören.";
+  given.intro = ["Erste Zeile\nzweite Zeile"];
+  given.items[0]!.title = "Titel\noben";
+  given.items[0]!.text = "Erster Satz.\u2028Zweiter Satz.";
+  given.objection.before = "Vorher\n";
+  const both = await renderBrief(given);
+  for (const want of [
+    lines("Moin Robin,", "schön, von dir zu hören."),
+    lines("Erste Zeile", "zweite Zeile"),
+    lines("Titel", "oben"),
+    lines("Erster Satz.", "Zweiter Satz."),
+  ]) {
+    expect(both.html).toContain(want.html);
+    expect(both.text).toContain(want.text);
+  }
+  // The control: a single line passes untouched, and no other kind of break reaches the text part.
+  expect(both.html).toContain(escaped(brief.outro[0]!));
+  expect(both.text).not.toMatch(/[\v\f\r\u0085\u2028\u2029]/);
+  expect(both.html).toContain("Vorher<br/>");
+});

@@ -1,5 +1,6 @@
 import { Link, Text } from "react-email";
 import { Image, type ImageProps } from "./Image";
+import { broken } from "./Paragraph";
 import { accentLink, ITEM_INSET, ITEM_RULE, paint } from "./MailShell";
 import { label as labelType, labelText, palette } from "./theme";
 
@@ -43,7 +44,7 @@ export function Item({ label, title, href, text, destination, image }: ItemProps
               className={paint.text("label")}
               style={{ ...labelType, color: palette.light.label, margin: "0 0 6px" }}
             >
-              {label}
+              {broken(label)}
             </Text>
             <Text
               style={{
@@ -54,7 +55,7 @@ export function Item({ label, title, href, text, destination, image }: ItemProps
               }}
             >
               <Link href={href} {...accentLink}>
-                {title}
+                {broken(title)}
               </Link>
             </Text>
             {destination ? (
@@ -62,10 +63,10 @@ export function Item({ label, title, href, text, destination, image }: ItemProps
                 className={paint.text("muted")}
                 style={{ fontSize: 14, lineHeight: "20px", margin: "0 0 8px", color: muted }}
               >
-                {destination}
+                {broken(destination)}
               </Text>
             ) : null}
-            <Text style={{ fontSize: 16, lineHeight: "24px", margin: 0 }}>{text}</Text>
+            <Text style={{ fontSize: 16, lineHeight: "24px", margin: 0 }}>{broken(text)}</Text>
           </td>
         </tr>
       </tbody>

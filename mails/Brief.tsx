@@ -2,7 +2,7 @@ import { MAX_IMAGE_WIDTH } from "../components/Image";
 import { Item, itemText, type ItemProps } from "../components/Item";
 import { MailShell } from "../components/MailShell";
 import { ObjectionNotice, objectionText, type ObjectionProps } from "../components/ObjectionNotice";
-import { Lines, Paragraph } from "../components/Paragraph";
+import { BREAK, broken, Lines, Paragraph } from "../components/Paragraph";
 import { Signature, signatureText, type SignatureFields } from "../components/Signature";
 
 /** Every word of a Brief mail; the engine adds none of its own. */
@@ -56,7 +56,7 @@ export function checkBrief(data: unknown): asserts data is BriefProps {
   const lines = (value: unknown, path: string, min = 0) =>
     list(value, path, min).forEach((line, i) => text(line, `${path}[${i}]`));
   const oneLine = (value: unknown, path: string) => {
-    if (/[\n\v\f\r\u0085\u2028\u2029]/.test(text(value, path))) fail(path, "must be one line");
+    if (BREAK.test(text(value, path))) fail(path, "must be one line");
   };
   // A URL parser drops or encodes whitespace, control and format characters and reads a backslash
   // as a slash; it also maps a full-width letter in the host, so a link or address that NFKC changes
@@ -134,15 +134,15 @@ export function checkBrief(data: unknown): asserts data is BriefProps {
 export function Brief(p: BriefProps) {
   return (
     <MailShell lang={p.lang} title={p.subject} preview={p.preview}>
-      <Paragraph>{p.greeting}</Paragraph>
+      <Paragraph>{broken(p.greeting)}</Paragraph>
       {p.intro.map((line, i) => (
-        <Paragraph key={`intro-${i}`}>{line}</Paragraph>
+        <Paragraph key={`intro-${i}`}>{broken(line)}</Paragraph>
       ))}
       {p.items.map((item, i) => (
         <Item key={`item-${i}`} {...item} />
       ))}
       {p.outro.map((line, i) => (
-        <Paragraph key={`outro-${i}`}>{line}</Paragraph>
+        <Paragraph key={`outro-${i}`}>{broken(line)}</Paragraph>
       ))}
       <Lines lines={p.closing} />
       <Signature {...p.signature} />
@@ -151,8 +151,8 @@ export function Brief(p: BriefProps) {
   );
 }
 
-/** The Brief's text part, written by the engine rather than stripped from the HTML, in its order.
- * No `-- ` line: a program honouring it would treat the objection notice after the signature as
+/** The Brief's text part, written by the engine rather than stripped from the HTML, in its order,
+ * each line break where the HTML part sets a `<br>`. No `-- ` line: a program honouring it would treat the objection notice after the signature as
  * signature, and may grey it or drop it from a reply (RFC 3676 section 4.3). */
 export function briefText(p: BriefProps): string {
   return (
@@ -164,6 +164,9 @@ export function briefText(p: BriefProps): string {
       p.closing.join("\n"),
       signatureText(p.signature).trim(),
       objectionText(p.objection),
-    ].join("\n\n") + "\n"
+    ]
+      .join("\n\n")
+      .split(BREAK)
+      .join("\n") + "\n"
   );
 }
