@@ -1,7 +1,7 @@
 import { Link, Text } from "react-email";
 import { Image, type ImageProps } from "./Image";
-import { broken } from "./Paragraph";
 import { accentLink, ITEM_INSET, ITEM_RULE, paint } from "./MailShell";
+import { broken } from "./Paragraph";
 import { label as labelType, labelText, palette } from "./theme";
 
 export type ItemProps = {

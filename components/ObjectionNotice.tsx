@@ -1,6 +1,6 @@
 import { Link, Text } from "react-email";
 import { accentLink, paint } from "./MailShell";
-import { broken } from "./Paragraph";
+import { BREAK, broken } from "./Paragraph";
 import { palette } from "./theme";
 
 export type ObjectionProps = {
@@ -16,7 +16,7 @@ export function mailtoHref({ to, subject, body }: ObjectionProps["mailto"]): str
   const query = Object.entries({ subject, body })
     .filter(([, v]) => v)
     // RFC 6068 section 5: a line break in the body is encoded as %0D%0A.
-    .map(([k, v]) => `${k}=${encodeURIComponent((v as string).replace(/\r?\n/g, "\r\n"))}`)
+    .map(([k, v]) => `${k}=${encodeURIComponent((v as string).split(BREAK).join("\r\n"))}`)
     .join("&");
   return `mailto:${to}${query ? `?${query}` : ""}`;
 }

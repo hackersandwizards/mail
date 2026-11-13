@@ -14,6 +14,8 @@ const root = join(import.meta.dir, "..");
 const mail = await renderBrief(brief);
 /** A data string as React writes it into the HTML. */
 const escaped = Bun.escapeHTML;
+/** Every kind of line break a data string may hold. */
+const breaks = ["\n", "\r\n", "\r", "\u2028", "\u2029", "\u0085", "\v", "\f"];
 
 describe("renderBrief", () => {
   const { html, text } = mail;
@@ -181,14 +183,16 @@ describe("mail-render", () => {
   });
 });
 
-test("a line break in the objection mail's body is encoded as CRLF (RFC 6068 section 5)", () => {
-  expect(mailtoHref({ to: "kim@example.com", body: "Hallo,\nbitte nicht mehr." })).toBe(
-    "mailto:kim@example.com?body=Hallo%2C%0D%0Abitte%20nicht%20mehr.",
-  );
-});
+test.each(breaks)(
+  "a line break %p in the objection mail's body is encoded as CRLF (RFC 6068 section 5)",
+  (b) => {
+    expect(mailtoHref({ to: "kim@example.com", body: `Hallo,${b}bitte nicht mehr.` })).toBe(
+      "mailto:kim@example.com?body=Hallo%2C%0D%0Abitte%20nicht%20mehr.",
+    );
+  },
+);
 
 test("a line break in any field the engine prints reads the same in both parts", async () => {
-  const breaks = ["\n", "\r\n", "\r", "\u2028", "\u2029", "\u0085", "\v", "\f"];
   const fields: [string, (mail: BriefProps, value: string) => void, (said: string) => string][] = [
     ["greeting", (m, v) => (m.greeting = v), String],
     ["intro", (m, v) => (m.intro[0] = v), String],

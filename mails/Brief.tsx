@@ -28,7 +28,8 @@ const PREVIEW_MAX = 200;
  * (printed as `undefined`, left blank or silently dropped), a language other than `de` or `en`, a
  * link other than https, an image size that is no whole pixel or wider than the phone column, an
  * objection address carrying a query or an escape of its own, or a subject, objection subject or
- * signature field spanning lines. A line break anywhere else reads the same in both parts. An image source may also be a path relative to the mail, which only the catalog
+ * signature field spanning lines. A line break inside any other field the mail prints reads the same
+ * in both parts. An image source may also be a path relative to the mail, which only the catalog
  * serves.
  */
 export function checkBrief(data: unknown): asserts data is BriefProps {
@@ -153,8 +154,9 @@ export function Brief(p: BriefProps) {
 }
 
 /** The Brief's text part, written by the engine rather than stripped from the HTML, in its order,
- * each line break where the HTML part sets a `<br>`. No `-- ` line: a program honouring it would treat the objection notice after the signature as
- * signature, and may grey it or drop it from a reply (RFC 3676 section 4.3). */
+ * each line break where the HTML part sets a `<br>`. No `-- ` line: a program honouring it would
+ * treat the objection notice after the signature as signature, and may grey it or drop it from a
+ * reply (RFC 3676 section 4.3). */
 export function briefText(p: BriefProps): string {
   return (
     [
