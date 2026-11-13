@@ -40,8 +40,9 @@ const { html, text } = await renderBrief(JSON.parse(readFileSync("brief.json", "
 The data file holds every word of the mail except the brand's signature template;
 [`catalog/mails/brief.json`](catalog/mails/brief.json) shows its shape. `renderBrief` and
 `mail-render` refuse a data file with a missing, empty or unknown field, a link other than https, an
-image size that is no whole pixel or wider than the phone column, a subject spanning lines or an
-objection address carrying a query or an escape, and name the field.
+image size that is no whole pixel or wider than the phone column, a subject, objection subject or
+signature field spanning lines, or an objection address carrying a query or an escape, and name the
+field.
 
 ## Work on the package
 
