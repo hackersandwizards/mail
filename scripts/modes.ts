@@ -61,11 +61,15 @@ export async function openMail(
   await page.emulateMediaFeatures([
     { name: "prefers-color-scheme", value: mode === "dark" ? "dark" : "light" },
   ]);
-  if (mode === "noimg") {
+  const interception = mode === "noimg" ? Promise.withResolvers<never>() : undefined;
+  if (interception) {
     await page.setRequestInterception(true);
-    page.on("request", (r) => (r.resourceType() === "image" ? r.abort() : r.continue()));
+    page.on("request", (r) => {
+      (r.resourceType() === "image" ? r.abort() : r.continue()).catch(interception.reject);
+    });
   }
-  await page.goto(`file://${file}`, { waitUntil: "load" });
+  const navigation = page.goto(`file://${file}`, { waitUntil: "load" });
+  await (interception ? Promise.race([navigation, interception.promise]) : navigation);
   if (mode === "invert") await page.addStyleTag({ content: INVERT });
   return page;
 }

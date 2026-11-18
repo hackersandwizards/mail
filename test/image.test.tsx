@@ -26,10 +26,10 @@ const cell = (html: string) => html.match(/<td\b[^>]*\bbgcolor="[^"]*"[^>]*>/)?.
 const attr = (html: string, tag: string, name: string) =>
   html.match(new RegExp(`<${tag}\\b[^>]*\\b${name}="([^"]*)"`))?.[1];
 
-describe("Image keeps its box while images are blocked", async () => {
-  const alone = renderToStaticMarkup(<Image {...props} href="https://example.com/" />);
-  const inMail = (await renderBrief(data as BriefProps)).html;
+const alone = renderToStaticMarkup(<Image {...props} href="https://example.com/" />);
+const inMail = (await renderBrief(data as BriefProps)).html;
 
+describe("Image keeps its box while images are blocked", () => {
   for (const [where, html] of [
     ["alone", alone],
     ["in the Brief", inMail],

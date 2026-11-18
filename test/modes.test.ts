@@ -17,9 +17,8 @@ import type { Browser } from "puppeteer-core";
 import { MAX_IMAGE_WIDTH } from "../components/Image";
 import { COLUMN_WIDTH, PHONE_WIDTH } from "../components/MailShell";
 import { palette, roles } from "../components/theme";
-import type { BriefProps } from "../mails/Brief";
 import { MODES, launch, openMail, quit } from "../scripts/modes";
-import { renderBrief } from "../scripts/render";
+import { parseBrief, renderBrief } from "../scripts/render";
 
 // Each mail goes one folder down beside a link to brand at its package path, as in the built
 // catalog, so the image its data names by a relative path loads.
@@ -32,7 +31,7 @@ const data = join(import.meta.dir, "..", "catalog", "mails");
 const mails = Object.fromEntries(
   readdirSync(data)
     .filter((f) => f.endsWith(".json"))
-    .map((f) => [f.slice(0, -5), JSON.parse(readFileSync(join(data, f), "utf8")) as BriefProps]),
+    .map((f) => [f.slice(0, -5), parseBrief(readFileSync(join(data, f), "utf8"))]),
 );
 const widest = structuredClone(mails["brief-bild"]);
 widest.items[0].image = { ...widest.items[0].image!, width: MAX_IMAGE_WIDTH, height: 160 };

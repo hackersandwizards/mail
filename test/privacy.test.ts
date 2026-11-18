@@ -9,9 +9,12 @@ const dir = join(import.meta.dir, "..", "catalog", "mails");
 const ALLOWED_HOSTS = ["example.com", "www.hackersandwizards.dev", "www.linkedin.com"];
 const INVENTED_FIRST_NAMES = ["Robin"];
 
+const record = (value: unknown): Record<string, unknown> =>
+  typeof value === "object" && value !== null ? (value as Record<string, unknown>) : {};
+
 /** Every place a data file names a host, an address, a phone number or a person that is not invented. */
 function leaks(raw: string): string[] {
-  const data = JSON.parse(raw);
+  const { greeting, signature } = record(JSON.parse(raw));
   const found: string[] = [];
   // Addresses and hosts in any script, with or without a scheme; a path segment after a slash and
   // an address's local part are no host, so a relative image path passes.
@@ -25,12 +28,12 @@ function leaks(raw: string): string[] {
     if (!ALLOWED_HOSTS.includes(host)) found.push(`host ${host}`);
   for (const [number] of raw.matchAll(/\+?\d[\d /-]{6,}\d/g))
     if (number !== EXAMPLE.phone) found.push(`number ${number}`);
-  const { name, phone, linkedin } = data.signature ?? {};
+  const { name, phone, linkedin } = record(signature);
   if (name !== EXAMPLE.name) found.push(`signature ${name}`);
   if (phone !== undefined && phone !== EXAMPLE.phone) found.push(`phone ${phone}`);
   if (linkedin !== undefined && linkedin !== EXAMPLE.linkedin) found.push(`linkedin ${linkedin}`);
-  const first = /(\p{L}+),?\s*$/u.exec(data.greeting ?? "")?.[1];
-  if (!first || !INVENTED_FIRST_NAMES.includes(first)) found.push(`greeting ${data.greeting}`);
+  const first = /(\p{L}+),?\s*$/u.exec(String(greeting ?? ""))?.[1];
+  if (!first || !INVENTED_FIRST_NAMES.includes(first)) found.push(`greeting ${greeting}`);
   return found;
 }
 

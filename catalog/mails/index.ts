@@ -1,4 +1,4 @@
-import { renderBrief } from "../../scripts/render";
+import { parseBrief, renderBrief } from "../../scripts/render";
 
 const raw = import.meta.glob<string>("./*.json", {
   query: "?raw",
@@ -9,9 +9,13 @@ const raw = import.meta.glob<string>("./*.json", {
 export const mails = await Promise.all(
   Object.entries(raw)
     .sort(([a], [b]) => a.localeCompare(b))
-    .map(async ([path, json]) => ({
-      base: path.replace(/^.*\/|\.json$/g, ""),
-      json,
-      ...(await renderBrief(JSON.parse(json))),
-    })),
+    .map(async ([path, json]) => {
+      const brief = parseBrief(json);
+      return {
+        base: path.replace(/^.*\/|\.json$/g, ""),
+        json,
+        lang: brief.lang,
+        ...(await renderBrief(brief)),
+      };
+    }),
 );

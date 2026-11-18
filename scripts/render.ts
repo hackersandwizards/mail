@@ -15,6 +15,12 @@ import { Brief, briefText, checkBrief, type BriefProps } from "../mails/Brief";
 
 export type RenderedMail = { html: string; text: string };
 
+export function parseBrief(json: string): BriefProps {
+  const data: unknown = JSON.parse(json);
+  checkBrief(data);
+  return data;
+}
+
 /** Both parts of a Brief; data `checkBrief` refuses throws, naming the field. */
 export async function renderBrief(props: BriefProps): Promise<RenderedMail> {
   checkBrief(props);
@@ -32,7 +38,7 @@ if (import.meta.main) {
   }
   const file = positionals[0];
   // A missing file, malformed JSON and refused data all end on one line naming the file.
-  const mail = await Promise.try(() => renderBrief(JSON.parse(readFileSync(file, "utf-8")))).catch(
+  const mail = await Promise.try(() => renderBrief(parseBrief(readFileSync(file, "utf-8")))).catch(
     (e: Error) => {
       console.error(`mail-render: ${file}: ${e.message}`);
       process.exit(1);

@@ -31,7 +31,8 @@ const home = new URL(`${import.meta.env.BASE_URL.replace(/\/?$/, "/")}mails/`, "
 const rooted = (html: string) =>
   html.replace(
     /(?<=\s)(src|href)="(?![a-z][a-z\d+.-]*:|[/#])([^"]+)"/gi,
-    (_, name, url) => `${name}="${new URL(url, home).href.slice(home.origin.length)}"`,
+    (_, name: string, url: string) =>
+      `${name}="${new URL(url, home).href.slice(home.origin.length)}"`,
   );
 
 /** A text part as a mail program without HTML shows it: the lines as written, in a mono face. */
@@ -49,7 +50,7 @@ export function mail(base: string) {
   return {
     ...views(html),
     text: {
-      args: { html: textPage(found.text, JSON.parse(found.json).lang), width: COLUMN_WIDTH },
+      args: { html: textPage(found.text, found.lang), width: COLUMN_WIDTH },
     },
     inverted: { args: { html: forceInvert(html), width: COLUMN_WIDTH } },
     phone: { args: { html: forceLight(html), width: PHONE_WIDTH } },

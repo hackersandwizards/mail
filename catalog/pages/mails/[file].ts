@@ -1,4 +1,4 @@
-import type { APIRoute, GetStaticPaths } from "astro";
+import type { APIRoute, GetStaticPaths, InferGetStaticPropsType } from "astro";
 import { mails } from "../../mails";
 
 export const getStaticPaths = (() =>
@@ -12,5 +12,5 @@ export const getStaticPaths = (() =>
     ).map(([ext, body, type]) => ({ params: { file: `${m.base}.${ext}` }, props: { body, type } })),
   )) satisfies GetStaticPaths;
 
-export const GET: APIRoute = ({ props }) =>
+export const GET: APIRoute<InferGetStaticPropsType<typeof getStaticPaths>> = ({ props }) =>
   new Response(props.body, { headers: { "Content-Type": `${props.type}; charset=utf-8` } });
