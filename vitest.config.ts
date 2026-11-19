@@ -1,11 +1,8 @@
-import { defineConfig } from "vitest/config";
+import base from "@hackersandwizards/scaffolding/vitest";
+import { mergeConfig } from "vitest/config";
 
-const timeout = Number(process.env.SCAFFOLDING_TEST_TIMEOUT_MS || 5000);
-
-export default defineConfig({
+export default mergeConfig(base, {
   test: {
     include: ["test/**/*.test.{ts,tsx}"],
-    testTimeout: timeout,
-    hookTimeout: timeout,
   },
 });
