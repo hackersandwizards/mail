@@ -4,6 +4,8 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { colors, tokens } from "@hackersandwizards/brand/tokens";
+import { createElement, Fragment } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import type { BriefProps } from "../mails/Brief";
 import { mailtoHref } from "../components/ObjectionNotice";
 import { labelText, signatureTemplate, unreachedColours } from "../components/theme";
@@ -14,7 +16,7 @@ const brief = data as BriefProps;
 const root = fileURLToPath(new URL("..", import.meta.url));
 const mail = await renderBrief(brief);
 /** A data string as React writes it into the HTML. */
-const escaped = Bun.escapeHTML;
+const escaped = (text: string) => renderToStaticMarkup(createElement(Fragment, null, text));
 /** Every kind of line break a data string may hold. */
 const breaks = ["\n", "\r\n", "\r", "\u2028", "\u2029", "\u0085", "\v", "\f"];
 

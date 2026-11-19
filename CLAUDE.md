@@ -46,6 +46,8 @@ goes in. Every word a mail prints is a prop; the catalog data is invented, and
   scripts named in `package.json` under `scaffolding.check`.
 - `bun run test` runs Vitest on Bun. Vitest reads the gate's `SCAFFOLDING_TEST_TIMEOUT_MS` for
   test and hook timeouts.
+- `bun run mutation` runs Stryker against the mail engine using the Vitest suite.
+  It runs outside the gate and writes the JSON report to `.stryker-reports/mutation.json`.
 
 ## Release
 
