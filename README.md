@@ -54,6 +54,7 @@ first run installs it into `~/.cache/puppeteer`.
   the git hooks at `.githooks/` ([.githooks/README.md](.githooks/README.md) lists them)
 - `bun run dev`: the catalog at http://127.0.0.1:4455/
 - `bun scripts/render.ts catalog/mails/brief.json --out /tmp/brief`: `/tmp/brief.html` and `.txt`
+- `bun run test` runs Vitest on Bun, including the headless Chrome tests.
 - `bun run check`: the whole gate; a `check:*` script run alone needs `bun run build` first
 - `bun run build`: the catalog in `dist/`
 

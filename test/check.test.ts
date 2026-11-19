@@ -1,15 +1,16 @@
 // A data file that would render a wrong mail is refused, naming the field, before anything renders.
-import { describe, expect, test } from "bun:test";
+import { describe, expect, test } from "vitest";
 import { rejection } from "@hackersandwizards/scaffolding/rejection";
 import { spawnSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { MAX_IMAGE_WIDTH } from "../components/Image";
 import type { BriefProps } from "../mails/Brief";
 import { renderBrief } from "../scripts/render";
 import data from "../catalog/mails/brief-bild.json";
 
-const root = join(import.meta.dir, "..");
+const root = fileURLToPath(new URL("..", import.meta.url));
 const copy = (): Record<string, unknown> => structuredClone(data);
 
 /** The data with the value at the path removed or replaced. */
@@ -65,7 +66,8 @@ describe("renderBrief refuses data that would render a wrong mail", () => {
   // The refusal starts with the path: rendering without the check also fails on a missing list, with
   // an engine error that quotes the field somewhere.
   test.each(REQUIRED)("without %s", async (path) => {
-    expect(await rejection(renderBrief(edit(path)))).toStartWith(`Error: ${path} `);
+    const error = await rejection(renderBrief(edit(path)));
+    expect(error.startsWith(`Error: ${path} `), error).toBe(true);
   });
 
   test.each([
@@ -118,8 +120,9 @@ describe("renderBrief refuses data that would render a wrong mail", () => {
     ["signature.name", "Kim\nBeispiel"],
     ["signature.role", "Gründerin\u2028CEO"],
     ["signature.phone", "+49 40\r1234 5678"],
-  ])("%s set to %p", async (path, value) => {
-    expect(await rejection(renderBrief(edit(path, value)))).toStartWith(`Error: ${path} `);
+  ])("%s set to %j", async (path, value) => {
+    const error = await rejection(renderBrief(edit(path, value)));
+    expect(error.startsWith(`Error: ${path} `), error).toBe(true);
   });
 
   test("a preview of 200 characters reaches the inbox line uncut", async () => {
@@ -147,7 +150,7 @@ describe("renderBrief refuses data that would render a wrong mail", () => {
         encoding: "utf-8",
       });
       expect(broken.status).toBe(1);
-      expect(broken.stderr).toStartWith(`mail-render: ${file}: `);
+      expect(broken.stderr.startsWith(`mail-render: ${file}: `), broken.stderr).toBe(true);
       expect(readdirSync(dir)).toEqual(["missing-to.json"]);
     } finally {
       rmSync(dir, { recursive: true });

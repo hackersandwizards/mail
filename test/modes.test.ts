@@ -1,7 +1,7 @@
 // Renders each catalog mail, and one with an image at the widest allowed, headless in each mode and
 // reads what the reader would see. With MAIL_SHOTS set to a folder, also writes each view there as
 // <mail>-<mode>-<width>.png for a review.
-import { afterAll, beforeAll, describe, expect, test } from "bun:test";
+import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import {
   mkdirSync,
   mkdtempSync,
@@ -22,12 +22,12 @@ import { parseBrief, renderBrief } from "../scripts/render";
 
 // Each mail goes one folder down beside a link to brand at its package path, as in the built
 // catalog, so the image its data names by a relative path loads.
-const cache = join(import.meta.dir, "..", "node_modules", ".cache", "mail-test");
+const cache = fileURLToPath(new URL("../node_modules/.cache/mail-test", import.meta.url));
 mkdirSync(cache, { recursive: true });
 const tmp = mkdtempSync(join(cache, "modes-"));
 const dir = join(tmp, "mails");
 const shots = process.env.MAIL_SHOTS;
-const data = join(import.meta.dir, "..", "catalog", "mails");
+const data = fileURLToPath(new URL("../catalog/mails", import.meta.url));
 const mails = Object.fromEntries(
   readdirSync(data)
     .filter((f) => f.endsWith(".json"))

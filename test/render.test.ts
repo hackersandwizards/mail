@@ -1,7 +1,8 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, test } from "vitest";
 import { spawnSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { colors, tokens } from "@hackersandwizards/brand/tokens";
 import type { BriefProps } from "../mails/Brief";
 import { mailtoHref } from "../components/ObjectionNotice";
@@ -10,7 +11,7 @@ import { renderBrief } from "../scripts/render";
 import data from "../catalog/mails/brief.json";
 
 const brief = data as BriefProps;
-const root = join(import.meta.dir, "..");
+const root = fileURLToPath(new URL("..", import.meta.url));
 const mail = await renderBrief(brief);
 /** A data string as React writes it into the HTML. */
 const escaped = Bun.escapeHTML;
@@ -184,7 +185,7 @@ describe("mail-render", () => {
 });
 
 test.each(breaks)(
-  "a line break %p in the objection mail's body is encoded as CRLF (RFC 6068 section 5)",
+  "a line break %j in the objection mail's body is encoded as CRLF (RFC 6068 section 5)",
   (b) => {
     expect(mailtoHref({ to: "kim@example.com", body: `Hallo,${b}bitte nicht mehr.` })).toBe(
       "mailto:kim@example.com?body=Hallo%2C%0D%0Abitte%20nicht%20mehr.",

@@ -5,5 +5,13 @@
     "jsxImportSource": "react",
     "types": ["bun", "astro/client"]
   },
-  "include": ["components", "mails", "scripts", "catalog", "test", "catalog/.astro/types.d.ts"]
+  "include": [
+    "components",
+    "mails",
+    "scripts",
+    "catalog",
+    "test",
+    "catalog/.astro/types.d.ts",
+    "vitest.config.ts"
+  ]
 }

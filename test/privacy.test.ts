@@ -1,11 +1,12 @@
 // The repo is public: the catalog mails carry brand's invented person, invented first names and
 // example addresses only.
-import { expect, test } from "bun:test";
+import { expect, test } from "vitest";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { EXAMPLE } from "@hackersandwizards/brand/mail-signature/fill.ts";
 
-const dir = join(import.meta.dir, "..", "catalog", "mails");
+const dir = fileURLToPath(new URL("../catalog/mails", import.meta.url));
 const ALLOWED_HOSTS = ["example.com", "www.hackersandwizards.dev", "www.linkedin.com"];
 const INVENTED_FIRST_NAMES = ["Robin"];
 

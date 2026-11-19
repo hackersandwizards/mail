@@ -44,6 +44,8 @@ goes in. Every word a mail prints is a prop; the catalog data is invented, and
   `bun run check:elements` measures on the built home.
 - `bun run check` is scaffolding's runner; the repository's own steps are the `check:<what>`
   scripts named in `package.json` under `scaffolding.check`.
+- `bun run test` runs Vitest on Bun. Vitest reads the gate's `SCAFFOLDING_TEST_TIMEOUT_MS` for
+  test and hook timeouts.
 
 ## Release
 

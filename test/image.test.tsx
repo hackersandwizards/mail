@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, test } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { colors, tokens } from "@hackersandwizards/brand/tokens";
 import { Image, MAX_IMAGE_WIDTH } from "../components/Image";
@@ -53,7 +53,7 @@ describe("Image keeps its box while images are blocked", () => {
 
     test(`${where}: alt text in Arial 12/16, muted, without the link's underline`, () => {
       const img = style(html, "img");
-      expect(img["font-family"]).toStartWith("Arial");
+      expect(img["font-family"]).toMatch(/^Arial/);
       expect(img["font-size"]).toBe("12px");
       expect(img["line-height"]).toBe("16px");
       expect(img.color).toBe(muted);
