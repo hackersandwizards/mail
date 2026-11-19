@@ -7,7 +7,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { MAX_IMAGE_WIDTH } from "../components/Image";
 import type { BriefProps } from "../mails/Brief";
-import { renderBrief } from "../scripts/render";
+import { parseBrief, renderBrief } from "../scripts/render";
 import data from "../catalog/mails/brief-bild.json";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
@@ -61,6 +61,65 @@ describe("renderBrief refuses data that would render a wrong mail", () => {
   test("a relative image path may hold a decomposed letter, as a macOS file name does", async () => {
     const src = "bilder/U\u0308bersicht.png";
     expect((await renderBrief(edit("items[0].image.src", src))).html).toContain(`src="${src}"`);
+  });
+
+  test.each([[null], [[]], ["mail"]])("a data file containing %j needs a mail object", (value) => {
+    expect(() => parseBrief(JSON.stringify(value))).toThrow("the data must be an object");
+  });
+
+  test.each([
+    ["signature", [], "signature must be an object"],
+    ["items[0].image", false, "items[0].image must be an object"],
+    [
+      "items[1].destinaton",
+      "Video",
+      "is no field; the fields are label, title, href, text, destination, image",
+    ],
+    ["subject", 7, "must be a non-empty string, got 7"],
+    ["subject", "Update\nSecond line", "subject must be one line"],
+    ["lang", "fr", 'must be "de" or "en", got fr'],
+    ["closing", [], "must be a list of at least 1 entries"],
+    ["preview", "x".repeat(201), "is longer than 200 characters, where the inbox line is cut"],
+    ["items[1].href", "http://example.com", 'must be an https URL, got "http://example.com"'],
+    [
+      "items[0].image.src",
+      "http://example.com/a.png",
+      "must be an https URL or a plain relative path",
+    ],
+    ["items[0].image.height", -1, "must be a whole number of pixels above 0, got -1"],
+    [
+      "items[0].image.width",
+      MAX_IMAGE_WIDTH + 1,
+      `is wider than the ${MAX_IMAGE_WIDTH} px the phone column holds`,
+    ],
+    ["objection.mailto.to", "kim@example.com?bcc=x@example.com", "must be one plain address"],
+    ["objection.mailto.body", " ", "objection.mailto.body must be a non-empty string"],
+  ])("tells the author how to fix %s", async (path, value, message) => {
+    expect(await rejection(renderBrief(edit(path, value)))).toContain(message);
+  });
+
+  test("one item and one closing line are enough for an English Brief", async () => {
+    const props = copy() as BriefProps;
+    props.lang = "en";
+    props.intro = [];
+    props.outro = [];
+    props.closing = ["Cheers"];
+    delete props.signature.linkedin;
+    props.objection.mailto = { to: "kim@example.com" };
+    const [item] = props.items;
+    delete item.destination;
+    item.image = {
+      src: "pictures//preview.png",
+      alt: "Preview",
+      width: MAX_IMAGE_WIDTH,
+      height: 1,
+    };
+    props.items = [item];
+    const { html, text } = await renderBrief(props);
+    expect(html).toContain('lang="en"');
+    expect(html).toContain('src="pictures//preview.png"');
+    expect(html).toContain('href="mailto:kim@example.com"');
+    expect(text).toContain(`${item.href}\n${item.text}\n\nCheers\n\n${props.signature.name}\n`);
   });
 
   // The refusal starts with the path: rendering without the check also fails on a missing list, with

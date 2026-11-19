@@ -140,6 +140,16 @@ describe("renderBrief", () => {
     ).toEqual(["fill: red", "stroke: navy", "border-bottom-color: silver"]);
   });
 
+  test("a signature stylesheet reports painted declarations alongside ordinary layout", () => {
+    const signature = `<style type="text/css">
+      .name { color : navy; padding: 4px; outline: 1px solid rgba(0, 0, 0, .5); }
+    </style>`;
+    expect(unreachedColours(signature)).toEqual([
+      "color : navy",
+      "outline: 1px solid rgba(0, 0, 0, .5)",
+    ]);
+  });
+
   test("the text part is written, not stripped: items, signature, the address without its query", () => {
     expect(text.startsWith(`${brief.greeting}\n\n`)).toBe(true);
     for (const item of brief.items) {
@@ -153,6 +163,15 @@ describe("renderBrief", () => {
     expect(text).toContain("mit dieser vorbereiteten Mail (kim.beispiel@example.com), ohne");
     expect(text).not.toContain("mailto:");
     expect(text).not.toContain("<");
+  });
+
+  test("the text part keeps the paragraph breaks through the closing and ends with one LF", async () => {
+    const props = structuredClone(brief);
+    props.closing = ["Kind regards,", "Kim"];
+    const { text } = await renderBrief(props);
+    expect(text).toContain(`${props.greeting}\n\n${props.intro[0]}`);
+    expect(text).toContain(`\n\nKind regards,\nKim\n\n${props.signature.name}\n`);
+    expect(text).toMatch(/[^\n]\n$/);
   });
 });
 
