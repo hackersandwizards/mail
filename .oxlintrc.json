@@ -11,5 +11,39 @@
     "/.claude/**",
     "/.agents/**",
     "/.githooks/**"
+  ],
+  "overrides": [
+    {
+      "files": ["components/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "regex": "^(\\./)*(\\.\\./)+(mails|scripts|catalog)(/|$)|^@hackersandwizards/mail/(mails/|render$)",
+                "message": "Mail components cannot import mail compositions, scripts or catalog code."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["mails/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "regex": "^(\\./)*(\\.\\./)+(scripts|catalog)(/|$)|^@hackersandwizards/mail/render$",
+                "message": "Mail compositions cannot import scripts or catalog code."
+              }
+            ]
+          }
+        ]
+      }
+    }
   ]
 }

@@ -42,6 +42,9 @@ goes in. Every word a mail prints is a prop; the catalog data is invented, and
   `mail-render` writes, and `.json`, the data file. `Home.astro` fills the shell's home with the
   foundations; the brand elements it shows are listed in `brand-elements.json`, which
   `bun run check:elements` measures on the built home.
+- Dependencies can run from the catalog through scripts and mail compositions to components.
+  Oxlint bars components from importing compositions, scripts or catalog code, and bars
+  compositions from importing scripts or catalog code.
 - `bun run check` is scaffolding's runner; the repository's own steps are the `check:<what>`
   scripts named in `package.json` under `scaffolding.check`.
 - `bun run test` runs Vitest on Bun. Vitest reads the gate's `SCAFFOLDING_TEST_TIMEOUT_MS` for
