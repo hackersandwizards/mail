@@ -55,7 +55,9 @@ first run installs it into `~/.cache/puppeteer`.
 - `bun run dev`: the catalog at http://127.0.0.1:4455/
 - `bun scripts/render.ts catalog/mails/brief.json --out /tmp/brief`: `/tmp/brief.html` and `.txt`
 - `bun run test` runs Vitest on Bun, including the headless Chrome tests.
-- `bun run check`: the whole gate; a `check:*` script run alone needs `bun run build` first
+- `bun run check` runs the whole gate. Build first when running `check:elements`,
+  `check:frames` or `check:retired` on its own.
+- `bun run mutation` runs Stryker with a 15-minute cap. Use `--mutate <files>` to select files.
 - `bun run build`: the catalog in `dist/`
 
 A release is a tag `v<version>` matching `package.json`; [the steps](CLAUDE.md#release), the layout and the

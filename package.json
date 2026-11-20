@@ -33,7 +33,7 @@
     "check:staged": "check-staged",
     "fix": "bun --bun eslint --cache --concurrency=auto . --fix && bun --bun prettier --write .",
     "test": "bun --bun vitest run",
-    "mutation": "stryker run"
+    "mutation": "scaffolding-mutation"
   },
   "dependencies": {
     "react": "19.3.1",
@@ -46,7 +46,7 @@
   "devDependencies": {
     "@hackersandwizards/admin": "git+https://github.com/hackersandwizards/admin.git#v1.39.1",
     "@hackersandwizards/brand": "git+https://github.com/hackersandwizards/brand.git#v2.28.2",
-    "@hackersandwizards/scaffolding": "git+https://github.com/hackersandwizards/scaffolding.git#v5.31.0",
+    "@hackersandwizards/scaffolding": "git+https://github.com/hackersandwizards/scaffolding.git#v5.32.0",
     "@types/bun": "1.4.4",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
@@ -67,6 +67,12 @@
   },
   "scaffolding": {
     "test": "test",
+    "fullOnly": {
+      "test": "launches browsers in the test suite",
+      "check:frames": "renders and checks mail frames",
+      "check:elements": "renders and checks elements",
+      "check:retired": "scans generated output"
+    },
     "check": [
       [
         "check:colours",
