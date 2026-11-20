@@ -40,10 +40,7 @@ export async function launch(): Promise<Browser> {
   });
 }
 
-/** Ends the browser by a kill. Chrome's graceful close took 0.1 to 3.3 s at a one-minute load of 137
- * to 223 and outran bun's 5 s hook limit in two gates; the kill took under 50 ms at 137 to 152.
- * `close` then finds the process gone and only removes puppeteer's profile, which it does nowhere
- * else before this process exits. */
+/** Kill Chrome to keep teardown within the hook timeout under load, then close to clean its profile. */
 export async function quit(browser: Browser): Promise<void> {
   browser.process()?.kill("SIGKILL");
   await browser.close();
@@ -57,19 +54,24 @@ export async function openMail(
   width: number,
 ): Promise<Page> {
   const page = await browser.newPage();
-  await page.setViewport({ width, height: 800, deviceScaleFactor: 1 });
-  await page.emulateMediaFeatures([
-    { name: "prefers-color-scheme", value: mode === "dark" ? "dark" : "light" },
-  ]);
-  const interception = mode === "noimg" ? Promise.withResolvers<never>() : undefined;
-  if (interception) {
-    await page.setRequestInterception(true);
-    page.on("request", (r) => {
-      (r.resourceType() === "image" ? r.abort() : r.continue()).catch(interception.reject);
-    });
+  try {
+    await page.setViewport({ width, height: 800, deviceScaleFactor: 1 });
+    await page.emulateMediaFeatures([
+      { name: "prefers-color-scheme", value: mode === "dark" ? "dark" : "light" },
+    ]);
+    const interception = mode === "noimg" ? Promise.withResolvers<never>() : undefined;
+    if (interception) {
+      await page.setRequestInterception(true);
+      page.on("request", (r) => {
+        (r.resourceType() === "image" ? r.abort() : r.continue()).catch(interception.reject);
+      });
+    }
+    const navigation = page.goto(`file://${file}`, { waitUntil: "load" });
+    await (interception ? Promise.race([navigation, interception.promise]) : navigation);
+    if (mode === "invert") await page.addStyleTag({ content: INVERT });
+    return page;
+  } catch (error) {
+    await page.close().catch(() => undefined);
+    throw error;
   }
-  const navigation = page.goto(`file://${file}`, { waitUntil: "load" });
-  await (interception ? Promise.race([navigation, interception.promise]) : navigation);
-  if (mode === "invert") await page.addStyleTag({ content: INVERT });
-  return page;
 }

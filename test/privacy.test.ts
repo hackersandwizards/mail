@@ -33,13 +33,18 @@ function leaks(raw: string): string[] {
   if (name !== EXAMPLE.name) found.push(`signature ${name}`);
   if (phone !== undefined && phone !== EXAMPLE.phone) found.push(`phone ${phone}`);
   if (linkedin !== undefined && linkedin !== EXAMPLE.linkedin) found.push(`linkedin ${linkedin}`);
-  const first = /(\p{L}+),?\s*$/u.exec(String(greeting ?? ""))?.[1];
+  const first = typeof greeting === "string" ? /(\p{L}+),?\s*$/u.exec(greeting)?.[1] : undefined;
   if (!first || !INVENTED_FIRST_NAMES.includes(first)) found.push(`greeting ${greeting}`);
   return found;
 }
 
 test.each(readdirSync(dir).filter((f) => f.endsWith(".json")))("%s is invented", (file) => {
   expect(leaks(readFileSync(join(dir, file), "utf-8"))).toEqual([]);
+});
+
+test("the greeting must be a string", () => {
+  const raw = JSON.stringify({ greeting: ["Moin Robin,"], signature: { name: EXAMPLE.name } });
+  expect(leaks(raw)).toEqual(["greeting Moin Robin,"]);
 });
 
 test("a data file with real data is caught at every leak", () => {

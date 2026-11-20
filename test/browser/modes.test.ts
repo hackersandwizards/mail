@@ -2,6 +2,8 @@
 // reads what the reader would see. With MAIL_SHOTS set to a folder, also writes each view there as
 // <mail>-<mode>-<width>.png for a review.
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
+import { chromeBinary, INSTALL_HINT, NO_KEYCHAIN } from "@hackersandwizards/scaffolding/chrome";
+import { rejection } from "@hackersandwizards/scaffolding/rejection";
 import {
   mkdirSync,
   mkdtempSync,
@@ -13,7 +15,7 @@ import {
 } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import type { Browser } from "puppeteer-core";
+import puppeteer, { type Browser } from "puppeteer-core";
 import { MAX_IMAGE_WIDTH } from "../../components/Image";
 import { COLUMN_WIDTH, PHONE_WIDTH } from "../../components/MailShell";
 import { palette, roles } from "../../components/theme";
@@ -56,6 +58,34 @@ afterAll(async () => {
     if (browser) await quit(browser);
   } finally {
     rmSync(tmp, { recursive: true });
+  }
+});
+
+test("a failed navigation closes the page it opened", async () => {
+  const count = (await browser.pages()).length;
+  const error = await rejection(openMail(browser, join(dir, "missing.html"), "noimg", PHONE_WIDTH));
+  expect(error).toContain("ERR_FILE_NOT_FOUND");
+  expect(await browser.pages()).toHaveLength(count);
+});
+
+test("blocked images mode uses light colours even when Chrome defaults to dark mode", async () => {
+  const executablePath = chromeBinary();
+  if (!executablePath) throw new Error(INSTALL_HINT);
+  const darkBrowser = await puppeteer.launch({
+    executablePath,
+    args: [...NO_KEYCHAIN, "--force-dark-mode"],
+  });
+  try {
+    const [blank] = await darkBrowser.pages();
+    expect(await blank.evaluate(() => matchMedia("(prefers-color-scheme: dark)").matches)).toBe(
+      true,
+    );
+    const page = await openMail(darkBrowser, join(dir, "brief-bild.html"), "noimg", PHONE_WIDTH);
+    expect(await page.evaluate(() => matchMedia("(prefers-color-scheme: light)").matches)).toBe(
+      true,
+    );
+  } finally {
+    await quit(darkBrowser);
   }
 });
 

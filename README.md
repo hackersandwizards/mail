@@ -61,6 +61,9 @@ first run installs it into `~/.cache/puppeteer`.
 - `bun run mutation` runs Stryker with a 15-minute cap. Use `--mutate <files>` to select files.
 - `bun run build`: the catalog in `dist/`
 
+The catalog in this checkout uses `parseBrief(json)` from the render module to validate JSON and
+read the mail's language for the text preview.
+
 A release is a tag `v<version>` matching `package.json`; [the steps](CLAUDE.md#release), the layout and the
 rules for changing it are in [CLAUDE.md](CLAUDE.md).
 
