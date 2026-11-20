@@ -4,7 +4,6 @@ import { corner, fonts, palette } from "./theme";
 
 // React types carry no bgcolor; the attribute is what classic Outlook paints a cell from.
 declare module "react" {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- must repeat React's parameter
   interface TdHTMLAttributes<T> {
     bgcolor?: string;
   }
