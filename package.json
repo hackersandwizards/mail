@@ -25,6 +25,7 @@
     "catalog": "bun run dev",
     "build": "check-lock sh -c 'cd catalog && bun --bun astro build'",
     "check": "scaffolding check",
+    "check:modes": "bun --bun vitest run test/browser",
     "check:elements": "check-lock brand-elements",
     "check:colours": "brand-colours",
     "check:frames": "check-lock bun scripts/check-frames.ts",
@@ -32,7 +33,7 @@
     "check:copies": "brand-copies",
     "check:staged": "check-staged",
     "fix": "bun --bun eslint --cache --concurrency=auto . --fix && bun --bun prettier --write .",
-    "test": "bun --bun vitest run",
+    "test": "bun --bun vitest run --exclude 'test/browser/**'",
     "mutation": "scaffolding-mutation"
   },
   "dependencies": {
@@ -68,7 +69,7 @@
   "scaffolding": {
     "test": "test",
     "fullOnly": {
-      "test": "launches browsers in the test suite",
+      "check:modes": "launches Chrome to verify how rendered mail looks in each mode",
       "check:frames": "renders and checks mail frames",
       "check:elements": "renders and checks elements",
       "check:retired": "scans generated output"
@@ -78,6 +79,7 @@
         "check:colours",
         "check:copies"
       ],
+      "check:modes",
       "check:elements",
       "check:frames",
       "check:retired"

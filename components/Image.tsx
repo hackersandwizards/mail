@@ -20,7 +20,7 @@ export type ImageProps = {
   href?: string;
 };
 
-/** The widest image an item holds on the narrowest phone; `test/modes.test.ts` draws one there. */
+/** The widest image an item holds on the narrowest phone. */
 export const MAX_IMAGE_WIDTH = PHONE_WIDTH - 2 * PAGE_INSET - ITEM_RULE - ITEM_INSET;
 
 /**

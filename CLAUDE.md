@@ -47,9 +47,10 @@ goes in. Every word a mail prints is a prop; the catalog data is invented, and
   compositions from importing scripts or catalog code.
 - `bun run check` is scaffolding's runner; the repository's own steps are the `check:<what>`
   scripts named in `package.json` under `scaffolding.check`.
-- `bun run test` runs Vitest on Bun. Vitest reads the gate's `SCAFFOLDING_TEST_TIMEOUT_MS` for
-  test and hook timeouts.
-- `bun run mutation` runs Stryker against the mail engine using the Vitest suite.
+- `bun run test` runs the tests that need neither a browser nor a catalog build. The pre-push gate
+  runs them for source changes. The full gate also runs `bun run check:modes` for the Chrome tests
+  in `test/browser/`. Vitest reads the gate's `SCAFFOLDING_TEST_TIMEOUT_MS` for test and hook timeouts.
+- `bun run mutation` runs Stryker against the mail engine using the fast Vitest suite.
   It runs outside the gate and writes the JSON report to `.stryker-reports/mutation.json`.
 
 ## Release

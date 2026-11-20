@@ -14,20 +14,20 @@ import {
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { Browser } from "puppeteer-core";
-import { MAX_IMAGE_WIDTH } from "../components/Image";
-import { COLUMN_WIDTH, PHONE_WIDTH } from "../components/MailShell";
-import { palette, roles } from "../components/theme";
-import { MODES, launch, openMail, quit } from "../scripts/modes";
-import { parseBrief, renderBrief } from "../scripts/render";
+import { MAX_IMAGE_WIDTH } from "../../components/Image";
+import { COLUMN_WIDTH, PHONE_WIDTH } from "../../components/MailShell";
+import { palette, roles } from "../../components/theme";
+import { MODES, launch, openMail, quit } from "../../scripts/modes";
+import { parseBrief, renderBrief } from "../../scripts/render";
 
 // Each mail goes one folder down beside a link to brand at its package path, as in the built
 // catalog, so the image its data names by a relative path loads.
-const cache = fileURLToPath(new URL("../node_modules/.cache/mail-test", import.meta.url));
+const cache = fileURLToPath(new URL("../../node_modules/.cache/mail-test", import.meta.url));
 mkdirSync(cache, { recursive: true });
 const tmp = mkdtempSync(join(cache, "modes-"));
 const dir = join(tmp, "mails");
 const shots = process.env.MAIL_SHOTS;
-const data = fileURLToPath(new URL("../catalog/mails", import.meta.url));
+const data = fileURLToPath(new URL("../../catalog/mails", import.meta.url));
 const mails = Object.fromEntries(
   readdirSync(data)
     .filter((f) => f.endsWith(".json"))

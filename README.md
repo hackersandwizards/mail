@@ -54,8 +54,9 @@ first run installs it into `~/.cache/puppeteer`.
   the git hooks at `.githooks/` ([.githooks/README.md](.githooks/README.md) lists them)
 - `bun run dev`: the catalog at http://127.0.0.1:4455/
 - `bun scripts/render.ts catalog/mails/brief.json --out /tmp/brief`: `/tmp/brief.html` and `.txt`
-- `bun run test` runs Vitest on Bun, including the headless Chrome tests.
-- `bun run check` runs the whole gate. Build first when running `check:elements`,
+- `bun run test` runs the fast Vitest suite, which also runs at push for source changes.
+- `bun run check:modes` runs the headless Chrome tests.
+- `bun run check` runs the whole gate, including both suites. Build first when running `check:elements`,
   `check:frames` or `check:retired` on its own.
 - `bun run mutation` runs Stryker with a 15-minute cap. Use `--mutate <files>` to select files.
 - `bun run build`: the catalog in `dist/`

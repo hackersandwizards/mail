@@ -48,7 +48,7 @@ the teaser block is in
 ## The slow close in the headless test (M2)
 
 `afterAll` awaited Chrome's graceful close, and bun gives a hook 5 s. Timed on this machine at 32
-views a run, twice the 16 that `test/modes.test.ts` opened then (18 now):
+views a run, twice the 16 that the browser suite opened then (18 now):
 
 | Close    | Runs | Load (1 min) | Time            |
 | -------- | ---- | ------------ | --------------- |
@@ -99,7 +99,7 @@ last-icon rule is read from the markup, not from watching which file a browser f
 
 - **The text part in the catalog:** built, a Text story beside each mail.
 - **Where a title leads:** built after the second teaser review, as `destination` on an item.
-- **A 360 px view:** built, in `test/modes.test.ts` and the Phone stories.
+- **A 360 px view:** built, in `test/browser/modes.test.ts` and the Phone stories.
 - **The mail font stacks as data in brand:** built in brand v2.11.0; `theme.ts` reads the `mail`
   stacks of its `fonts.json`.
 - **Only the dark rules a mail uses:** left. They are 18 % of a 14 KB mail against Gmail's 102 KB

@@ -12,6 +12,7 @@
     "catalog",
     "test",
     "catalog/.astro/types.d.ts",
-    "vitest.config.ts"
+    "vitest.config.ts",
+    "vitest.mutation.config.ts"
   ]
 }
