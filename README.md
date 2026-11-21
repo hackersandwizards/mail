@@ -55,6 +55,7 @@ first run installs it into `~/.cache/puppeteer`.
 - `bun run dev`: the catalog at http://127.0.0.1:4455/
 - `bun scripts/render.ts catalog/mails/brief.json --out /tmp/brief`: `/tmp/brief.html` and `.txt`
 - `bun run test` runs the fast Vitest suite, which also runs at push for source changes.
+- `bun run explore` runs 512 cases per property with a fresh seed. Replay with `bun run explore --seed <seed>`.
 - `bun run check:modes` runs the headless Chrome tests.
 - `bun run check` runs the whole gate, including both suites. Build first when running `check:elements`,
   `check:frames` or `check:retired` on its own.

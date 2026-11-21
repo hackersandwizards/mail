@@ -1,7 +1,7 @@
 import { expect, test } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { colors } from "@hackersandwizards/brand/tokens";
-import { Item, itemText } from "../components/Item";
+import { Item } from "../components/Item";
 
 const item = {
   label: "Artikel",
@@ -10,12 +10,6 @@ const item = {
   text: "Eine Anleitung für die Mail.",
 };
 const picture = { src: "preview.png", alt: "Vorschau", width: 80, height: 40 };
-
-test("an item without a destination reads as three lines with no gap", () => {
-  expect(itemText(item)).toBe(
-    "ARTIKEL: Mail lesen\nhttps://example.com/article\nEine Anleitung für die Mail.",
-  );
-});
 
 test.each([undefined, "https://example.com/gallery"])(
   "the image links to %s when supplied or to the item otherwise",

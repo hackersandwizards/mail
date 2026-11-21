@@ -5,6 +5,7 @@ import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import brandFonts from "@hackersandwizards/brand/fonts.json" with { type: "json" };
 import { colors, tokens } from "@hackersandwizards/brand/tokens";
+import { findUnreachedColours } from "./signature-colours";
 
 const brandFile = (path: string) =>
   readFileSync(createRequire(import.meta.url).resolve(`@hackersandwizards/brand/${path}`), "utf-8");
@@ -100,33 +101,11 @@ export const labelText = (words: string) =>
 /** A signature colour as brand's template spells it inline, which MailShell's dark rules match. */
 export const inlineColour = (hex: string) => `color: ${hex}`;
 
-/** Each colour of a signature template that no dark rule reaches: the dark rules repaint only an
- * inline text colour of a role, so any other colour in a style attribute, a style element or a
- * colour attribute stays light in dark mode. A colour given by name is seen only in `color`, `fill`,
- * `stroke`, a `-color` longhand, a background or an attribute. */
-export const unreachedColours = (html: string) => {
-  const paints = (d: string) =>
-    /^(?:color|fill|stroke|[\w-]*-color)\s*:/i.test(d) ||
-    /#[0-9a-f]{3,8}\b|\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch|color)\(/i.test(d) ||
-    /^background(?:-color|-image)?\s*:(?!\s*(?:none|transparent)\s*$)/i.test(d);
-  const declarations = (css: string) =>
-    css
-      .replace(/\/\*.*?\*\//gs, "")
-      .split(";")
-      .map((d) => d.trim());
-  return [
-    ...[...html.matchAll(/<style\b[^>]*>(.*?)<\/style>/gis)]
-      .flatMap(([, css]) => [...css.matchAll(/\{([^{}]*)\}/g)])
-      .flatMap(([, block]) => declarations(block))
-      .filter(paints),
-    ...[...html.matchAll(/\sstyle\s*=\s*(?:(["'])(.*?)\1|([^\s"'>]+))/gis)]
-      .flatMap(([, , quoted, bare]) => declarations(quoted ?? bare))
-      .filter((d) => paints(d) && !roles.some((r) => d === inlineColour(palette.light[r]))),
-    ...[...html.matchAll(/\s(?:bgcolor|color|fill|stroke)\s*=\s*["']?[^"'\s>]+/gi)].map(([a]) =>
-      a.trim(),
-    ),
-  ];
-};
+export const unreachedColours = (html: string) =>
+  findUnreachedColours(
+    html,
+    roles.map((role) => inlineColour(palette.light[role])),
+  );
 
 const unreached = unreachedColours(signatureTemplate.html);
 if (unreached.length)

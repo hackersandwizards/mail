@@ -5,30 +5,13 @@
  */
 import { chromeBinary, INSTALL_HINT, NO_KEYCHAIN } from "@hackersandwizards/scaffolding/chrome";
 import type { Browser, Page } from "puppeteer-core";
-import { DARK_MEDIA } from "../components/MailShell";
+import { INVERT } from "./frame-modes";
 
 export const MODES = ["light", "dark", "invert", "noimg"] as const;
 export type Mode = (typeof MODES)[number];
 
-function swap(html: string, from: string, to: string): string {
-  if (!html.includes(from)) throw new Error(`modes: the mail holds no ${from}`);
-  return html.replace(from, to);
-}
-
-/** The dark rules applied unconditionally, or never: a frame takes its colour scheme from the
- * page around it, which the viewer's system or the catalog's theme switch can turn dark. */
-export const forceDark = (html: string) => swap(html, DARK_MEDIA, "@media all");
-export const forceLight = (html: string) => swap(html, DARK_MEDIA, "@media not all");
-
-// Pictures keep their colours, as the forced modes leave them.
-const INVERT = "html,img{filter:invert(1) hue-rotate(180deg)}";
-
-/** The inversion filter the forced dark modes come close to. */
-export const forceInvert = (html: string) =>
-  swap(forceLight(html), "</head>", `<style>${INVERT}</style></head>`);
-
 /** Chrome for Testing from scaffolding's `./chrome`, headless; CHROME_BINARY overrides. Puppeteer
- * loads here, so a catalog story importing the string helpers above does not. */
+ * loads only when a browser run starts. */
 export async function launch(): Promise<Browser> {
   const executablePath = chromeBinary();
   if (!executablePath) throw new Error(INSTALL_HINT);

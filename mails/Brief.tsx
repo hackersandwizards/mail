@@ -51,8 +51,8 @@ export function checkBrief(data: unknown): asserts data is BriefProps {
       : fail(path, `must be a non-empty string, got ${JSON.stringify(value)}`);
   const list = (value: unknown, path: string, min: number) => {
     if (!Array.isArray(value) || value.length < min)
-      fail(path, `must be a list of at least ${min} entries`);
-    return value as unknown[];
+      return fail(path, `must be a list of at least ${min} entries`);
+    return Array.from<unknown>(value);
   };
   const lines = (value: unknown, path: string, min = 0) =>
     list(value, path, min).forEach((line, i) => text(line, `${path}[${i}]`));

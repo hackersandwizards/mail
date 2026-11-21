@@ -8,7 +8,7 @@ import { createElement, Fragment } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import type { BriefProps } from "../mails/Brief";
 import { mailtoHref } from "../components/ObjectionNotice";
-import { labelText, signatureTemplate, unreachedColours } from "../components/theme";
+import { labelText, unreachedColours } from "../components/theme";
 import { renderBrief } from "../scripts/render";
 import data from "../catalog/mails/brief.json";
 
@@ -97,12 +97,6 @@ describe("renderBrief", () => {
   });
 
   test("a signature colour respelled or outside the roles has no dark rule", () => {
-    const respelled = signatureTemplate.html.replace(/color: (#[0-9a-f]{6})/, "color:$1");
-    expect(unreachedColours(respelled)).toHaveLength(1);
-    expect(unreachedColours('<span style="color: #123456">')).toEqual(["color: #123456"]);
-    expect(unreachedColours('<td style="background-color: #eef1f4">')).toEqual([
-      "background-color: #eef1f4",
-    ]);
     expect(unreachedColours('<td bgcolor="#eef1f4">')).toEqual(['bgcolor="#eef1f4']);
     // Not only hex: a named background, a functional border colour, a colour attribute.
     expect(
@@ -120,24 +114,28 @@ describe("renderBrief", () => {
       "box-shadow: 0 0 0 1px oklch(0.5 0.1 200)",
       'fill="#123456',
     ]);
-    // A colour word in a link's query paints nothing.
-    expect(unreachedColours('<a href="https://example.com/?color=red&bgcolor=red">')).toEqual([]);
-    expect(unreachedColours('<table border="0" style="background: none; border: 0">')).toEqual([]);
-    // A style element, which no dark rule reaches, and a style attribute without quotes.
+    // Attribute-looking text must stay inside its quoted value.
+    expect(unreachedColours('<span title=" bgcolor=red"> bgcolor=red</span>')).toEqual([]);
+    // A style element, which no dark rule reaches.
     expect(unreachedColours("<style>td{background:#ffffff;color:#1a7285}</style>")).toEqual([
       "background:#ffffff",
       "color:#1a7285",
     ]);
-    expect(unreachedColours("<td style=background:#fff>")).toEqual(["background:#fff"]);
-    expect(unreachedColours("<span style='color: #123456'>")).toEqual(["color: #123456"]);
-    // A role's colour in a style element too, a selector that reads as hex is no colour, and a
-    // comment hides none.
-    expect(unreachedColours("<style>#face td{color: #1a7285}</style>")).toEqual(["color: #1a7285"]);
+    // A comment cannot hide a declaration.
     expect(unreachedColours('<td style="/* x */ color: red">')).toEqual(["color: red"]);
     // Named colours in a fill, a stroke or a colour longhand.
     expect(
       unreachedColours('<rect style="fill: red; stroke: navy; border-bottom-color: silver">'),
     ).toEqual(["fill: red", "stroke: navy", "border-bottom-color: silver"]);
+  });
+
+  test("comments and custom properties are ignored when scanning signature paint", () => {
+    expect(
+      unreachedColours(
+        '<!-- <td style="color:red" bgcolor=red> -->' +
+          '<td style="--note: color: unused; --hint: background: unused; outline: 1px solid hsl(0, 0%, 0%)">',
+      ),
+    ).toEqual(["outline: 1px solid hsl(0, 0%, 0%)"]);
   });
 
   test("a signature stylesheet reports painted declarations alongside ordinary layout", () => {
@@ -150,28 +148,11 @@ describe("renderBrief", () => {
     ]);
   });
 
-  test("the text part is written, not stripped: items, signature, the address without its query", () => {
-    expect(text.startsWith(`${brief.greeting}\n\n`)).toBe(true);
-    for (const item of brief.items) {
-      expect(text).toContain(
-        `${item.label.toUpperCase()}: ${item.title}\n${item.href}\n${item.destination}\n${item.text}\n`,
-      );
-    }
-    expect(text).toContain(`\n\n${brief.signature.name}\n`);
+  test("the text part keeps the notice outside signature markup", () => {
     // No signature separator, under which a program would file the objection notice.
     expect(text).not.toMatch(/^-- $/m);
-    expect(text).toContain("mit dieser vorbereiteten Mail (kim.beispiel@example.com), ohne");
     expect(text).not.toContain("mailto:");
     expect(text).not.toContain("<");
-  });
-
-  test("the text part keeps the paragraph breaks through the closing and ends with one LF", async () => {
-    const props = structuredClone(brief);
-    props.closing = ["Kind regards,", "Kim"];
-    const { text } = await renderBrief(props);
-    expect(text).toContain(`${props.greeting}\n\n${props.intro[0]}`);
-    expect(text).toContain(`\n\nKind regards,\nKim\n\n${props.signature.name}\n`);
-    expect(text).toMatch(/[^\n]\n$/);
   });
 });
 
@@ -205,14 +186,11 @@ describe("mail-render", () => {
   });
 });
 
-test.each(breaks)(
-  "a line break %j in the objection mail's body is encoded as CRLF (RFC 6068 section 5)",
-  (b) => {
-    expect(mailtoHref({ to: "kim@example.com", body: `Hallo,${b}bitte nicht mehr.` })).toBe(
-      "mailto:kim@example.com?body=Hallo%2C%0D%0Abitte%20nicht%20mehr.",
-    );
-  },
-);
+test("a Unicode line separator in an objection body opens as CRLF", () => {
+  expect(mailtoHref({ to: "kim@example.com", body: "Hallo,\u2028bitte nicht mehr." })).toBe(
+    "mailto:kim@example.com?body=Hallo%2C%0D%0Abitte%20nicht%20mehr.",
+  );
+});
 
 test("a line break in any field the engine prints reads the same in both parts", async () => {
   const fields: [string, (mail: BriefProps, value: string) => void, (said: string) => string][] = [

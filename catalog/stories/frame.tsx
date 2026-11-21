@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { render } from "react-email";
 import { COLUMN_WIDTH, MailShell, PHONE_WIDTH } from "../../components/MailShell";
 import { fonts, palette } from "../../components/theme";
-import { forceDark, forceInvert, forceLight } from "../../scripts/modes";
+import { forceDark, forceInvert, forceLight } from "../../scripts/frame-modes";
 import { mails } from "../mails";
 import MailFrame from "./MailFrame.astro";
 
