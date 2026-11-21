@@ -138,6 +138,12 @@ describe("renderBrief", () => {
     ).toEqual(["outline: 1px solid hsl(0, 0%, 0%)"]);
   });
 
+  test("signature paint inside Outlook conditional markup is reported", () => {
+    expect(unreachedColours('<!--[if mso]><td style="color:red"><![endif]-->')).toEqual([
+      "color:red",
+    ]);
+  });
+
   test("a signature stylesheet reports painted declarations alongside ordinary layout", () => {
     const signature = `<style type="text/css">
       .name { color : navy; padding: 4px; outline: 1px solid rgba(0, 0, 0, .5); }

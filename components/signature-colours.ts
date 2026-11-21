@@ -15,8 +15,9 @@ export const findUnreachedColours = (html: string, darkDeclarations: readonly st
   const styleElements: string[] = [];
   const inlineStyles: string[] = [];
   const colourAttributes: string[] = [];
+  // Outlook renders the markup after a conditional opener.
   const tags =
-    /<!--.*?-->|<style(?=[\s>])(?:[^"'<>]|"[^"]*"|'[^']*')*>(.*?)<\/style\s*>|<[a-z][\w:-]*(?=[\s/>])((?:[^"'<>]|"[^"]*"|'[^']*')*)>/gis;
+    /<!--\[if\s+[^\]]+\]>|<!--.*?-->|<style(?=[\s>])(?:[^"'<>]|"[^"]*"|'[^']*')*>(.*?)<\/style\s*>|<[a-z][\w:-]*(?=[\s/>])((?:[^"'<>]|"[^"]*"|'[^']*')*)>/gis;
   for (const [, stylesheet, attributes] of html.matchAll(tags)) {
     if (stylesheet !== undefined) {
       for (const [, rules] of stylesheet.matchAll(/\{([^{}]*)\}/g)) {

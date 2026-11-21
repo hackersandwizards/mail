@@ -49,13 +49,21 @@ export function checkBrief(data: unknown): asserts data is BriefProps {
     typeof value === "string" && value.trim()
       ? value
       : fail(path, `must be a non-empty string, got ${JSON.stringify(value)}`);
-  const list = (value: unknown, path: string, min: number) => {
+  const list = (
+    value: unknown,
+    path: string,
+    min: number,
+    validateEntry: (entry: unknown, index: number) => void,
+  ) => {
     if (!Array.isArray(value) || value.length < min)
       return fail(path, `must be a list of at least ${min} entries`);
-    return Array.from<unknown>(value);
+    for (let index = 0; index < value.length; index++) validateEntry(value[index], index);
+    // The plain-text part also spreads the intro and outro, which can use a custom iterator.
+    if (value[Symbol.iterator] !== Array.prototype.values)
+      Array.from<unknown>(value).forEach(validateEntry);
   };
   const lines = (value: unknown, path: string, min = 0) =>
-    list(value, path, min).forEach((line, i) => text(line, `${path}[${i}]`));
+    list(value, path, min, (line, i) => text(line, `${path}[${i}]`));
   const oneLine = (value: unknown, path: string) => {
     if (BREAK.test(text(value, path))) fail(path, "must be one line");
   };
@@ -92,7 +100,7 @@ export function checkBrief(data: unknown): asserts data is BriefProps {
     fail("preview", `is longer than ${PREVIEW_MAX} characters, where the inbox line is cut`);
   text(p.greeting, "greeting");
   lines(p.intro, "intro");
-  list(p.items, "items", 1).forEach((entry, i) => {
+  list(p.items, "items", 1, (entry, i) => {
     const path = `items[${i}]`;
     const item = record(entry, path, ["label", "title", "href", "text", "destination", "image"]);
     for (const key of ["label", "title", "text"]) text(item[key], `${path}.${key}`);

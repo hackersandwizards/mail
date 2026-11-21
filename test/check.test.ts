@@ -60,6 +60,20 @@ describe("renderBrief refuses data that would render a wrong mail", () => {
     expect(() => checkBrief({ ...data, intro })).toThrow("intro[0] must be a non-empty string");
   });
 
+  test("Brief validation checks the indexed items used by the renderers", () => {
+    const items = [{ ...data.items[0], title: "" }];
+    items[Symbol.iterator] = data.items.values.bind(data.items);
+    expect(() => checkBrief({ ...data, items })).toThrow(
+      "items[0].title must be a non-empty string",
+    );
+  });
+
+  test("Brief validation checks the iterated intro used by the plain-text renderer", () => {
+    const intro = ["Valid line"];
+    intro[Symbol.iterator] = [""].values.bind([""]);
+    expect(() => checkBrief({ ...data, intro })).toThrow("intro[0] must be a non-empty string");
+  });
+
   test("the catalog data passes", async () => {
     expect((await renderBrief(copy() as BriefProps)).text).toContain(data.greeting);
   });
