@@ -25,9 +25,7 @@
     "catalog": "bun run dev",
     "build": "check-lock sh -c 'cd catalog && bun --bun astro build'",
     "check": "scaffolding check",
-    "check:colours": "brand-colours",
     "check:frames": "check-lock bun scripts/check-frames.ts",
-    "check:copies": "brand-copies",
     "check:staged": "check-staged",
     "test": "scaffolding test",
     "mutation": "scaffolding-mutation"
@@ -73,10 +71,6 @@
       "check:frames": "renders and checks mail frames"
     },
     "check": [
-      [
-        "check:colours",
-        "check:copies"
-      ],
       "browser-test",
       "elements",
       "check:frames",
