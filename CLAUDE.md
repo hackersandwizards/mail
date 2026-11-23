@@ -41,14 +41,14 @@ goes in. Every word a mail prints is a prop; the catalog data is invented, and
   and the route in `catalog/pages/mails/` serves it as `/mails/<type>.html` and `.txt`, the bytes
   `mail-render` writes, and `.json`, the data file. `Home.astro` fills the shell's home with the
   foundations; the brand elements it shows are listed in `brand-elements.json`, which
-  `bun run check:elements` measures on the built home.
+  the gate's `elements` step measures on the built home.
 - Dependencies can run from the catalog through scripts and mail compositions to components.
   Oxlint bars components from importing compositions, scripts or catalog code, and bars
   compositions from importing scripts or catalog code.
-- `bun run check` is scaffolding's runner; the repository's own steps are the `check:<what>`
-  scripts named in `package.json` under `scaffolding.check`.
+- `bun run check` is scaffolding's runner. `scaffolding.check` in `package.json` lists the
+  ordered shared steps and local `check:<what>` scripts.
 - `bun run test` runs the tests that need neither a browser nor a catalog build. The pre-push gate
-  runs them for source changes. The full gate also runs `bun run check:modes` for the Chrome tests
+  runs them for source changes. The full gate also runs `browser-test` for the Chrome tests
   in `test/browser/`. Vitest reads the gate's `SCAFFOLDING_TEST_TIMEOUT_MS` for test and hook timeouts.
 - `bun run mutation` runs Stryker against the mail engine using the fast Vitest suite.
   It runs outside the gate and writes the JSON report to `.stryker-reports/mutation.json`.
