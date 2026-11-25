@@ -22,7 +22,7 @@
             "patterns": [
               {
                 "regex": "^(\\./)*(\\.\\./)+(mails|scripts|catalog)(/|$)|^@hackersandwizards/mail/(mails/|render$)",
-                "message": "Mail components cannot import mail compositions, scripts or catalog code."
+                "message": "components/** cannot import from mails/, scripts/, catalog/, or @hackersandwizards/mail/(mails|render). Pass composed content or data in as props from mails/, and keep shared tokens and helpers in components/ (such as components/theme.ts). Do not silence with oxlint-disable."
               }
             ]
           }
@@ -38,7 +38,7 @@
             "patterns": [
               {
                 "regex": "^(\\./)*(\\.\\./)+(scripts|catalog)(/|$)|^@hackersandwizards/mail/render$",
-                "message": "Mail compositions cannot import scripts or catalog code."
+                "message": "mails/** cannot import from scripts/, catalog/, or @hackersandwizards/mail/render. Keep mails/ as pure compositions over components/, move shared helpers or types into components/ or mails/, and leave rendering or preview logic in scripts/render.ts or catalog/. Do not silence with oxlint-disable."
               }
             ]
           }
