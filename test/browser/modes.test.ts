@@ -38,6 +38,12 @@ const mails = Object.fromEntries(
 const widest = structuredClone(mails["brief-bild"]);
 widest.items[0].image = { ...widest.items[0].image!, width: MAX_IMAGE_WIDTH, height: 160 };
 mails["widest-image"] = widest;
+// widest-image uses brief-bild's picture and keeps this list nonempty. If the picture is missing,
+// beforeAll fails when it renders widest-image.
+const mailsWithPictures = Object.entries(mails).flatMap(([mail, props]) => {
+  const image = props.items.find((item) => item.image)?.image;
+  return image ? [{ mail, image }] : [];
+});
 const rgb = (hex: string) =>
   `rgb(${[1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(", ")})`;
 
@@ -101,7 +107,6 @@ describe.each(Object.keys(mails))("mail %s", (mail) => {
     try {
       const seen = await page.evaluate(() => {
         const title = document.querySelector("p > a[href^='https://example.com/']");
-        const img = document.querySelector("img");
         return {
           page: getComputedStyle(document.body).backgroundColor,
           // React Email's inner Body cell, which the dark rules reach by structure.
@@ -120,10 +125,6 @@ describe.each(Object.keys(mails))("mail %s", (mail) => {
           title: title ? getComputedStyle(title).color : "",
           filter: getComputedStyle(document.documentElement).filter,
           overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
-          loaded: img ? img.complete && img.naturalWidth > 0 : null,
-          imgBox: img
-            ? [img.getBoundingClientRect().width, img.getBoundingClientRect().height]
-            : null,
         };
       });
       const scheme = mode === "dark" ? palette.dark : palette.light;
@@ -143,12 +144,6 @@ describe.each(Object.keys(mails))("mail %s", (mail) => {
       expect(seen.title).toBe(rgb(scheme.accent));
       expect(seen.filter).toBe(mode === "invert" ? "invert(1) hue-rotate(180deg)" : "none");
       expect(seen.overflow).toBe(0);
-      // The box stays at its size whether the picture loaded or not.
-      const image = mails[mail].items.find((item) => item.image)?.image;
-      if (image) {
-        expect(seen.loaded).toBe(mode !== "noimg");
-        expect(seen.imgBox).toEqual([image.width, image.height]);
-      }
       if (shots) {
         mkdirSync(shots, { recursive: true });
         const png = await page.screenshot({ fullPage: true, type: "png" });
@@ -158,4 +153,26 @@ describe.each(Object.keys(mails))("mail %s", (mail) => {
       await page.close();
     }
   });
+});
+
+describe.each(mailsWithPictures)("picture in mail $mail", ({ mail, image }) => {
+  test.each(views(mail))(
+    "the box keeps its size whether the picture loads or not in %s at %i px",
+    async (mode, width) => {
+      const page = await openMail(browser, join(dir, `${mail}.html`), mode, width);
+      try {
+        const seen = await page.$eval("img", (img) => {
+          const box = img.getBoundingClientRect();
+          return {
+            loaded: img.complete && img.naturalWidth > 0,
+            imgBox: [box.width, box.height],
+          };
+        });
+        expect(seen.loaded).toBe(mode !== "noimg");
+        expect(seen.imgBox).toEqual([image.width, image.height]);
+      } finally {
+        await page.close();
+      }
+    },
+  );
 });
