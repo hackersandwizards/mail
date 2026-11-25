@@ -185,28 +185,38 @@ describe("renderBrief refuses data that would render a wrong mail", () => {
     expect((await renderBrief(edit("preview", preview))).html).toContain(`>${preview}<`);
   });
 
-  test("mail-render names the data file and the field, and writes nothing", () => {
+  test.each([
+    {
+      reason: "a missing objection address",
+      name: "missing-to.json",
+      json: JSON.stringify(edit("objection.mailto.to")),
+      output: (dir: string) => ["--out", join(dir, "out")],
+      expected: { status: 1, stdout: "" },
+      stderr: { anchor: "", detail: "objection.mailto.to" },
+    },
+    {
+      reason: "malformed JSON",
+      name: "malformed.json",
+      json: "{",
+      output: () => [],
+      expected: { status: 1 },
+      stderr: { anchor: "^", detail: "" },
+    },
+  ])("mail-render names $reason and writes nothing", ({ name, json, output, expected, stderr }) => {
     const cache = join(root, "node_modules", ".cache", "mail-test");
     mkdirSync(cache, { recursive: true });
     const dir = mkdtempSync(join(cache, "check-"));
     try {
-      const file = join(dir, "missing-to.json");
-      writeFileSync(file, JSON.stringify(edit("objection.mailto.to")));
-      const run = spawnSync("bun", ["scripts/render.ts", file, "--out", join(dir, "out")], {
+      const file = join(dir, name);
+      writeFileSync(file, json);
+      const run = spawnSync("bun", ["scripts/render.ts", file, ...output(dir)], {
         cwd: root,
         encoding: "utf-8",
       });
-      expect(run.status).toBe(1);
-      expect(run.stdout).toBe("");
-      expect(run.stderr).toContain(`mail-render: ${file}: objection.mailto.to`);
-      writeFileSync(file, "{");
-      const broken = spawnSync("bun", ["scripts/render.ts", file], {
-        cwd: root,
-        encoding: "utf-8",
-      });
-      expect(broken.status).toBe(1);
-      expect(broken.stderr.startsWith(`mail-render: ${file}: `), broken.stderr).toBe(true);
-      expect(readdirSync(dir)).toEqual(["missing-to.json"]);
+      expect(run).toMatchObject(expected);
+      const diagnostic = RegExp.escape(`mail-render: ${file}: ${stderr.detail}`);
+      expect(run.stderr).toMatch(new RegExp(`${stderr.anchor}${diagnostic}`));
+      expect(readdirSync(dir)).toEqual([name]);
     } finally {
       rmSync(dir, { recursive: true });
     }

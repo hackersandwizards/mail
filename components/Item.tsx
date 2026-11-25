@@ -1,5 +1,6 @@
 import { Link, Text } from "react-email";
 import { Image, type ImageProps } from "./Image";
+import { LayoutCell } from "./LayoutCell";
 import { accentLink, ITEM_INSET, ITEM_RULE, paint } from "./MailShell";
 import { broken } from "./Paragraph";
 import { label as labelType, labelText, palette } from "./theme";
@@ -25,51 +26,42 @@ export const itemText = ({ label, title, href, text, destination }: ItemProps) =
 export function Item({ label, title, href, text, destination, image }: ItemProps) {
   const { accent, muted } = palette.light;
   return (
-    <table
-      role="presentation"
-      cellPadding={0}
-      cellSpacing={0}
-      border={0}
+    <LayoutCell
       width="100%"
-      style={{ marginBottom: 32 }}
+      tableStyle={{ marginBottom: 32 }}
+      cell={{
+        className: paint.border("accent"),
+        style: { borderLeft: `${ITEM_RULE}px solid ${accent}`, paddingLeft: ITEM_INSET },
+      }}
     >
-      <tbody>
-        <tr>
-          <td
-            className={paint.border("accent")}
-            style={{ borderLeft: `${ITEM_RULE}px solid ${accent}`, paddingLeft: ITEM_INSET }}
-          >
-            {image ? <Image {...image} href={image.href ?? href} /> : null}
-            <Text
-              className={paint.text("label")}
-              style={{ ...labelType, color: palette.light.label, margin: "0 0 6px" }}
-            >
-              {broken(label)}
-            </Text>
-            <Text
-              style={{
-                fontSize: 18,
-                lineHeight: "26px",
-                fontWeight: "bold",
-                margin: destination ? "0 0 2px" : "0 0 8px",
-              }}
-            >
-              <Link href={href} {...accentLink}>
-                {broken(title)}
-              </Link>
-            </Text>
-            {destination ? (
-              <Text
-                className={paint.text("muted")}
-                style={{ fontSize: 14, lineHeight: "20px", margin: "0 0 8px", color: muted }}
-              >
-                {broken(destination)}
-              </Text>
-            ) : null}
-            <Text style={{ fontSize: 16, lineHeight: "24px", margin: 0 }}>{broken(text)}</Text>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+      {image ? <Image {...image} href={image.href ?? href} /> : null}
+      <Text
+        className={paint.text("label")}
+        style={{ ...labelType, color: palette.light.label, margin: "0 0 6px" }}
+      >
+        {broken(label)}
+      </Text>
+      <Text
+        style={{
+          fontSize: 18,
+          lineHeight: "26px",
+          fontWeight: "bold",
+          margin: destination ? "0 0 2px" : "0 0 8px",
+        }}
+      >
+        <Link href={href} {...accentLink}>
+          {broken(title)}
+        </Link>
+      </Text>
+      {destination ? (
+        <Text
+          className={paint.text("muted")}
+          style={{ fontSize: 14, lineHeight: "20px", margin: "0 0 8px", color: muted }}
+        >
+          {broken(destination)}
+        </Text>
+      ) : null}
+      <Text style={{ fontSize: 16, lineHeight: "24px", margin: 0 }}>{broken(text)}</Text>
+    </LayoutCell>
   );
 }

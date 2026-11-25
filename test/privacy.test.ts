@@ -13,29 +13,60 @@ const INVENTED_FIRST_NAMES = ["Robin"];
 const record = (value: unknown): Record<string, unknown> =>
   typeof value === "object" && value !== null ? (value as Record<string, unknown>) : {};
 
-/** Every place a data file names a host, an address, a phone number or a person that is not invented. */
-function leaks(raw: string): string[] {
-  const { greeting, signature } = record(JSON.parse(raw));
+// Address hosts may use any script.
+function addressLeaks(raw: string): string[] {
   const found: string[] = [];
-  // Addresses and hosts in any script, with or without a scheme; a path segment after a slash and
-  // an address's local part are no host, so a relative image path passes.
   for (const [, host] of raw.matchAll(/[\p{L}\d._%+-]+@([\p{L}\d.-]+\.\p{L}{2,})/gu))
     if (host !== "example.com") found.push(`address at ${host}`);
+  return found;
+}
+
+// Hosts can appear with or without a scheme. A path segment after a slash and an address's local
+// part are no host, so a relative image path passes.
+function hostLeaks(raw: string): string[] {
+  const found: string[] = [];
   for (const [, host] of raw.matchAll(/\/\/([^/\s"?#]+)/g))
     if (!ALLOWED_HOSTS.includes(host)) found.push(`host ${host}`);
   for (const [host] of raw.matchAll(
     /(?<![\p{L}\d/@.-])(?:[\p{L}\d-]+\.)+\p{L}{2,}(?![\p{L}\d@-])/gu,
   ))
     if (!ALLOWED_HOSTS.includes(host)) found.push(`host ${host}`);
+  return found;
+}
+
+function numberLeaks(raw: string): string[] {
+  const found: string[] = [];
   for (const [number] of raw.matchAll(/\+?\d[\d /-]{6,}\d/g))
     if (number !== EXAMPLE.phone) found.push(`number ${number}`);
+  return found;
+}
+
+function signatureLeaks(signature: unknown): string[] {
+  const found: string[] = [];
   const { name, phone, linkedin } = record(signature);
   if (name !== EXAMPLE.name) found.push(`signature ${name}`);
   if (phone !== undefined && phone !== EXAMPLE.phone) found.push(`phone ${phone}`);
   if (linkedin !== undefined && linkedin !== EXAMPLE.linkedin) found.push(`linkedin ${linkedin}`);
+  return found;
+}
+
+function greetingLeaks(greeting: unknown): string[] {
+  const found: string[] = [];
   const first = typeof greeting === "string" ? /(\p{L}+),?\s*$/u.exec(greeting)?.[1] : undefined;
   if (!first || !INVENTED_FIRST_NAMES.includes(first)) found.push(`greeting ${greeting}`);
   return found;
+}
+
+/** Every place a data file names a host, an address, a phone number or a person that is not invented. */
+function leaks(raw: string): string[] {
+  const { greeting, signature } = record(JSON.parse(raw));
+  return [
+    ...addressLeaks(raw),
+    ...hostLeaks(raw),
+    ...numberLeaks(raw),
+    ...signatureLeaks(signature),
+    ...greetingLeaks(greeting),
+  ];
 }
 
 test.each(readdirSync(dir).filter((f) => f.endsWith(".json")))("%s is invented", (file) => {

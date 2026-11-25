@@ -9,6 +9,7 @@ import { INVERT } from "./frame-modes";
 
 export const MODES = ["light", "dark", "invert", "noimg"] as const;
 export type Mode = (typeof MODES)[number];
+export type MailView = { mode: Mode; width: number };
 
 /** Chrome for Testing from scaffolding's `./chrome`, headless; CHROME_BINARY overrides. Puppeteer
  * loads only when a browser run starts. */
@@ -33,8 +34,7 @@ export async function quit(browser: Browser): Promise<void> {
 export async function openMail(
   browser: Browser,
   file: string,
-  mode: Mode,
-  width: number,
+  { mode, width }: MailView,
 ): Promise<Page> {
   const page = await browser.newPage();
   try {

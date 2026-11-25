@@ -23,6 +23,106 @@ export type BriefProps = {
 /** React Email's `Preview` cuts the preview line here, mid-word. */
 const PREVIEW_MAX = 200;
 
+const invalidBriefField = (path: string, why: string): never => {
+  throw new Error(`${path} ${why}`);
+};
+const briefFields = (value: unknown, path: string, keys: string[]) => {
+  if (typeof value !== "object" || value === null || Array.isArray(value))
+    invalidBriefField(path, "must be an object");
+  const fields = value as Record<string, unknown>;
+  for (const key of Object.keys(fields))
+    if (!keys.includes(key))
+      invalidBriefField(`${path}.${key}`, `is no field; the fields are ${keys.join(", ")}`);
+  return fields;
+};
+const briefFieldText = (value: unknown, path: string) =>
+  typeof value === "string" && value.trim()
+    ? value
+    : invalidBriefField(path, `must be a non-empty string, got ${JSON.stringify(value)}`);
+function* briefListEntries(value: unknown, path: string, min: number) {
+  if (!Array.isArray(value) || value.length < min)
+    return invalidBriefField(path, `must be a list of at least ${min} entries`);
+  for (let index = 0; index < value.length; index++)
+    yield [index, value[index] as unknown] as const;
+  // The plain-text part also spreads the intro and outro, which can use a custom iterator.
+  if (value[Symbol.iterator] !== Array.prototype.values)
+    yield* Array.from<unknown>(value).entries();
+}
+
+function checkBriefLines(value: unknown, path: string, min = 0) {
+  for (const [index, line] of briefListEntries(value, path, min))
+    briefFieldText(line, `${path}[${index}]`);
+}
+
+const briefSingleLine = (value: unknown, path: string) => {
+  if (BREAK.test(briefFieldText(value, path))) invalidBriefField(path, "must be one line");
+};
+// A URL parser drops or encodes whitespace, control and format characters and reads a backslash
+// as a slash; it also maps a full-width letter in the host, so a link or address that NFKC changes
+// is not the one the mail prints.
+const unsafeBriefLink = /[\s\p{Cc}\p{Cf}\\]/u;
+const isPlainBriefLink = (value: string) =>
+  !unsafeBriefLink.test(value) && value.normalize("NFKC") === value;
+const briefHttps = (value: unknown, path: string, want = "an https URL") => {
+  const url = briefFieldText(value, path);
+  if (!url.startsWith("https://") || !isPlainBriefLink(url) || !URL.parse(url))
+    invalidBriefField(path, `must be ${want}, got ${JSON.stringify(url)}`);
+};
+const briefPixels = (value: unknown, path: string) =>
+  Number.isInteger(value) && (value as number) > 0
+    ? (value as number)
+    : invalidBriefField(path, `must be a whole number of pixels above 0, got ${value}`);
+
+function checkBriefImage(value: unknown, path: string) {
+  const image = briefFields(value, path, ["src", "alt", "width", "height", "href"]);
+  const src = briefFieldText(image.src, `${path}.src`);
+  // Only a plain path is relative: a colon, a leading `//` or an unsafe character can name
+  // another scheme or host.
+  if (unsafeBriefLink.test(src) || /:|^\/\//.test(src))
+    briefHttps(src, `${path}.src`, "an https URL or a plain relative path");
+  briefFieldText(image.alt, `${path}.alt`);
+  if (briefPixels(image.width, `${path}.width`) > MAX_IMAGE_WIDTH)
+    invalidBriefField(
+      `${path}.width`,
+      `is wider than the ${MAX_IMAGE_WIDTH} px the phone column holds`,
+    );
+  briefPixels(image.height, `${path}.height`);
+  if (image.href !== undefined) briefHttps(image.href, `${path}.href`);
+}
+
+function checkBriefItem(value: unknown, path: string) {
+  const item = briefFields(value, path, ["label", "title", "href", "text", "destination", "image"]);
+  for (const key of ["label", "title", "text"]) briefFieldText(item[key], `${path}.${key}`);
+  if (item.destination !== undefined) briefFieldText(item.destination, `${path}.destination`);
+  briefHttps(item.href, `${path}.href`);
+  if (item.image !== undefined) checkBriefImage(item.image, `${path}.image`);
+}
+
+function checkBriefSignature(value: unknown, path: string) {
+  const signature = briefFields(value, path, ["name", "role", "phone", "linkedin"]);
+  // The brand's signature template folds a line break the text part keeps.
+  briefSingleLine(signature.name, `${path}.name`);
+  briefSingleLine(signature.role, `${path}.role`);
+  if (signature.phone !== undefined) briefSingleLine(signature.phone, `${path}.phone`);
+  if (signature.linkedin !== undefined) briefHttps(signature.linkedin, `${path}.linkedin`);
+}
+
+function checkBriefMailto(value: unknown, path: string) {
+  const mailto = briefFields(value, path, ["to", "subject", "body"]);
+  const to = briefFieldText(mailto.to, `${path}.to`);
+  if (!isPlainBriefLink(to) || !/^[^@?&#,%;<>"/]+@[^@?&#,%;<>"/]+$/.test(to))
+    invalidBriefField(`${path}.to`, `must be one plain address, got ${JSON.stringify(to)}`);
+  if (mailto.subject !== undefined) briefSingleLine(mailto.subject, `${path}.subject`);
+  if (mailto.body !== undefined) briefFieldText(mailto.body, `${path}.body`);
+}
+
+function checkBriefObjection(value: unknown, path: string) {
+  const objection = briefFields(value, path, ["before", "linkText", "after", "mailto"]);
+  for (const key of ["before", "linkText", "after"])
+    briefFieldText(objection[key], `${path}.${key}`);
+  checkBriefMailto(objection.mailto, `${path}.mailto`);
+}
+
 /**
  * Refuses data that would render a wrong mail, naming the field: a missing, empty or unknown field
  * (printed as `undefined`, left blank or silently dropped), a language other than `de` or `en`, a
@@ -33,56 +133,7 @@ const PREVIEW_MAX = 200;
  * serves.
  */
 export function checkBrief(data: unknown): asserts data is BriefProps {
-  const fail = (path: string, why: string): never => {
-    throw new Error(`${path} ${why}`);
-  };
-  const record = (value: unknown, path: string, keys: string[]) => {
-    if (typeof value !== "object" || value === null || Array.isArray(value))
-      fail(path, "must be an object");
-    const fields = value as Record<string, unknown>;
-    for (const key of Object.keys(fields))
-      if (!keys.includes(key))
-        fail(`${path}.${key}`, `is no field; the fields are ${keys.join(", ")}`);
-    return fields;
-  };
-  const text = (value: unknown, path: string) =>
-    typeof value === "string" && value.trim()
-      ? value
-      : fail(path, `must be a non-empty string, got ${JSON.stringify(value)}`);
-  const list = (
-    value: unknown,
-    path: string,
-    min: number,
-    validateEntry: (entry: unknown, index: number) => void,
-  ) => {
-    if (!Array.isArray(value) || value.length < min)
-      return fail(path, `must be a list of at least ${min} entries`);
-    for (let index = 0; index < value.length; index++) validateEntry(value[index], index);
-    // The plain-text part also spreads the intro and outro, which can use a custom iterator.
-    if (value[Symbol.iterator] !== Array.prototype.values)
-      Array.from<unknown>(value).forEach(validateEntry);
-  };
-  const lines = (value: unknown, path: string, min = 0) =>
-    list(value, path, min, (line, i) => text(line, `${path}[${i}]`));
-  const oneLine = (value: unknown, path: string) => {
-    if (BREAK.test(text(value, path))) fail(path, "must be one line");
-  };
-  // A URL parser drops or encodes whitespace, control and format characters and reads a backslash
-  // as a slash; it also maps a full-width letter in the host, so a link or address that NFKC changes
-  // is not the one the mail prints.
-  const unsafe = /[\s\p{Cc}\p{Cf}\\]/u;
-  const plain = (value: string) => !unsafe.test(value) && value.normalize("NFKC") === value;
-  const https = (value: unknown, path: string, want = "an https URL") => {
-    const url = text(value, path);
-    if (!url.startsWith("https://") || !plain(url) || !URL.parse(url))
-      fail(path, `must be ${want}, got ${JSON.stringify(url)}`);
-  };
-  const pixels = (value: unknown, path: string) =>
-    Number.isInteger(value) && (value as number) > 0
-      ? (value as number)
-      : fail(path, `must be a whole number of pixels above 0, got ${value}`);
-
-  const p = record(data, "the data", [
+  const p = briefFields(data, "the data", [
     "lang",
     "subject",
     "preview",
@@ -94,47 +145,22 @@ export function checkBrief(data: unknown): asserts data is BriefProps {
     "signature",
     "objection",
   ]);
-  if (p.lang !== "de" && p.lang !== "en") fail("lang", `must be "de" or "en", got ${p.lang}`);
-  oneLine(p.subject, "subject");
-  if (text(p.preview, "preview").length > PREVIEW_MAX)
-    fail("preview", `is longer than ${PREVIEW_MAX} characters, where the inbox line is cut`);
-  text(p.greeting, "greeting");
-  lines(p.intro, "intro");
-  list(p.items, "items", 1, (entry, i) => {
-    const path = `items[${i}]`;
-    const item = record(entry, path, ["label", "title", "href", "text", "destination", "image"]);
-    for (const key of ["label", "title", "text"]) text(item[key], `${path}.${key}`);
-    if (item.destination !== undefined) text(item.destination, `${path}.destination`);
-    https(item.href, `${path}.href`);
-    if (item.image === undefined) return;
-    const image = record(item.image, `${path}.image`, ["src", "alt", "width", "height", "href"]);
-    const src = text(image.src, `${path}.image.src`);
-    // Only a plain path is relative: a colon, a leading `//` or an unsafe character can name
-    // another scheme or host.
-    if (unsafe.test(src) || /:|^\/\//.test(src))
-      https(src, `${path}.image.src`, "an https URL or a plain relative path");
-    text(image.alt, `${path}.image.alt`);
-    if (pixels(image.width, `${path}.image.width`) > MAX_IMAGE_WIDTH)
-      fail(`${path}.image.width`, `is wider than the ${MAX_IMAGE_WIDTH} px the phone column holds`);
-    pixels(image.height, `${path}.image.height`);
-    if (image.href !== undefined) https(image.href, `${path}.image.href`);
-  });
-  lines(p.outro, "outro");
-  lines(p.closing, "closing", 1);
-  const signature = record(p.signature, "signature", ["name", "role", "phone", "linkedin"]);
-  // The brand's signature template folds a line break the text part keeps.
-  oneLine(signature.name, "signature.name");
-  oneLine(signature.role, "signature.role");
-  if (signature.phone !== undefined) oneLine(signature.phone, "signature.phone");
-  if (signature.linkedin !== undefined) https(signature.linkedin, "signature.linkedin");
-  const objection = record(p.objection, "objection", ["before", "linkText", "after", "mailto"]);
-  for (const key of ["before", "linkText", "after"]) text(objection[key], `objection.${key}`);
-  const mailto = record(objection.mailto, "objection.mailto", ["to", "subject", "body"]);
-  const to = text(mailto.to, "objection.mailto.to");
-  if (!plain(to) || !/^[^@?&#,%;<>"/]+@[^@?&#,%;<>"/]+$/.test(to))
-    fail("objection.mailto.to", `must be one plain address, got ${JSON.stringify(to)}`);
-  if (mailto.subject !== undefined) oneLine(mailto.subject, "objection.mailto.subject");
-  if (mailto.body !== undefined) text(mailto.body, "objection.mailto.body");
+  if (p.lang !== "de" && p.lang !== "en")
+    invalidBriefField("lang", `must be "de" or "en", got ${p.lang}`);
+  briefSingleLine(p.subject, "subject");
+  if (briefFieldText(p.preview, "preview").length > PREVIEW_MAX)
+    invalidBriefField(
+      "preview",
+      `is longer than ${PREVIEW_MAX} characters, where the inbox line is cut`,
+    );
+  briefFieldText(p.greeting, "greeting");
+  checkBriefLines(p.intro, "intro");
+  for (const [index, item] of briefListEntries(p.items, "items", 1))
+    checkBriefItem(item, `items[${index}]`);
+  checkBriefLines(p.outro, "outro");
+  checkBriefLines(p.closing, "closing", 1);
+  checkBriefSignature(p.signature, "signature");
+  checkBriefObjection(p.objection, "objection");
 }
 
 /**

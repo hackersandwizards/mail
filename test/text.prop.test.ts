@@ -56,77 +56,154 @@ test.prop(
   },
 );
 
-test.prop([line, line, line, fc.option(line, { nil: undefined })], {
-  examples: [
-    ["Straße", "標題", "é".repeat(1024), undefined],
-    ["", "", "", ""],
-    ["a/b", "?&", "x", "Ziel"],
-  ],
-})(
-  "an item writes its heading, URL, optional destination and text in order",
-  (label, title, text, destination) => {
-    const href = "https://example.com/article";
+const href = "https://example.com/article";
+const populatedLine = line.filter((text) => text.length > 0);
+const destinationLine = fc.oneof(
+  fc.constant({ destination: undefined, printed: [] }),
+  fc.constant({ destination: "", printed: [] }),
+  populatedLine.map((destination) => ({ destination, printed: [destination] })),
+);
+const descriptionLine = fc.oneof(
+  fc.constant({ text: "", printed: [] }),
+  populatedLine.map((text) => ({ text, printed: [text] })),
+);
+const itemWithText = fc
+  .tuple(line, line, destinationLine, descriptionLine)
+  .map(([label, title, destination, description]) => {
     const display = {
       uppercase: label.toUpperCase(),
       lowercase: label.toLowerCase(),
       none: label,
     }[labelType.textTransform];
-    const expected = [`${display}: ${title}`, href];
-    if (destination) expected.push(destination);
-    if (text) expected.push(text);
-    expect(itemText({ label, title, text, destination, href })).toBe(expected.join("\n"));
-  },
-);
+    return {
+      item: { label, title, href, destination: destination.destination, text: description.text },
+      lines: [`${display}: ${title}`, href, ...destination.printed, ...description.printed],
+    };
+  });
 
-test.prop([line, line, line, line], {
+test.prop([itemWithText], {
   examples: [
-    ["Mit ", "dieser Mail", " abmelden.", "a?b&c=#d"],
-    ["", "", "", ""],
-    ["語".repeat(1024), "🚀", "(?)", "plus+space"],
+    [
+      {
+        item: {
+          label: "Straße",
+          title: "標題",
+          href,
+          destination: undefined,
+          text: "é".repeat(1024),
+        },
+        lines: ["STRASSE: 標題", href, "é".repeat(1024)],
+      },
+    ],
+    [
+      {
+        item: { label: "", title: "", href, destination: "", text: "" },
+        lines: [": ", href],
+      },
+    ],
+    [
+      {
+        item: { label: "a/b", title: "?&", href, destination: "Ziel", text: "x" },
+        lines: ["A/B: ?&", href, "Ziel", "x"],
+      },
+    ],
   ],
-})(
-  "the notice writes its words and address without the mailto query",
-  (before, linkText, after, body) => {
-    const to = "kim@example.com";
-    expect(objectionText({ before, linkText, after, mailto: { to, body, subject: body } })).toBe(
-      `${before}${linkText} (${to})${after}`,
-    );
-  },
-);
+})("an item writes its heading, URL, optional destination and text in order", ({ item, lines }) => {
+  expect(itemText(item)).toBe(lines.join("\n"));
+});
 
-test.prop(
-  [
+const to = "kim@example.com";
+const noticeWithText = fc.tuple(line, line, line, line).map(([before, linkText, after, body]) => ({
+  notice: { before, linkText, after, mailto: { to, body, subject: body } },
+  text: `${before}${linkText} (${to})${after}`,
+}));
+
+test.prop([noticeWithText], {
+  examples: [
+    [
+      {
+        notice: {
+          before: "Mit ",
+          linkText: "dieser Mail",
+          after: " abmelden.",
+          mailto: { to, body: "a?b&c=#d", subject: "a?b&c=#d" },
+        },
+        text: "Mit dieser Mail (kim@example.com) abmelden.",
+      },
+    ],
+    [
+      {
+        notice: { before: "", linkText: "", after: "", mailto: { to, body: "", subject: "" } },
+        text: " (kim@example.com)",
+      },
+    ],
+    [
+      {
+        notice: {
+          before: "語".repeat(1024),
+          linkText: "🚀",
+          after: "(?)",
+          mailto: { to, body: "plus+space", subject: "plus+space" },
+        },
+        text: `${"語".repeat(1024)}🚀 (kim@example.com)(?)`,
+      },
+    ],
+  ],
+})("the notice writes its words and address without the mailto query", ({ notice, text }) => {
+  expect(objectionText(notice)).toBe(text);
+});
+
+const itemBlocks = brief.items.map(itemText);
+const signatureBlock = signatureText(brief.signature).trim();
+const objectionBlock = objectionText(brief.objection);
+const briefWithText = fc
+  .tuple(
     fc.array(line, { maxLength: 8 }),
     fc.array(line, { maxLength: 8 }),
     fc.array(line, { minLength: 1, maxLength: 8 }),
     fc.constantFrom(...separators),
-  ],
-  {
-    examples: separators.map(
-      (separator) =>
-        [["Einführung", "前"], ["語".repeat(1024)], ["Gruß", "Kim"], separator] satisfies [
-          string[],
-          string[],
-          string[],
-          string,
-        ],
-    ),
-  },
-)(
-  "Brief text preserves block order and normalizes breaks to LF",
-  (intro, outro, closing, separator) => {
-    const greeting = `Moin${separator}Robin,`;
-    const expected = [
+  )
+  .map(([intro, outro, closing, separator]) => ({
+    input: { ...brief, greeting: `Moin${separator}Robin,`, intro, outro, closing },
+    blocks: [
       "Moin\nRobin,",
       ...intro,
-      ...brief.items.map(itemText),
+      ...itemBlocks,
       ...outro,
       closing.join("\n"),
-      signatureText(brief.signature).trim(),
-      objectionText(brief.objection),
-    ];
-    expect(briefText({ ...brief, greeting, intro, outro, closing })).toBe(
-      `${expected.join("\n\n")}\n`,
-    );
-  },
-);
+      signatureBlock,
+      objectionBlock,
+    ],
+  }));
+
+const exampleBrief = {
+  ...brief,
+  intro: ["Einführung", "前"],
+  outro: ["語".repeat(1024)],
+  closing: ["Gruß", "Kim"],
+};
+const exampleBlocks = [
+  "Moin\nRobin,",
+  "Einführung",
+  "前",
+  ...itemBlocks,
+  "語".repeat(1024),
+  "Gruß\nKim",
+  signatureBlock,
+  objectionBlock,
+];
+
+test.prop([briefWithText], {
+  examples: [
+    [{ input: { ...exampleBrief, greeting: "Moin\r\nRobin," }, blocks: exampleBlocks }],
+    [{ input: { ...exampleBrief, greeting: "Moin\nRobin," }, blocks: exampleBlocks }],
+    [{ input: { ...exampleBrief, greeting: "Moin\rRobin," }, blocks: exampleBlocks }],
+    [{ input: { ...exampleBrief, greeting: "Moin\vRobin," }, blocks: exampleBlocks }],
+    [{ input: { ...exampleBrief, greeting: "Moin\fRobin," }, blocks: exampleBlocks }],
+    [{ input: { ...exampleBrief, greeting: "Moin\u0085Robin," }, blocks: exampleBlocks }],
+    [{ input: { ...exampleBrief, greeting: "Moin\u2028Robin," }, blocks: exampleBlocks }],
+    [{ input: { ...exampleBrief, greeting: "Moin\u2029Robin," }, blocks: exampleBlocks }],
+  ],
+})("Brief text preserves block order and normalizes breaks to LF", ({ input, blocks }) => {
+  expect(briefText(input)).toBe(`${blocks.join("\n\n")}\n`);
+});

@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vitest";
+import { assert, describe, expect, test } from "vitest";
 import { spawnSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { join } from "node:path";
@@ -8,41 +8,51 @@ import { createElement, Fragment } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import type { BriefProps } from "../mails/Brief";
 import { mailtoHref } from "../components/ObjectionNotice";
-import { labelText, unreachedColours } from "../components/theme";
+import { unreachedColours } from "../components/theme";
 import { renderBrief } from "../scripts/render";
 import data from "../catalog/mails/brief.json";
+import { style } from "./markup";
 
 const brief = data as BriefProps;
 const root = fileURLToPath(new URL("..", import.meta.url));
 const mail = await renderBrief(brief);
 /** A data string as React writes it into the HTML. */
 const escaped = (text: string) => renderToStaticMarkup(createElement(Fragment, null, text));
-/** Every kind of line break a data string may hold. */
-const breaks = ["\n", "\r\n", "\r", "\u2028", "\u2029", "\u0085", "\v", "\f"];
-
 describe("renderBrief", () => {
   const { html, text } = mail;
 
-  test("the HTML part carries the head a mail client needs", () => {
+  test("the HTML document declares its language, viewport, color scheme and title", () => {
     expect(html).toContain('<html dir="ltr" lang="de">');
     expect(html).toContain('<meta name="viewport" content="width=device-width, initial-scale=1"/>');
     expect(html).toContain('<meta name="color-scheme" content="light dark"/>');
     expect(html).toContain(`<title>${escaped(brief.subject)}</title>`);
     expect(html.match(/<title>/g)).toHaveLength(1);
+  });
+
+  test("dark declarations stay in the mail for clients that read them", () => {
     expect(html).toContain("@media (prefers-color-scheme: dark)");
     expect(html).toContain("[data-ogsc] .hw-ink");
     expect(html).not.toMatch(/<link[^>]+stylesheet/);
+  });
+
+  test("the HTML part fits below Gmail’s clipping threshold", () => {
     // Gmail clips a message above about 102 KB.
     expect(Buffer.byteLength(html)).toBeLessThan(102_000);
   });
 
-  test("the HTML part carries the links, one wordmark and the brand's colours", () => {
-    for (const item of brief.items) expect(html).toContain(`href="${escaped(item.href)}"`);
+  test.each(brief.items)("the HTML part links to $href", ({ href }) => {
+    expect(html).toContain(`href="${escaped(href)}"`);
+  });
+
+  test("the signature carries the only wordmark after the greeting", () => {
     // No header: the signature's wordmark is the only one, after the greeting.
     expect(html.match(/>hackers<\/span>/g)).toHaveLength(1);
     expect(html.indexOf(escaped(brief.greeting))).toBeLessThan(html.indexOf(">hackers</span>"));
     expect(html).toContain(escaped(brief.signature.name));
     expect(html).toContain(`color:${colors["--color-teal"]}`);
+  });
+
+  test("the objection link carries the supplied mailto query", () => {
     expect(html).toContain(
       'href="mailto:kim.beispiel@example.com?subject=Bitte%20keine%20Updates%20mehr&amp;body=',
     );
@@ -82,51 +92,47 @@ describe("renderBrief", () => {
           `${RegExp.escape(escaped(item.title))}</a></p><p class="hw-muted"[^>]*>${RegExp.escape(escaped(item.destination!))}</p>`,
         ),
       );
-    const labels = html.match(/<p class="hw-label"[^>]*>/g) ?? [];
+    const labels = html.match(/<p class="hw-label"[^>]*>/g);
+    assert(labels, "The HTML should include item labels");
     expect(labels).toHaveLength(brief.items.length);
     const size = parseFloat(tokens["--text-label"]) * 16;
     for (const label of labels) {
-      expect(label).toContain(`font-size:${size}px`);
-      expect(label).toContain(
-        `line-height:${+(size * Number(tokens["--text-label--line-height"])).toFixed(2)}px`,
-      );
-      expect(label).toContain(`font-weight:${tokens["--type-label-weight"]}`);
-      expect(label).toContain(`letter-spacing:${tokens["--tracking-label"]}`);
-      expect(label).toContain(`text-transform:${tokens["--type-label-case"]}`);
+      expect(style(label, "p")).toMatchObject({
+        "font-size": `${size}px`,
+        "line-height": `${+(size * Number(tokens["--text-label--line-height"])).toFixed(2)}px`,
+        "font-weight": `${tokens["--type-label-weight"]}`,
+        "letter-spacing": `${tokens["--tracking-label"]}`,
+        "text-transform": `${tokens["--type-label-case"]}`,
+      });
     }
   });
 
-  test("a signature colour respelled or outside the roles has no dark rule", () => {
-    expect(unreachedColours('<td bgcolor="#eef1f4">')).toEqual(['bgcolor="#eef1f4']);
-    // Not only hex: a named background, a functional border colour, a colour attribute.
-    expect(
-      unreachedColours(
-        '<td style="background: white; border: 1px solid rgb(1, 2, 3)"><font color="navy">',
-      ),
-    ).toEqual(["background: white", "border: 1px solid rgb(1, 2, 3)", 'color="navy']);
-    // Any property carrying a colour literal, and SVG paint.
-    expect(
-      unreachedColours(
-        '<td style="outline: 1px solid #123456; box-shadow: 0 0 0 1px oklch(0.5 0.1 200)"><path fill="#123456">',
-      ),
-    ).toEqual([
-      "outline: 1px solid #123456",
-      "box-shadow: 0 0 0 1px oklch(0.5 0.1 200)",
-      'fill="#123456',
-    ]);
-    // Attribute-looking text must stay inside its quoted value.
-    expect(unreachedColours('<span title=" bgcolor=red"> bgcolor=red</span>')).toEqual([]);
-    // A style element, which no dark rule reaches.
-    expect(unreachedColours("<style>td{background:#ffffff;color:#1a7285}</style>")).toEqual([
-      "background:#ffffff",
-      "color:#1a7285",
-    ]);
-    // A comment cannot hide a declaration.
-    expect(unreachedColours('<td style="/* x */ color: red">')).toEqual(["color: red"]);
-    // Named colours in a fill, a stroke or a colour longhand.
-    expect(
-      unreachedColours('<rect style="fill: red; stroke: navy; border-bottom-color: silver">'),
-    ).toEqual(["fill: red", "stroke: navy", "border-bottom-color: silver"]);
+  test.each([
+    ["a respelled attribute colour", '<td bgcolor="#eef1f4">', ['bgcolor="#eef1f4']],
+    [
+      "a named background, a functional border colour and a colour attribute",
+      '<td style="background: white; border: 1px solid rgb(1, 2, 3)"><font color="navy">',
+      ["background: white", "border: 1px solid rgb(1, 2, 3)", 'color="navy'],
+    ],
+    [
+      "colour literals in arbitrary CSS properties and SVG paint",
+      '<td style="outline: 1px solid #123456; box-shadow: 0 0 0 1px oklch(0.5 0.1 200)"><path fill="#123456">',
+      ["outline: 1px solid #123456", "box-shadow: 0 0 0 1px oklch(0.5 0.1 200)", 'fill="#123456'],
+    ],
+    ["attribute-looking text", '<span title=" bgcolor=red"> bgcolor=red</span>', []],
+    [
+      "paint in a style element",
+      "<style>td{background:#ffffff;color:#1a7285}</style>",
+      ["background:#ffffff", "color:#1a7285"],
+    ],
+    ["a declaration after a comment", '<td style="/* x */ color: red">', ["color: red"]],
+    [
+      "named colours in a fill, a stroke and a colour longhand",
+      '<rect style="fill: red; stroke: navy; border-bottom-color: silver">',
+      ["fill: red", "stroke: navy", "border-bottom-color: silver"],
+    ],
+  ])("signature paint outside the roles: %s", (_, html, unsupported) => {
+    expect(unreachedColours(html)).toEqual(unsupported);
   });
 
   test("comments and custom properties are ignored when scanning signature paint", () => {
@@ -198,30 +204,98 @@ test("a Unicode line separator in an objection body opens as CRLF", () => {
   );
 });
 
-test("a line break in any field the engine prints reads the same in both parts", async () => {
-  const fields: [string, (mail: BriefProps, value: string) => void, (said: string) => string][] = [
-    ["greeting", (m, v) => (m.greeting = v), String],
-    ["intro", (m, v) => (m.intro[0] = v), String],
-    ["outro", (m, v) => (m.outro[0] = v), String],
-    ["closing", (m, v) => (m.closing[0] = v), String],
-    ["label", (m, v) => (m.items[0]!.label = v), labelText],
-    ["title", (m, v) => (m.items[0]!.title = v), String],
-    ["destination", (m, v) => (m.items[0]!.destination = v), String],
-    ["text", (m, v) => (m.items[0]!.text = v), String],
-    ["objection.before", (m, v) => (m.objection.before = v), String],
-    ["objection.linkText", (m, v) => (m.objection.linkText = v), String],
-    ["objection.after", (m, v) => (m.objection.after = v), String],
-  ];
-  const given = structuredClone(brief);
-  fields.forEach(([, set], i) => set(given, `Zeile ${i}${breaks[i % breaks.length]}weiter ${i}`));
-  const both = await renderBrief(given);
-  const differ = fields.flatMap(([name, , form], i) => {
-    const html = both.html.includes(`Zeile ${i}<br/>weiter ${i}`);
-    const text = both.text.includes(form(`Zeile ${i}\nweiter ${i}`));
-    return html && text ? [] : [`${name}:${html ? "" : " html"}${text ? "" : " text"}`];
-  });
-  expect(differ).toEqual([]);
-  // The control: a field without a break renders as before, and the text part holds only LF.
-  expect(both.html).toContain(`>${escaped(brief.items[1]!.text)}</p>`);
-  expect(both.text).not.toMatch(/[\v\f\r\u0085\u2028\u2029]/);
+const breakCases = [
+  {
+    field: "greeting",
+    set: (m: BriefProps, v: string) => (m.greeting = v),
+    input: "Zeile 0\nweiter 0",
+    html: "Zeile 0<br/>weiter 0",
+    text: "Zeile 0\nweiter 0",
+  },
+  {
+    field: "intro",
+    set: (m: BriefProps, v: string) => (m.intro[0] = v),
+    input: "Zeile 1\r\nweiter 1",
+    html: "Zeile 1<br/>weiter 1",
+    text: "Zeile 1\nweiter 1",
+  },
+  {
+    field: "outro",
+    set: (m: BriefProps, v: string) => (m.outro[0] = v),
+    input: "Zeile 2\rweiter 2",
+    html: "Zeile 2<br/>weiter 2",
+    text: "Zeile 2\nweiter 2",
+  },
+  {
+    field: "closing",
+    set: (m: BriefProps, v: string) => (m.closing[0] = v),
+    input: "Zeile 3\u2028weiter 3",
+    html: "Zeile 3<br/>weiter 3",
+    text: "Zeile 3\nweiter 3",
+  },
+  {
+    field: "label",
+    set: (m: BriefProps, v: string) => (m.items[0].label = v),
+    input: "Zeile 4\u2029weiter 4",
+    html: "Zeile 4<br/>weiter 4",
+    text: "ZEILE 4\nWEITER 4",
+  },
+  {
+    field: "title",
+    set: (m: BriefProps, v: string) => (m.items[0].title = v),
+    input: "Zeile 5\u0085weiter 5",
+    html: "Zeile 5<br/>weiter 5",
+    text: "Zeile 5\nweiter 5",
+  },
+  {
+    field: "destination",
+    set: (m: BriefProps, v: string) => (m.items[0].destination = v),
+    input: "Zeile 6\vweiter 6",
+    html: "Zeile 6<br/>weiter 6",
+    text: "Zeile 6\nweiter 6",
+  },
+  {
+    field: "text",
+    set: (m: BriefProps, v: string) => (m.items[0].text = v),
+    input: "Zeile 7\fweiter 7",
+    html: "Zeile 7<br/>weiter 7",
+    text: "Zeile 7\nweiter 7",
+  },
+  {
+    field: "objection.before",
+    set: (m: BriefProps, v: string) => (m.objection.before = v),
+    input: "Zeile 8\nweiter 8",
+    html: "Zeile 8<br/>weiter 8",
+    text: "Zeile 8\nweiter 8",
+  },
+  {
+    field: "objection.linkText",
+    set: (m: BriefProps, v: string) => (m.objection.linkText = v),
+    input: "Zeile 9\r\nweiter 9",
+    html: "Zeile 9<br/>weiter 9",
+    text: "Zeile 9\nweiter 9",
+  },
+  {
+    field: "objection.after",
+    set: (m: BriefProps, v: string) => (m.objection.after = v),
+    input: "Zeile 10\rweiter 10",
+    html: "Zeile 10<br/>weiter 10",
+    text: "Zeile 10\nweiter 10",
+  },
+];
+const withBreaks = structuredClone(brief);
+for (const { set, input } of breakCases) set(withBreaks, input);
+const brokenMail = await renderBrief(withBreaks);
+
+test.each(breakCases)("a line break in $field reads the same in both parts", ({ html, text }) => {
+  expect(brokenMail.html).toContain(html);
+  expect(brokenMail.text).toContain(text);
+});
+
+test("the HTML preserves an unbroken item description", () => {
+  expect(brokenMail.html).toContain(`>${escaped(brief.items[1].text)}</p>`);
+});
+
+test("the text part holds only LF line breaks", () => {
+  expect(brokenMail.text).not.toMatch(/[\v\f\r\u0085\u2028\u2029]/);
 });

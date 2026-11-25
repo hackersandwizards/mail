@@ -1,5 +1,6 @@
 import { Img } from "react-email";
 import { ITEM_INSET, ITEM_RULE, PAGE_INSET, PHONE_WIDTH, paint } from "./MailShell";
+import { LayoutCell } from "./LayoutCell";
 import { corner, fonts, palette } from "./theme";
 
 // React types carry no bgcolor; the attribute is what classic Outlook paints a cell from.
@@ -23,14 +24,12 @@ export type ImageProps = {
 /** The widest image an item holds on the narrowest phone. */
 export const MAX_IMAGE_WIDTH = PHONE_WIDTH - 2 * PAGE_INSET - ITEM_RULE - ITEM_INSET;
 
-/**
- * An image that keeps its box while the client blocks images: whole-pixel width and height in the
- * attributes and the style (a `height:auto` would collapse the box), the tint behind the image and
- * its cell, and the alt text set small, muted and without the link underline it would inherit.
- * Classic Outlook on Windows shows its own notice instead of styled alt text. Image and cell take
- * the small corner, which classic Outlook leaves square; it trims content touching a corner.
- */
-export function Image({ src, alt, width, height, href }: ImageProps) {
+function checkImageProps({
+  src,
+  alt,
+  width,
+  height,
+}: Pick<ImageProps, "src" | "alt" | "width" | "height">): void {
   for (const [name, value] of Object.entries({ width, height })) {
     if (!Number.isInteger(value) || value <= 0) {
       throw new Error(`mail Image: ${name} must be a whole number of pixels above 0, got ${value}`);
@@ -42,6 +41,17 @@ export function Image({ src, alt, width, height, href }: ImageProps) {
     );
   }
   if (!alt.trim()) throw new Error(`mail Image: ${src} has no alt text`);
+}
+
+/**
+ * An image that keeps its box while the client blocks images: whole-pixel width and height in the
+ * attributes and the style (a `height:auto` would collapse the box), the tint behind the image and
+ * its cell, and the alt text set small, muted and without the link underline it would inherit.
+ * Classic Outlook on Windows shows its own notice instead of styled alt text. Image and cell take
+ * the small corner, which classic Outlook leaves square; it trims content touching a corner.
+ */
+export function Image({ src, alt, width, height, href }: ImageProps) {
+  checkImageProps({ src, alt, width, height });
   const { tint, muted } = palette.light;
   const box = {
     width: `${width}px`,
@@ -66,30 +76,21 @@ export function Image({ src, alt, width, height, href }: ImageProps) {
     />
   );
   return (
-    <table
-      role="presentation"
-      cellPadding={0}
-      cellSpacing={0}
-      border={0}
-      style={{ marginBottom: 12 }}
+    <LayoutCell
+      tableStyle={{ marginBottom: 12 }}
+      cell={{ width, height, bgcolor: tint, className: paint.bg("tint"), style: box }}
     >
-      <tbody>
-        <tr>
-          <td width={width} height={height} bgcolor={tint} className={paint.bg("tint")} style={box}>
-            {href ? (
-              <a
-                href={href}
-                className={paint.text("muted")}
-                style={{ color: muted, textDecoration: "none" }}
-              >
-                {img}
-              </a>
-            ) : (
-              img
-            )}
-          </td>
-        </tr>
-      </tbody>
-    </table>
+      {href ? (
+        <a
+          href={href}
+          className={paint.text("muted")}
+          style={{ color: muted, textDecoration: "none" }}
+        >
+          {img}
+        </a>
+      ) : (
+        img
+      )}
+    </LayoutCell>
   );
 }

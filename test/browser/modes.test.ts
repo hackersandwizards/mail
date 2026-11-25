@@ -1,7 +1,7 @@
 // Renders each catalog mail, and one with an image at the widest allowed, headless in each mode and
 // reads what the reader would see. With MAIL_SHOTS set to a folder, also writes each view there as
 // <mail>-<mode>-<width>.png for a review.
-import { afterAll, beforeAll, describe, expect, test } from "vitest";
+import { assert, afterAll, beforeAll, describe, expect, test } from "vitest";
 import { chromeBinary, INSTALL_HINT, NO_KEYCHAIN } from "@hackersandwizards/scaffolding/chrome";
 import { rejection } from "@hackersandwizards/scaffolding/rejection";
 import {
@@ -15,11 +15,11 @@ import {
 } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import puppeteer, { type Browser } from "puppeteer-core";
+import puppeteer, { type Browser, type Page } from "puppeteer-core";
 import { MAX_IMAGE_WIDTH } from "../../components/Image";
 import { COLUMN_WIDTH, PHONE_WIDTH } from "../../components/MailShell";
 import { palette, roles } from "../../components/theme";
-import { MODES, launch, openMail, quit } from "../../scripts/modes";
+import { MODES, launch, openMail, quit, type MailView, type Mode } from "../../scripts/modes";
 import { parseBrief, renderBrief } from "../../scripts/render";
 
 // Each mail goes one folder down beside a link to brand at its package path, as in the built
@@ -35,14 +35,25 @@ const mails = Object.fromEntries(
     .filter((f) => f.endsWith(".json"))
     .map((f) => [f.slice(0, -5), parseBrief(readFileSync(join(data, f), "utf8"))]),
 );
+const catalogViews: MailView[] = MODES.flatMap((mode) =>
+  [COLUMN_WIDTH, PHONE_WIDTH].map((width) => ({ mode, width })),
+);
+const widestViews: MailView[] = [
+  { mode: "light", width: PHONE_WIDTH },
+  { mode: "noimg", width: PHONE_WIDTH },
+];
+const mailViews = [
+  ...Object.keys(mails).map((mail) => ({ mail, views: catalogViews })),
+  { mail: "widest-image", views: widestViews },
+];
 const widest = structuredClone(mails["brief-bild"]);
-widest.items[0].image = { ...widest.items[0].image!, width: MAX_IMAGE_WIDTH, height: 160 };
+const picture = widest.items[0].image;
+assert(picture, "brief-bild should supply the widest-image fixture with a picture");
+widest.items[0].image = { ...picture, width: MAX_IMAGE_WIDTH, height: 160 };
 mails["widest-image"] = widest;
-// widest-image uses brief-bild's picture and keeps this list nonempty. If the picture is missing,
-// beforeAll fails when it renders widest-image.
-const mailsWithPictures = Object.entries(mails).flatMap(([mail, props]) => {
-  const image = props.items.find((item) => item.image)?.image;
-  return image ? [{ mail, image }] : [];
+const mailsWithPictures = mailViews.flatMap(({ mail, views }) => {
+  const image = mails[mail].items.find((item) => item.image)?.image;
+  return image ? [{ mail, image, views }] : [];
 });
 const rgb = (hex: string) =>
   `rgb(${[1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(", ")})`;
@@ -69,14 +80,16 @@ afterAll(async () => {
 
 test("a failed navigation closes the page it opened", async () => {
   const count = (await browser.pages()).length;
-  const error = await rejection(openMail(browser, join(dir, "missing.html"), "noimg", PHONE_WIDTH));
+  const error = await rejection(
+    openMail(browser, join(dir, "missing.html"), { mode: "noimg", width: PHONE_WIDTH }),
+  );
   expect(error).toContain("ERR_FILE_NOT_FOUND");
   expect(await browser.pages()).toHaveLength(count);
 });
 
 test("blocked images mode uses light colours even when Chrome defaults to dark mode", async () => {
   const executablePath = chromeBinary();
-  if (!executablePath) throw new Error(INSTALL_HINT);
+  assert(executablePath, INSTALL_HINT);
   const darkBrowser = await puppeteer.launch({
     executablePath,
     args: [...NO_KEYCHAIN, "--force-dark-mode"],
@@ -86,7 +99,10 @@ test("blocked images mode uses light colours even when Chrome defaults to dark m
     expect(await blank.evaluate(() => matchMedia("(prefers-color-scheme: dark)").matches)).toBe(
       true,
     );
-    const page = await openMail(darkBrowser, join(dir, "brief-bild.html"), "noimg", PHONE_WIDTH);
+    const page = await openMail(darkBrowser, join(dir, "brief-bild.html"), {
+      mode: "noimg",
+      width: PHONE_WIDTH,
+    });
     expect(await page.evaluate(() => matchMedia("(prefers-color-scheme: light)").matches)).toBe(
       true,
     );
@@ -95,18 +111,50 @@ test("blocked images mode uses light colours even when Chrome defaults to dark m
   }
 });
 
-// The widest image only needs the narrowest phone, with and without the picture.
-const views = (mail: string) =>
-  mail === "widest-image"
-    ? (["light", "noimg"] as const).map((mode) => [mode, PHONE_WIDTH] as const)
-    : MODES.flatMap((mode) => [COLUMN_WIDTH, PHONE_WIDTH].map((w) => [mode, w] as const));
+const loadedPictureStates = [{ complete: true, hasPixels: true }];
+const blockedPictureStates = [
+  { complete: false, hasPixels: false },
+  { complete: false, hasPixels: true },
+  { complete: true, hasPixels: false },
+];
+const display = {
+  light: { scheme: palette.light, filter: "none", imageStates: loadedPictureStates },
+  dark: { scheme: palette.dark, filter: "none", imageStates: loadedPictureStates },
+  invert: {
+    scheme: palette.light,
+    filter: "invert(1) hue-rotate(180deg)",
+    imageStates: loadedPictureStates,
+  },
+  noimg: {
+    scheme: palette.light,
+    filter: "none",
+    imageStates: blockedPictureStates,
+  },
+} satisfies Record<
+  Mode,
+  {
+    scheme: (typeof palette)["light" | "dark"];
+    filter: string;
+    imageStates: { complete: boolean; hasPixels: boolean }[];
+  }
+>;
 
-describe.each(Object.keys(mails))("mail %s", (mail) => {
-  test.each(views(mail))("%s at %i px", async (mode, width) => {
-    const page = await openMail(browser, join(dir, `${mail}.html`), mode, width);
+const captureView = shots
+  ? async (page: Page, name: string) => {
+      mkdirSync(shots, { recursive: true });
+      const png = await page.screenshot({ fullPage: true, type: "png" });
+      writeFileSync(join(shots, name), png);
+    }
+  : () => Promise.resolve();
+
+describe.each(mailViews)("mail $mail", ({ mail, views }) => {
+  test.each(views)("$mode at $width px", async (view) => {
+    const { mode, width } = view;
+    const { scheme, filter } = display[mode];
+    const page = await openMail(browser, join(dir, `${mail}.html`), view);
     try {
       const seen = await page.evaluate(() => {
-        const title = document.querySelector("p > a[href^='https://example.com/']");
+        const paintProperties = new Set(["color", "background-color", "border-left-color"]);
         return {
           page: getComputedStyle(document.body).backgroundColor,
           // React Email's inner Body cell, which the dark rules reach by structure.
@@ -115,60 +163,69 @@ describe.each(Object.keys(mails))("mail %s", (mail) => {
           sig: document.querySelectorAll(".hw-sig [style*='color']").length,
           // Every colour an element sets inline, with the colour it shows.
           painted: [...document.querySelectorAll<HTMLElement>("[style]")].flatMap((e) =>
-            (["color", "backgroundColor", "borderLeftColor"] as const)
+            [...new Set(Array.from(e.style)).intersection(paintProperties)]
               // A border shorthand without a colour leaves the keyword, which paints no role.
               .filter(
-                (prop) => e.style[prop] && !/^(currentcolor|transparent)$/i.test(e.style[prop]),
+                (prop) => !/^(currentcolor|transparent)$/i.test(e.style.getPropertyValue(prop)),
               )
-              .map((prop) => [prop, e.style[prop], getComputedStyle(e)[prop]]),
+              .map(
+                (prop) =>
+                  [
+                    prop,
+                    e.style.getPropertyValue(prop),
+                    getComputedStyle(e).getPropertyValue(prop),
+                  ] as const,
+              ),
           ),
-          title: title ? getComputedStyle(title).color : "",
           filter: getComputedStyle(document.documentElement).filter,
           overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
         };
       });
-      const scheme = mode === "dark" ? palette.dark : palette.light;
-      expect(seen.page).toBe(rgb(scheme.page));
-      expect(seen.cell).toBe(rgb(scheme.page));
-      expect(seen.sig).toBeGreaterThan(0);
+      const title = await page.$eval(
+        "p > a[href^='https://example.com/']",
+        (link) => getComputedStyle(link).color,
+      );
+      const { sig, painted, ...layout } = seen;
+      expect({ ...layout, title }).toEqual({
+        page: rgb(scheme.page),
+        cell: rgb(scheme.page),
+        title: rgb(scheme.accent),
+        filter,
+        overflow: 0,
+      });
+      expect(sig).toBeGreaterThan(0);
       // Each colour set inline, the signature's included, is a role's colour as sent and shows as
       // that role's colour in the mode: a part setting a colour without its class stays light.
-      expect(seen.painted.length).toBeGreaterThan(seen.sig);
-      for (const [prop, inline, shown] of seen.painted) {
+      expect(painted.length).toBeGreaterThan(sig);
+      for (const [prop, inline, shown] of painted) {
         const shownAs = roles
-          .filter((r) => rgb(palette.light[r]) === inline)
-          .map((r) => rgb(scheme[r]));
+          .filter((role) => rgb(palette.light[role]) === inline)
+          .map((role) => rgb(scheme[role]));
         expect(shownAs.length, `${prop} ${inline} is no role's colour`).toBeGreaterThan(0);
         expect(shownAs, `${prop} ${inline}`).toContain(shown);
       }
-      expect(seen.title).toBe(rgb(scheme.accent));
-      expect(seen.filter).toBe(mode === "invert" ? "invert(1) hue-rotate(180deg)" : "none");
-      expect(seen.overflow).toBe(0);
-      if (shots) {
-        mkdirSync(shots, { recursive: true });
-        const png = await page.screenshot({ fullPage: true, type: "png" });
-        writeFileSync(join(shots, `${mail}-${mode}-${width}.png`), png);
-      }
+      await captureView(page, `${mail}-${mode}-${width}.png`);
     } finally {
       await page.close();
     }
   });
 });
 
-describe.each(mailsWithPictures)("picture in mail $mail", ({ mail, image }) => {
-  test.each(views(mail))(
-    "the box keeps its size whether the picture loads or not in %s at %i px",
-    async (mode, width) => {
-      const page = await openMail(browser, join(dir, `${mail}.html`), mode, width);
+describe.each(mailsWithPictures)("picture in mail $mail", ({ mail, image, views }) => {
+  test.each(views)(
+    "the box keeps its size whether the picture loads or not in $mode at $width px",
+    async (view) => {
+      const { imageStates } = display[view.mode];
+      const page = await openMail(browser, join(dir, `${mail}.html`), view);
       try {
         const seen = await page.$eval("img", (img) => {
           const box = img.getBoundingClientRect();
           return {
-            loaded: img.complete && img.naturalWidth > 0,
+            imageState: { complete: img.complete, hasPixels: img.naturalWidth > 0 },
             imgBox: [box.width, box.height],
           };
         });
-        expect(seen.loaded).toBe(mode !== "noimg");
+        expect(imageStates).toContainEqual(seen.imageState);
         expect(seen.imgBox).toEqual([image.width, image.height]);
       } finally {
         await page.close();
