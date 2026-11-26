@@ -6,12 +6,11 @@
  * mail's.
  */
 import { readdir } from "node:fs/promises";
-import { join, relative } from "node:path";
+import { join } from "node:path";
+import { BASE, resolveDistPath } from "./dist-path";
 import { launch, quit } from "./modes";
 
 const DIST = join(import.meta.dir, "../dist");
-// The catalog's base, set in catalog/astro.config.ts.
-const BASE = "/mail/";
 // The Image part's blocked stories name a source that never loads, on purpose.
 const BLOCKED = /\/blocked\.png$/;
 // A tile's frame that fails holds no image to fail.
@@ -23,17 +22,8 @@ const server = Bun.serve({
   port: 0,
   hostname: "127.0.0.1",
   async fetch(req) {
-    // Decoded, as the build names its files; a malformed escape or a path stepping out of dist/
-    // answers 404.
-    let path: string;
-    try {
-      path = decodeURIComponent(new URL(req.url).pathname);
-    } catch {
-      return notFound();
-    }
-    if (!path.startsWith(BASE)) return notFound();
-    const file = join(DIST, path.slice(BASE.length));
-    if (relative(DIST, file).startsWith("..")) return notFound();
+    const file = resolveDistPath(req.url, DIST);
+    if (!file) return notFound();
     for (const candidate of [file, join(file, "index.html")])
       if (await Bun.file(candidate).exists()) return new Response(Bun.file(candidate));
     return notFound();
