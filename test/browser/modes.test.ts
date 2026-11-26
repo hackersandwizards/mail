@@ -205,13 +205,12 @@ describe.each(mailViews)("mail $mail", ({ mail, views }) => {
     const { scheme, filter } = display[mode];
     const page = await openMail(browser, join(dir, `${mail}.html`), view);
     try {
-      const seen = await page.evaluate(() => {
+      // React Email's inner Body cell, which the dark rules reach by structure.
+      const seen = await page.$eval(".hw-body>table>tbody>tr>td", (cell) => {
         const paintProperties = new Set(["color", "background-color", "border-left-color"]);
         return {
           page: getComputedStyle(document.body).backgroundColor,
-          // React Email's inner Body cell, which the dark rules reach by structure.
-          cell: getComputedStyle(document.querySelector(".hw-body>table>tbody>tr>td")!)
-            .backgroundColor,
+          cell: getComputedStyle(cell).backgroundColor,
           sig: document.querySelectorAll(".hw-sig [style*='color']").length,
           // Every colour an element sets inline, with the colour it shows.
           painted: [...document.querySelectorAll<HTMLElement>("[style]")].flatMap((e) =>

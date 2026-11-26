@@ -4,6 +4,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { colors, tokens } from "@hackersandwizards/brand/tokens";
+import { defined } from "@hackersandwizards/scaffolding/defined";
 import { createElement, Fragment } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import type { BriefProps } from "../mails/Brief";
@@ -62,7 +63,11 @@ describe("renderBrief", () => {
     const words = [
       brief.greeting,
       ...brief.intro,
-      ...brief.items.flatMap((item) => [item.title, item.text, item.destination!]),
+      ...brief.items.flatMap((item) => [
+        item.title,
+        item.text,
+        defined(item.destination, "catalog item destination"),
+      ]),
       ...brief.outro,
       ...brief.closing,
       brief.objection.before,
@@ -86,12 +91,14 @@ describe("renderBrief", () => {
       expect(link).not.toContain("text-decoration-line:none");
     }
     // Where each title leads, muted, right under the title.
-    for (const item of brief.items)
+    for (const item of brief.items) {
+      const destination = defined(item.destination, "catalog item destination");
       expect(html).toMatch(
         new RegExp(
-          `${RegExp.escape(escaped(item.title))}</a></p><p class="hw-muted"[^>]*>${RegExp.escape(escaped(item.destination!))}</p>`,
+          `${RegExp.escape(escaped(item.title))}</a></p><p class="hw-muted"[^>]*>${RegExp.escape(escaped(destination))}</p>`,
         ),
       );
+    }
     const labels = html.match(/<p class="hw-label"[^>]*>/g);
     assert(labels, "The HTML should include item labels");
     expect(labels).toHaveLength(brief.items.length);
