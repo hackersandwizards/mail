@@ -54,7 +54,24 @@ export async function openMail(
     if (mode === "invert") await page.addStyleTag({ content: INVERT });
     return page;
   } catch (error) {
-    await page.close().catch(() => undefined);
+    try {
+      await page.close();
+    } catch (closeError) {
+      const { ConnectionClosedError, ProtocolError } = await import("puppeteer-core");
+      if (closeError instanceof ConnectionClosedError) throw error;
+      if (
+        closeError instanceof ProtocolError &&
+        closeError.originalMessage === "No target with given id found"
+      )
+        throw error;
+      throw new AggregateError(
+        [error, closeError],
+        "Opening the mail and closing its page failed",
+        {
+          cause: closeError,
+        },
+      );
+    }
     throw error;
   }
 }

@@ -1,7 +1,7 @@
 // Renders each catalog mail, and one with an image at the widest allowed, headless in each mode and
 // reads what the reader would see. With MAIL_SHOTS set to a folder, also writes each view there as
 // <mail>-<mode>-<width>.png for a review.
-import { assert, afterAll, beforeAll, describe, expect, test } from "vitest";
+import { assert, afterAll, beforeAll, describe, expect, test, vi } from "vitest";
 import { chromeBinary, INSTALL_HINT, NO_KEYCHAIN } from "@hackersandwizards/scaffolding/chrome";
 import { rejection } from "@hackersandwizards/scaffolding/rejection";
 import {
@@ -15,7 +15,7 @@ import {
 } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import puppeteer, { type Browser, type Page } from "puppeteer-core";
+import puppeteer, { ConnectionClosedError, type Browser, type Page } from "puppeteer-core";
 import { MAX_IMAGE_WIDTH } from "../../components/Image";
 import { COLUMN_WIDTH, PHONE_WIDTH } from "../../components/MailShell";
 import { palette, roles } from "../../components/theme";
@@ -85,6 +85,58 @@ test("a failed navigation closes the page it opened", async () => {
   );
   expect(error).toContain("ERR_FILE_NOT_FOUND");
   expect(await browser.pages()).toHaveLength(count);
+});
+
+test("a page closed during navigation preserves the navigation error", async () => {
+  const page = await browser.newPage();
+  const navigationFailure = new Error("navigation failed after the page closed");
+  const newPage = vi.spyOn(browser, "newPage").mockResolvedValueOnce(page);
+  const goto = vi.spyOn(page, "goto").mockImplementationOnce(async () => {
+    await page.close();
+    throw navigationFailure;
+  });
+  try {
+    const error = await openMail(browser, join(dir, "brief-bild.html"), {
+      mode: "light",
+      width: PHONE_WIDTH,
+    }).catch((failure: unknown) => failure);
+    expect(error).toBe(navigationFailure);
+  } finally {
+    goto.mockRestore();
+    newPage.mockRestore();
+  }
+});
+
+const navigationFailure = new Error("navigation failed before cleanup");
+const closeFailure = new Error("could not close the page");
+test.each([
+  {
+    reason: "the browser disconnected",
+    failure: new ConnectionClosedError("Connection closed."),
+    expected: navigationFailure,
+  },
+  {
+    reason: "cleanup failed unexpectedly",
+    failure: closeFailure,
+    expected: { name: "AggregateError", errors: [navigationFailure, closeFailure] },
+  },
+])("preserves the errors when $reason", async ({ failure, expected }) => {
+  const page = await browser.newPage();
+  const newPage = vi.spyOn(browser, "newPage").mockResolvedValueOnce(page);
+  const goto = vi.spyOn(page, "goto").mockRejectedValueOnce(navigationFailure);
+  const close = vi.spyOn(page, "close").mockRejectedValueOnce(failure);
+  try {
+    const error = await openMail(browser, join(dir, "brief-bild.html"), {
+      mode: "light",
+      width: PHONE_WIDTH,
+    }).catch((failure: unknown) => failure);
+    expect(error).toMatchObject(expected);
+  } finally {
+    close.mockRestore();
+    goto.mockRestore();
+    newPage.mockRestore();
+    await page.close();
+  }
 });
 
 test("blocked images mode uses light colours even when Chrome defaults to dark mode", async () => {
