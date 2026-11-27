@@ -36,7 +36,7 @@ if (pages.every((p) => p.startsWith(`${root}mails/`)))
 const failures: string[] = [];
 
 async function checkHome(page: Page, url: string) {
-  // A home without tile frames would show no image and pass.
+  // Puppeteer counts the main frame, so at least two frames are needed to check a tile preview.
   if (page.frames().length < 2)
     failures.push(
       `${url}: No tile frame opened, so the catalog home shows no story previews. Set previews to true in catalog/astro.config.ts and export a story state in catalog/stories/.`,

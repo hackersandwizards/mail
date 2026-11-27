@@ -231,7 +231,7 @@ function readSignatureFixture(file: string, encoding: "utf-8") {
 
 describe("mail-render", () => {
   test("writes the HTML and the text part from a data file", async () => {
-    const cache = join(root, "node_modules", ".cache", "check-msgs");
+    const cache = join(root, "node_modules", ".cache", "mail-test");
     mkdirSync(cache, { recursive: true });
     using fixture = mkdtempDisposableSync(join(cache, "render-"));
     const out = join(fixture.path, "brief");

@@ -3,7 +3,7 @@ import { copyFileSync, mkdirSync, mkdtempDisposableSync, writeFileSync } from "n
 import { join } from "node:path";
 import { beforeAll, describe, expect, test } from "vitest";
 
-const cache = join(import.meta.dirname, "../../node_modules/.cache/check-msgs");
+const cache = join(import.meta.dirname, "../../node_modules/.cache/mail-test");
 
 function runFrameCheck({ home, story }: { home?: string; story?: true }) {
   mkdirSync(cache, { recursive: true });

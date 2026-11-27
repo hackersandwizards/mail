@@ -1,8 +1,4 @@
-/**
- * How a rendered mail looks where it lands, approximated in headless Chrome: light as sent, dark
- * as Apple Mail shows it (the mail's own dark styles), forced inversion as the Gmail app on iOS and
- * classic Outlook apply it (a CSS filter, close but not the same), and with images blocked.
- */
+/** The CSS inversion filter approximates forced dark mode in Gmail on iOS and classic Outlook. */
 import type { Browser, Page } from "puppeteer-core";
 import { INVERT } from "../../scripts/frame-modes";
 
@@ -38,7 +34,6 @@ export async function openMail(
   }
 }
 
-/** Closes a failed preview page and reports any unexpected cleanup failure alongside the original. */
 export async function rejectAfterClosingMailPage(
   page: Pick<Page, "close">,
   error: unknown,
