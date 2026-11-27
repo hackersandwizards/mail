@@ -77,7 +77,7 @@ async function check(url: string) {
     polling: 100,
   });
   await page.waitForNetworkIdle();
-  if (url === root) await checkHome(page, url);
+  if (url === root && answer?.ok()) await checkHome(page, url);
   for (const frame of page.frames().filter((f) => !f.detached)) {
     // A lazy image the page hides never loads, such as the header's night lockup on a light
     // page: a copy of it must decode instead.

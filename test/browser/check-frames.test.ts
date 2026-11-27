@@ -46,6 +46,7 @@ test("explains how to restore a catalog page that returns 404", () => {
   expect(frameDiagnostics(stderr)).toContain(
     "http://127.0.0.1:PORT/mail/: The catalog page could not load (response status 404). Check the base in catalog/astro.config.ts and run bun run build to regenerate the route.",
   );
+  expect(stderr).not.toContain("No tile frame opened");
 });
 
 describe("the catalog home", () => {
