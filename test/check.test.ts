@@ -1,4 +1,3 @@
-// A data file that would render a wrong mail is refused, naming the field, before anything renders.
 import { describe, expect, test } from "vitest";
 import { defined } from "@hackersandwizards/scaffolding/defined";
 import { rejection } from "@hackersandwizards/scaffolding/rejection";
@@ -14,7 +13,6 @@ import data from "../catalog/mails/brief-bild.json";
 const root = fileURLToPath(new URL("..", import.meta.url));
 const copy = (): Record<string, unknown> => structuredClone(data);
 
-/** The data with the value at the path removed or replaced. */
 function edit(path: string, value?: unknown) {
   const out = copy();
   const keys = path.split(/\.|\[|\]/).filter(Boolean);

@@ -1,17 +1,9 @@
-/**
- * check:frames: opens the built catalog's home, every story page and every rendered mail over HTTP
- * under the Pages base and fails on a page, frame or image that answers an error or does not load,
- * and on an image that paints nothing or, lazy and hidden, does not decode, in any frame. A story's
- * mail sits in a srcdoc frame, where a URL can resolve against the story's page instead of the
- * mail's.
- */
 import { readdir } from "node:fs/promises";
 import { join } from "node:path";
 import { BASE, resolveDistPath } from "./dist-path";
 import { launch, quit } from "./modes";
 
 const DIST = join(import.meta.dir, "../dist");
-// The Image part's blocked stories name a source that never loads, on purpose.
 const BLOCKED = /\/blocked\.png$/;
 // A tile's frame that fails holds no image to fail.
 const WATCHED = ["image", "document"];
@@ -56,7 +48,6 @@ async function check(url: string) {
   page.on("requestfailed", (r) => {
     if (WATCHED.includes(r.resourceType())) bad(r.failure()?.errorText ?? "failed", r.url());
   });
-  // A page that is not there would show no image and pass.
   const answer = await page.goto(url);
   if (!answer?.ok()) failures.push(`${url}: the page answered ${answer?.status()}`);
   // A tile's frame has neither source until it starts loading.
@@ -66,8 +57,6 @@ async function check(url: string) {
   await page.waitForNetworkIdle();
   // A home without tile frames would show no image and pass.
   if (url === root && page.frames().length < 2) failures.push(`${url}: no tile frame opened`);
-  // Head.astro links the svg again after the .ico, since the shell links its svg first and a browser
-  // that takes the last icon showed the .ico in v2.0.0.
   if (url === root) {
     const last = await page.$$eval('link[rel="icon"]', (l) => l.at(-1)?.getAttribute("type"));
     if (last !== "image/svg+xml") failures.push(`${url}: the last icon link is not the svg`);

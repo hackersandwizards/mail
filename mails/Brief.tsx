@@ -57,9 +57,7 @@ function checkBriefLines(value: unknown, path: string, min = 0) {
 const briefSingleLine = (value: unknown, path: string) => {
   if (BREAK.test(briefFieldText(value, path))) invalidBriefField(path, "must be one line");
 };
-// A URL parser drops or encodes whitespace, control and format characters and reads a backslash
-// as a slash; it also maps a full-width letter in the host, so a link or address that NFKC changes
-// is not the one the mail prints.
+// Reject characters a URL parser can reinterpret, including whitespace, control and format characters, backslashes, and full-width letters in hosts.
 const unsafeBriefLink = /[\s\p{Cc}\p{Cf}\\]/u;
 const isPlainBriefLink = (value: string) =>
   !unsafeBriefLink.test(value) && value.normalize("NFKC") === value;

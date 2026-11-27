@@ -17,7 +17,6 @@ import { style } from "./markup";
 const brief = data as BriefProps;
 const root = fileURLToPath(new URL("..", import.meta.url));
 const mail = await renderBrief(brief);
-/** A data string as React writes it into the HTML. */
 const escaped = (text: string) => renderToStaticMarkup(createElement(Fragment, null, text));
 describe("renderBrief", () => {
   const { html, text } = mail;
@@ -37,7 +36,6 @@ describe("renderBrief", () => {
   });
 
   test("the HTML part fits below Gmail’s clipping threshold", () => {
-    // Gmail clips a message above about 102 KB.
     expect(Buffer.byteLength(html)).toBeLessThan(102_000);
   });
 
@@ -46,7 +44,6 @@ describe("renderBrief", () => {
   });
 
   test("the signature carries the only wordmark after the greeting", () => {
-    // No header: the signature's wordmark is the only one, after the greeting.
     expect(html.match(/>hackers<\/span>/g)).toHaveLength(1);
     expect(html.indexOf(escaped(brief.greeting))).toBeLessThan(html.indexOf(">hackers</span>"));
     expect(html).toContain(escaped(brief.signature.name));
@@ -90,7 +87,6 @@ describe("renderBrief", () => {
       expect(link).toContain("text-decoration-line:underline");
       expect(link).not.toContain("text-decoration-line:none");
     }
-    // Where each title leads, muted, right under the title.
     for (const item of brief.items) {
       const destination = defined(item.destination, "catalog item destination");
       expect(html).toMatch(
@@ -168,7 +164,6 @@ describe("renderBrief", () => {
   });
 
   test("the text part keeps the notice outside signature markup", () => {
-    // No signature separator, under which a program would file the objection notice.
     expect(text).not.toMatch(/^-- $/m);
     expect(text).not.toContain("mailto:");
     expect(text).not.toContain("<");

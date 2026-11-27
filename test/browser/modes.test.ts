@@ -1,6 +1,4 @@
-// Renders each catalog mail, and one with an image at the widest allowed, headless in each mode and
-// reads what the reader would see. With MAIL_SHOTS set to a folder, also writes each view there as
-// <mail>-<mode>-<width>.png for a review.
+// Set MAIL_SHOTS to a folder to save each view as a PNG named by mail, mode and width.
 import { assert, afterAll, beforeAll, describe, expect, test, vi } from "vitest";
 import { chromeBinary, INSTALL_HINT, NO_KEYCHAIN } from "@hackersandwizards/scaffolding/chrome";
 import { rejection } from "@hackersandwizards/scaffolding/rejection";
@@ -51,10 +49,6 @@ const picture = widest.items[0].image;
 assert(picture, "brief-bild should supply the widest-image fixture with a picture");
 widest.items[0].image = { ...picture, width: MAX_IMAGE_WIDTH, height: 160 };
 mails["widest-image"] = widest;
-const mailsWithPictures = mailViews.flatMap(({ mail, views }) => {
-  const image = mails[mail].items.find((item) => item.image)?.image;
-  return image ? [{ mail, image, views }] : [];
-});
 const rgb = (hex: string) =>
   `rgb(${[1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(", ")})`;
 
@@ -163,31 +157,16 @@ test("blocked images mode uses light colours even when Chrome defaults to dark m
   }
 });
 
-const loadedPictureStates = [{ complete: true, hasPixels: true }];
-const blockedPictureStates = [
-  { complete: false, hasPixels: false },
-  { complete: false, hasPixels: true },
-  { complete: true, hasPixels: false },
-];
 const display = {
-  light: { scheme: palette.light, filter: "none", imageStates: loadedPictureStates },
-  dark: { scheme: palette.dark, filter: "none", imageStates: loadedPictureStates },
-  invert: {
-    scheme: palette.light,
-    filter: "invert(1) hue-rotate(180deg)",
-    imageStates: loadedPictureStates,
-  },
-  noimg: {
-    scheme: palette.light,
-    filter: "none",
-    imageStates: blockedPictureStates,
-  },
+  light: { scheme: palette.light, filter: "none" },
+  dark: { scheme: palette.dark, filter: "none" },
+  invert: { scheme: palette.light, filter: "invert(1) hue-rotate(180deg)" },
+  noimg: { scheme: palette.light, filter: "none" },
 } satisfies Record<
   Mode,
   {
     scheme: (typeof palette)["light" | "dark"];
     filter: string;
-    imageStates: { complete: boolean; hasPixels: boolean }[];
   }
 >;
 
@@ -200,7 +179,14 @@ const captureView = shots
   : () => Promise.resolve();
 
 describe.each(mailViews)("mail $mail", ({ mail, views }) => {
-  test.each(views)("$mode at $width px", async (view) => {
+  const image = mails[mail].items.find((item) => item.image)?.image;
+  const cases = views.map((view) => ({
+    ...view,
+    expectedPictures: image
+      ? [{ loaded: view.mode !== "noimg", box: [image.width, image.height] }]
+      : [],
+  }));
+  test.each(cases)("$mode at $width px", async ({ expectedPictures, ...view }) => {
     const { mode, width } = view;
     const { scheme, filter } = display[mode];
     const page = await openMail(browser, join(dir, `${mail}.html`), view);
@@ -212,7 +198,6 @@ describe.each(mailViews)("mail $mail", ({ mail, views }) => {
           page: getComputedStyle(document.body).backgroundColor,
           cell: getComputedStyle(cell).backgroundColor,
           sig: document.querySelectorAll(".hw-sig [style*='color']").length,
-          // Every colour an element sets inline, with the colour it shows.
           painted: [...document.querySelectorAll<HTMLElement>("[style]")].flatMap((e) =>
             [...new Set(Array.from(e.style)).intersection(paintProperties)]
               // A border shorthand without a colour leaves the keyword, which paints no role.
@@ -230,13 +215,22 @@ describe.each(mailViews)("mail $mail", ({ mail, views }) => {
           ),
           filter: getComputedStyle(document.documentElement).filter,
           overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+          pictures: Array.from(document.images)
+            .slice(0, 1)
+            .map((img) => {
+              const { width, height } = img.getBoundingClientRect();
+              return {
+                loaded: [img.complete, img.naturalWidth > 0].every(Boolean),
+                box: [width, height],
+              };
+            }),
         };
       });
       const title = await page.$eval(
         "p > a[href^='https://example.com/']",
         (link) => getComputedStyle(link).color,
       );
-      const { sig, painted, ...layout } = seen;
+      const { sig, painted, pictures, ...layout } = seen;
       expect({ ...layout, title }).toEqual({
         page: rgb(scheme.page),
         cell: rgb(scheme.page),
@@ -245,8 +239,6 @@ describe.each(mailViews)("mail $mail", ({ mail, views }) => {
         overflow: 0,
       });
       expect(sig).toBeGreaterThan(0);
-      // Each colour set inline, the signature's included, is a role's colour as sent and shows as
-      // that role's colour in the mode: a part setting a colour without its class stays light.
       expect(painted.length).toBeGreaterThan(sig);
       for (const [prop, inline, shown] of painted) {
         const shownAs = roles
@@ -255,32 +247,10 @@ describe.each(mailViews)("mail $mail", ({ mail, views }) => {
         expect(shownAs.length, `${prop} ${inline} is no role's colour`).toBeGreaterThan(0);
         expect(shownAs, `${prop} ${inline}`).toContain(shown);
       }
+      expect(pictures).toEqual(expectedPictures);
       await captureView(page, `${mail}-${mode}-${width}.png`);
     } finally {
       await page.close();
     }
   });
-});
-
-describe.each(mailsWithPictures)("picture in mail $mail", ({ mail, image, views }) => {
-  test.each(views)(
-    "the box keeps its size whether the picture loads or not in $mode at $width px",
-    async (view) => {
-      const { imageStates } = display[view.mode];
-      const page = await openMail(browser, join(dir, `${mail}.html`), view);
-      try {
-        const seen = await page.$eval("img", (img) => {
-          const box = img.getBoundingClientRect();
-          return {
-            imageState: { complete: img.complete, hasPixels: img.naturalWidth > 0 },
-            imgBox: [box.width, box.height],
-          };
-        });
-        expect(imageStates).toContainEqual(seen.imageState);
-        expect(seen.imgBox).toEqual([image.width, image.height]);
-      } finally {
-        await page.close();
-      }
-    },
-  );
 });

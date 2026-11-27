@@ -8,6 +8,11 @@ describe("resolveDistPath", () => {
   test.each([
     ["plain path under the base", "http://127.0.0.1/mail/mails/brief.html", "mails/brief.html"],
     [
+      "a filename beginning with two dots",
+      "http://127.0.0.1/mail/..preview.html",
+      "..preview.html",
+    ],
+    [
       "encoded ASCII escape",
       "http://127.0.0.1/mail/stories/Part%201/index.html",
       "stories/Part 1/index.html",

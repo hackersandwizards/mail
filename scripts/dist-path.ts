@@ -1,4 +1,4 @@
-import { join, relative } from "node:path";
+import { isAbsolute, join, relative, sep } from "node:path";
 
 // The catalog's base, set in catalog/astro.config.ts.
 export const BASE = "/mail/";
@@ -26,6 +26,7 @@ export function resolveDistPath(reqUrl: string, dist: string): string | null {
   const path = decodeURIComponent(parsed.pathname);
   if (!path.startsWith(BASE)) return null;
   const file = join(dist, path.slice(BASE.length));
-  if (relative(dist, file).startsWith("..")) return null;
+  const fromDist = relative(dist, file);
+  if (fromDist === ".." || fromDist.startsWith(`..${sep}`) || isAbsolute(fromDist)) return null;
   return file;
 }

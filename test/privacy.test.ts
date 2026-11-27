@@ -1,5 +1,3 @@
-// The repo is public: the catalog mails carry brand's invented person, invented first names and
-// example addresses only.
 import { expect, test } from "vitest";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
@@ -13,7 +11,6 @@ const INVENTED_FIRST_NAMES = ["Robin"];
 const record = (value: unknown): Record<string, unknown> =>
   typeof value === "object" && value !== null ? (value as Record<string, unknown>) : {};
 
-// Address hosts may use any script.
 function addressLeaks(raw: string): string[] {
   const found: string[] = [];
   for (const [, host] of raw.matchAll(/[\p{L}\d._%+-]+@([\p{L}\d.-]+\.\p{L}{2,})/gu))
@@ -21,8 +18,7 @@ function addressLeaks(raw: string): string[] {
   return found;
 }
 
-// Hosts can appear with or without a scheme. A path segment after a slash and an address's local
-// part are no host, so a relative image path passes.
+// The bare-host match skips path segments and email local parts so relative image paths pass.
 function hostLeaks(raw: string): string[] {
   const found: string[] = [];
   for (const [, host] of raw.matchAll(/\/\/([^/\s"?#]+)/g))
@@ -57,7 +53,6 @@ function greetingLeaks(greeting: unknown): string[] {
   return found;
 }
 
-/** Every place a data file names a host, an address, a phone number or a person that is not invented. */
 function leaks(raw: string): string[] {
   const { greeting, signature } = record(JSON.parse(raw));
   return [

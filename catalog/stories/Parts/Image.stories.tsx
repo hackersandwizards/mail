@@ -3,7 +3,6 @@ import { Image } from "../../../components/Image";
 import { meta, part, views } from "../frame";
 import data from "../../mails/brief-bild.json";
 
-// The picture of the Brief's first item, at its size and with its alt text.
 const picture = data.items[0].image;
 if (!picture) {
   throw new Error("Image.stories: catalog/mails/brief-bild.json items[0] has no image");
