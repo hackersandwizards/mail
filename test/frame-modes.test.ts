@@ -11,11 +11,18 @@ test("a subject containing the media rule stays intact while the catalog forces 
   expect(dark).toContain("@media all{");
 });
 
-test("frame transforms report the missing stylesheet or missing head close", () => {
+test("frame modes explain how to restore the missing dark stylesheet", () => {
   expect(() => forceDark(`<title>${DARK_MEDIA}</title>`)).toThrow(
-    `modes: the mail holds no ${DARK_MEDIA}`,
+    new Error(
+      `modes: Without ${DARK_MEDIA} in a style element, the catalog cannot switch the mail between light and dark. Restore the darkStyle stylesheet in components/MailShell.tsx.`,
+    ),
   );
+});
+
+test("the inverted frame explains how to restore the missing head close", () => {
   expect(() => forceInvert(`<style>${DARK_MEDIA}{}</style>`)).toThrow(
-    "modes: the mail holds no </head>",
+    new Error(
+      "modes: The catalog needs </head> to insert the inversion filter. Restore the Head wrapper in components/MailShell.tsx so it renders a closing tag.",
+    ),
   );
 });

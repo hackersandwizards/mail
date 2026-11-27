@@ -1,5 +1,6 @@
 import { readdir } from "node:fs/promises";
 import { join } from "node:path";
+import type { Page } from "puppeteer-core";
 import { BASE, resolveDistPath } from "./dist-path";
 import { launch, quit } from "./modes";
 
@@ -28,9 +29,24 @@ const pages = (await readdir(DIST, { recursive: true }))
 
 // The mails alone would pass with no srcdoc frame opened.
 if (pages.every((p) => p.startsWith(`${root}mails/`)))
-  throw new Error("check:frames: the build holds no story page");
+  throw new Error(
+    "check:frames: The build contains no story pages, so there are no story frames to check. Restore a story under catalog/stories/ and run bun run build.",
+  );
 
 const failures: string[] = [];
+
+async function checkHome(page: Page, url: string) {
+  // A home without tile frames would show no image and pass.
+  if (page.frames().length < 2)
+    failures.push(
+      `${url}: No tile frame opened, so the catalog home shows no story previews. Set previews to true in catalog/astro.config.ts and export a story state in catalog/stories/.`,
+    );
+  const last = await page.$$eval('link[rel="icon"]', (l) => l.at(-1)?.getAttribute("type"));
+  if (last !== "image/svg+xml")
+    failures.push(
+      `${url}: The last icon link must be SVG for browsers to prefer it. Put the image/svg+xml link after the ICO link in catalog/Head.astro.`,
+    );
+}
 
 async function check(url: string) {
   const page = await browser.newPage();
@@ -39,7 +55,10 @@ async function check(url: string) {
   // Tall, so the home's lazy tiles all load.
   await page.setViewport({ width: 1280, height: 4000 });
   const bad = (why: string, src: string) => {
-    if (!BLOCKED.test(src)) failures.push(`${url}: ${why} ${src}`);
+    if (!BLOCKED.test(src))
+      failures.push(
+        `${url}: The catalog could not load or display ${src} (${why}). Restore the resource at that URL or correct its source in catalog/stories/, catalog/mails/, or catalog/astro.config.ts.`,
+      );
   };
   page.on("requestfinished", (r) => {
     const status = r.response()?.status() ?? 0;
@@ -49,18 +68,16 @@ async function check(url: string) {
     if (WATCHED.includes(r.resourceType())) bad(r.failure()?.errorText ?? "failed", r.url());
   });
   const answer = await page.goto(url);
-  if (!answer?.ok()) failures.push(`${url}: the page answered ${answer?.status()}`);
+  if (!answer?.ok())
+    failures.push(
+      `${url}: The catalog page could not load (response status ${answer?.status() ?? "unavailable"}). Check the base in catalog/astro.config.ts and run bun run build to regenerate the route.`,
+    );
   // A tile's frame has neither source until it starts loading.
   await page.waitForFunction(() => !document.querySelector("iframe:not([src],[srcdoc])"), {
     polling: 100,
   });
   await page.waitForNetworkIdle();
-  // A home without tile frames would show no image and pass.
-  if (url === root && page.frames().length < 2) failures.push(`${url}: no tile frame opened`);
-  if (url === root) {
-    const last = await page.$$eval('link[rel="icon"]', (l) => l.at(-1)?.getAttribute("type"));
-    if (last !== "image/svg+xml") failures.push(`${url}: the last icon link is not the svg`);
-  }
+  if (url === root) await checkHome(page, url);
   for (const frame of page.frames().filter((f) => !f.detached)) {
     // A lazy image the page hides never loads, such as the header's night lockup on a light
     // page: a copy of it must decode instead.

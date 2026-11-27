@@ -50,19 +50,24 @@ export const palette = {
 for (const [mode, roles] of Object.entries(palette))
   for (const [role, hex] of Object.entries(roles))
     if (!hex)
-      throw new Error(`mail: brand tokens carry no ${mode} ${role} colour (brand peer range)`);
+      throw new Error(
+        `mail: The ${mode} ${role} colour is missing, so the mail cannot paint that role. Install a brand version within mail's peerDependencies range in package.json, or update the palette mapping in components/theme.ts to the current exported colour token if the installed version is in range.`,
+      );
 
 export type Role = keyof typeof palette.light;
 export const roles = Object.keys(palette.light) as Role[];
 
-function plain(name: keyof typeof tokens, pattern: RegExp): string {
+function plain(name: keyof typeof tokens, pattern: RegExp, expected: string): string {
   if (!pattern.test(tokens[name]))
-    throw new Error(`mail: brand token ${name} is no plain value (brand peer range)`);
+    throw new Error(
+      `mail: Brand token ${name} must be ${expected} to work in an inline mail style. Install a brand version within mail's peerDependencies range in package.json, or update the relevant plain() caller in components/theme.ts to use the current exported token if the installed version is in range.`,
+    );
   return tokens[name];
 }
 
 // A mail inlines these with no stylesheet behind them, so only a plain length holds.
-const literal = (name: keyof typeof tokens) => plain(name, /^[\d.]+(px|em)$/);
+const literal = (name: keyof typeof tokens) =>
+  plain(name, /^[\d.]+(px|em)$/, "a numeric px or em length");
 
 /** The corner a picture takes, as brand's shape rule (tokens.css) gives a picture in a mail. */
 export const corner = literal("--radius-sm");
@@ -71,7 +76,10 @@ export const corner = literal("--radius-sm");
 // honours no rem.
 function pixels(name: keyof typeof tokens): number {
   const rem = /^([\d.]+)rem$/.exec(tokens[name])?.[1];
-  if (!rem) throw new Error(`mail: brand token ${name} is no rem length (brand peer range)`);
+  if (!rem)
+    throw new Error(
+      `mail: The mail needs a rem length for brand token ${name} to convert it to pixels. Install a brand version within mail's peerDependencies range in package.json, or update the pixels() caller in components/theme.ts to use the current exported token if the installed version is in range.`,
+    );
   return Number(rem) * 16;
 }
 
@@ -83,11 +91,14 @@ const labelSize = pixels("--text-label");
 export const label = {
   fontFamily: fonts.mono,
   fontSize: `${labelSize}px`,
-  lineHeight: `${+(labelSize * Number(plain("--text-label--line-height", /^[\d.]+$/))).toFixed(2)}px`,
-  fontWeight: Number(plain("--type-label-weight", /^[1-9]00$/)),
+  lineHeight: `${+(labelSize * Number(plain("--text-label--line-height", /^[\d.]+$/, "a unitless number"))).toFixed(2)}px`,
+  fontWeight: Number(plain("--type-label-weight", /^[1-9]00$/, "a whole hundred from 100 to 900")),
   letterSpacing: literal("--tracking-label"),
-  textTransform: plain("--type-label-case", /^(uppercase|lowercase|none)$/) as
-    "uppercase" | "lowercase" | "none",
+  textTransform: plain(
+    "--type-label-case",
+    /^(uppercase|lowercase|none)$/,
+    "uppercase, lowercase or none",
+  ) as "uppercase" | "lowercase" | "none",
 };
 
 /** A label's words in the text part, in the case the HTML part sets them. */
@@ -110,5 +121,5 @@ export const unreachedColours = (html: string) =>
 const unreached = unreachedColours(signatureTemplate.html);
 if (unreached.length)
   throw new Error(
-    `mail: brand's mail signature paints ${unreached.join(", ")}, which no dark rule reaches (brand peer range)`,
+    `mail: The signature keeps its light colours in dark mode where it uses ${unreached.join(", ")}. Install a brand version within mail's peerDependencies range in package.json, or update the signature's colour mappings in the palette in components/theme.ts to use the current exported colour tokens if the installed version is in range.`,
   );

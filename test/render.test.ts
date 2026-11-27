@@ -1,10 +1,11 @@
-import { assert, describe, expect, test } from "vitest";
+import { afterEach, assert, describe, expect, test, vi } from "vitest";
 import { spawnSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { mkdirSync, mkdtempDisposableSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { colors, tokens } from "@hackersandwizards/brand/tokens";
 import { defined } from "@hackersandwizards/scaffolding/defined";
+import { rejection } from "@hackersandwizards/scaffolding/rejection";
 import { createElement, Fragment } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import type { BriefProps } from "../mails/Brief";
@@ -170,27 +171,77 @@ describe("renderBrief", () => {
   });
 });
 
+describe("brand theme diagnostics", () => {
+  afterEach(() => {
+    vi.doUnmock("@hackersandwizards/brand/tokens");
+    vi.doUnmock("node:fs");
+  });
+
+  test.each([
+    {
+      name: "--color-white",
+      colours: { "--color-white": undefined },
+      values: {},
+      message:
+        "mail: The light page colour is missing, so the mail cannot paint that role. Install a brand version within mail's peerDependencies range in package.json, or update the palette mapping in components/theme.ts to the current exported colour token if the installed version is in range.",
+    },
+    {
+      name: "--radius-sm",
+      colours: {},
+      values: { "--radius-sm": "var(--radius)" },
+      message:
+        "mail: Brand token --radius-sm must be a numeric px or em length to work in an inline mail style. Install a brand version within mail's peerDependencies range in package.json, or update the relevant plain() caller in components/theme.ts to use the current exported token if the installed version is in range.",
+    },
+    {
+      name: "--text-label",
+      colours: {},
+      values: { "--text-label": "12px" },
+      message:
+        "mail: The mail needs a rem length for brand token --text-label to convert it to pixels. Install a brand version within mail's peerDependencies range in package.json, or update the pixels() caller in components/theme.ts to use the current exported token if the installed version is in range.",
+    },
+  ])("explains how to fix an incompatible $name token", async ({ colours, values, message }) => {
+    vi.resetModules();
+    vi.doMock("@hackersandwizards/brand/tokens", async (importOriginal) => {
+      const original = await importOriginal<typeof import("@hackersandwizards/brand/tokens")>();
+      return {
+        colors: { ...original.colors, ...colours },
+        tokens: { ...original.tokens, ...values },
+      };
+    });
+    expect(await rejection(import("../components/theme"))).toBe(`Error: ${message}`);
+  });
+
+  test("explains how to repair a signature colour that stays light in dark mode", async () => {
+    vi.resetModules();
+    vi.doMock("node:fs", async (importOriginal) => {
+      const fs = await importOriginal<typeof import("node:fs")>();
+      return { ...fs, readFileSync: readSignatureFixture };
+    });
+    expect(await rejection(import("../components/theme"))).toBe(
+      "Error: mail: The signature keeps its light colours in dark mode where it uses color: #123456. Install a brand version within mail's peerDependencies range in package.json, or update the signature's colour mappings in the palette in components/theme.ts to use the current exported colour tokens if the installed version is in range.",
+    );
+  });
+});
+
+function readSignatureFixture(file: string, encoding: "utf-8") {
+  return file.endsWith("/mail-signature/template.html")
+    ? '<span style="color: #123456">Signature</span>'
+    : readFileSync(file, encoding);
+}
+
 describe("mail-render", () => {
   test("writes the HTML and the text part from a data file", async () => {
-    const cache = join(root, "node_modules", ".cache", "mail-test");
+    const cache = join(root, "node_modules", ".cache", "check-msgs");
     mkdirSync(cache, { recursive: true });
-    const dir = mkdtempSync(join(cache, "render-"));
-    try {
-      const out = join(dir, "brief");
-      const run = spawnSync(
-        "bun",
-        ["scripts/render.ts", "catalog/mails/brief.json", "--out", out],
-        {
-          cwd: root,
-          encoding: "utf-8",
-        },
-      );
-      expect(run.status).toBe(0);
-      expect(readFileSync(`${out}.html`, "utf-8")).toBe(mail.html);
-      expect(readFileSync(`${out}.txt`, "utf-8")).toBe(mail.text);
-    } finally {
-      rmSync(dir, { recursive: true });
-    }
+    using fixture = mkdtempDisposableSync(join(cache, "render-"));
+    const out = join(fixture.path, "brief");
+    const run = spawnSync("bun", ["scripts/render.ts", "catalog/mails/brief.json", "--out", out], {
+      cwd: root,
+      encoding: "utf-8",
+    });
+    expect(run.status).toBe(0);
+    expect(readFileSync(`${out}.html`, "utf-8")).toBe(mail.html);
+    expect(readFileSync(`${out}.txt`, "utf-8")).toBe(mail.text);
   });
 
   test("refuses a call without a data file", () => {
