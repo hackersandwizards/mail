@@ -16,6 +16,7 @@ export default {
     "scripts/frame-modes.ts",
     "scripts/modes.ts",
     "scripts/render.ts",
+    "test/browser/mail-page.ts",
   ],
   vitest: { ...base.vitest, configFile: "vitest.mutation.config.ts" },
 };

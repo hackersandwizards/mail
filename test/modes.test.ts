@@ -1,6 +1,6 @@
 import { ConnectionClosedError, ProtocolError } from "puppeteer-core";
 import { expect, test, vi } from "vitest";
-import { rejectAfterClosingMailPage } from "../scripts/modes";
+import { rejectAfterClosingMailPage } from "./browser/mail-page";
 
 const openError = new Error("navigation failed");
 const missingTarget = new ProtocolError();

@@ -17,8 +17,9 @@ import puppeteer, { ConnectionClosedError, type Browser, type Page } from "puppe
 import { MAX_IMAGE_WIDTH } from "../../components/Image";
 import { COLUMN_WIDTH, PHONE_WIDTH } from "../../components/MailShell";
 import { palette, roles } from "../../components/theme";
-import { MODES, launch, openMail, quit, type MailView, type Mode } from "../../scripts/modes";
+import { launch, quit } from "../../scripts/modes";
 import { parseBrief, renderBrief } from "../../scripts/render";
+import { MODES, openMail, type MailView, type Mode } from "./mail-page";
 
 // Each mail goes one folder down beside a link to brand at its package path, as in the built
 // catalog, so the image its data names by a relative path loads.
