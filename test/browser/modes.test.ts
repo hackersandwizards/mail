@@ -1,6 +1,5 @@
 // Set MAIL_SHOTS to a folder to save each view as a PNG named by mail, mode and width.
 import { assert, afterAll, beforeAll, describe, expect, test, vi } from "vitest";
-import { chromeBinary, INSTALL_HINT, NO_KEYCHAIN } from "@hackersandwizards/scaffolding/chrome";
 import { rejection } from "@hackersandwizards/scaffolding/rejection";
 import {
   mkdirSync,
@@ -13,13 +12,12 @@ import {
 } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import puppeteer, { ConnectionClosedError, type Browser, type Page } from "puppeteer-core";
+import { ConnectionClosedError, type Browser, type Page } from "puppeteer-core";
 import { MAX_IMAGE_WIDTH } from "../../components/Image";
 import { COLUMN_WIDTH, PHONE_WIDTH } from "../../components/MailShell";
 import { palette, roles } from "../../components/theme";
-import { launch, quit } from "../../scripts/modes";
 import { parseBrief, renderBrief } from "../../scripts/render";
-import { MODES, openMail, type MailView, type Mode } from "./mail-page";
+import { browserScope, MODES, openMail, type MailView, type Mode } from "./mail-page";
 
 // Each mail goes one folder down beside a link to brand at its package path, as in the built
 // catalog, so the image its data names by a relative path loads.
@@ -53,6 +51,7 @@ mails["widest-image"] = widest;
 const rgb = (hex: string) =>
   `rgb(${[1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(", ")})`;
 
+const suiteBrowser = browserScope();
 let browser: Browser;
 beforeAll(async () => {
   mkdirSync(dir);
@@ -63,11 +62,11 @@ beforeAll(async () => {
   );
   for (const [name, props] of Object.entries(mails))
     writeFileSync(join(dir, `${name}.html`), (await renderBrief(props)).html);
-  browser = await launch();
+  browser = await suiteBrowser.launch();
 });
 afterAll(async () => {
   try {
-    if (browser) await quit(browser);
+    await suiteBrowser.close();
   } finally {
     rmSync(tmp, { recursive: true });
   }
@@ -134,28 +133,19 @@ test.each([
   }
 });
 
-test("blocked images mode uses light colours even when Chrome defaults to dark mode", async () => {
-  const executablePath = chromeBinary();
-  assert(executablePath, INSTALL_HINT);
-  const darkBrowser = await puppeteer.launch({
-    executablePath,
-    args: [...NO_KEYCHAIN, "--force-dark-mode"],
+test("blocked images mode uses light colours even when Chrome defaults to dark mode", async ({
+  onTestFinished,
+}) => {
+  const scope = browserScope();
+  onTestFinished(scope.close);
+  const darkBrowser = await scope.launch(["--force-dark-mode"]);
+  const [blank] = await darkBrowser.pages();
+  expect(await blank.evaluate(() => matchMedia("(prefers-color-scheme: dark)").matches)).toBe(true);
+  const page = await openMail(darkBrowser, join(dir, "brief-bild.html"), {
+    mode: "noimg",
+    width: PHONE_WIDTH,
   });
-  try {
-    const [blank] = await darkBrowser.pages();
-    expect(await blank.evaluate(() => matchMedia("(prefers-color-scheme: dark)").matches)).toBe(
-      true,
-    );
-    const page = await openMail(darkBrowser, join(dir, "brief-bild.html"), {
-      mode: "noimg",
-      width: PHONE_WIDTH,
-    });
-    expect(await page.evaluate(() => matchMedia("(prefers-color-scheme: light)").matches)).toBe(
-      true,
-    );
-  } finally {
-    await quit(darkBrowser);
-  }
+  expect(await page.evaluate(() => matchMedia("(prefers-color-scheme: light)").matches)).toBe(true);
 });
 
 const display = {

@@ -3,14 +3,15 @@ import type { Browser } from "puppeteer-core";
 
 /** Chrome for Testing from scaffolding's `./chrome`, headless; CHROME_BINARY overrides. Puppeteer
  * loads only when a browser run starts. */
-export async function launch(): Promise<Browser> {
+export async function launch(args: string[] = [], signal?: AbortSignal): Promise<Browser> {
   const executablePath = chromeBinary();
   if (!executablePath) throw new Error(INSTALL_HINT);
   const { default: puppeteer } = await import("puppeteer-core");
   return puppeteer.launch({
     executablePath,
     headless: true,
-    args: ["--no-first-run", ...NO_KEYCHAIN],
+    args: ["--no-first-run", ...NO_KEYCHAIN, ...args],
+    signal,
   });
 }
 

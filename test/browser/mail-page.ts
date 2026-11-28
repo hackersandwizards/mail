@@ -1,5 +1,6 @@
 /** The CSS inversion filter approximates forced dark mode in Gmail on iOS and classic Outlook. */
 import type { Browser, Page } from "puppeteer-core";
+import { launch, quit } from "../../scripts/modes";
 import { INVERT } from "../../scripts/frame-modes";
 
 export const MODES = ["light", "dark", "invert", "noimg"] as const;
@@ -53,4 +54,25 @@ export async function rejectAfterClosingMailPage(
     });
   }
   throw error;
+}
+
+/** A launch that a hook Vitest runs after a timeout can close, the launch still pending included. */
+export function browserScope() {
+  const controller = new AbortController();
+  let browser: Browser | undefined;
+  return {
+    async launch(args?: string[]) {
+      const opened = await launch(args, controller.signal);
+      if (controller.signal.aborted) {
+        await quit(opened);
+        controller.signal.throwIfAborted();
+      }
+      browser = opened;
+      return opened;
+    },
+    async close() {
+      controller.abort();
+      if (browser) await quit(browser);
+    },
+  };
 }
